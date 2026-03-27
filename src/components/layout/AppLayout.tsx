@@ -1,23 +1,34 @@
-import { Link, NavLink, Outlet } from 'react-router-dom'
+import type { PropsWithChildren } from 'react'
 
-export function AppLayout() {
+interface AppLayoutProps extends PropsWithChildren {
+  isInitiativesActive: boolean
+  onGoToInitiatives: () => void
+}
+
+export function AppLayout({
+  children,
+  isInitiativesActive,
+  onGoToInitiatives,
+}: AppLayoutProps) {
   return (
     <div style={containerStyle}>
       <header style={headerStyle}>
-        <Link to="/initiatives" style={brandStyle}>
+        <button type="button" onClick={onGoToInitiatives} style={brandStyle}>
           Iniciativas App
-        </Link>
+        </button>
 
         <nav style={navStyle}>
-          <NavLink to="/initiatives" style={navLinkStyle}>
+          <button
+            type="button"
+            style={navButtonStyle(isInitiativesActive)}
+            onClick={onGoToInitiatives}
+          >
             Iniciativas
-          </NavLink>
+          </button>
         </nav>
       </header>
 
-      <main style={contentStyle}>
-        <Outlet />
-      </main>
+      <main style={contentStyle}>{children}</main>
     </div>
   )
 }
@@ -41,7 +52,10 @@ const headerStyle: React.CSSProperties = {
 const brandStyle: React.CSSProperties = {
   color: '#0f172a',
   fontWeight: 700,
-  textDecoration: 'none',
+  fontSize: '1rem',
+  border: 'none',
+  background: 'transparent',
+  cursor: 'pointer',
 }
 
 const navStyle: React.CSSProperties = {
@@ -49,9 +63,11 @@ const navStyle: React.CSSProperties = {
   gap: '12px',
 }
 
-const navLinkStyle = ({ isActive }: { isActive: boolean }): React.CSSProperties => ({
+const navButtonStyle = (isActive: boolean): React.CSSProperties => ({
   color: isActive ? '#1d4ed8' : '#334155',
-  textDecoration: 'none',
+  background: 'transparent',
+  border: 'none',
+  cursor: 'pointer',
   fontWeight: 600,
 })
 

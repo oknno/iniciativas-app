@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { useState } from 'react'
 import { AppLayout } from './components/layout/AppLayout'
 import { InitiativeComponentsPage } from './pages/initiative-components/InitiativeComponentsPage'
 import { InitiativeResultPage } from './pages/initiative-result/InitiativeResultPage'
@@ -6,20 +6,99 @@ import { InitiativeValuesPage } from './pages/initiative-values/InitiativeValues
 import { InitiativesPage } from './pages/initiatives/InitiativesPage'
 import { NewInitiativePage } from './pages/initiatives/NewInitiativePage'
 
+export type AppView =
+  | 'initiativesList'
+  | 'newInitiative'
+  | 'initiativeComponents'
+  | 'initiativeValues'
+  | 'initiativeResult'
+
 export default function App() {
+  const [view, setView] = useState<AppView>('initiativesList')
+  const [selectedInitiativeId, setSelectedInitiativeId] = useState<number | null>(null)
+
+  function openInitiativesList() {
+    setView('initiativesList')
+  }
+
+  function openNewInitiative() {
+    setView('newInitiative')
+  }
+
+  function openInitiativeComponents(initiativeId: number) {
+    setSelectedInitiativeId(initiativeId)
+    setView('initiativeComponents')
+  }
+
+  function openInitiativeValues(initiativeId: number) {
+    setSelectedInitiativeId(initiativeId)
+    setView('initiativeValues')
+  }
+
+  function openInitiativeResult(initiativeId: number) {
+    setSelectedInitiativeId(initiativeId)
+    setView('initiativeResult')
+  }
+
+  const currentPage = (() => {
+    switch (view) {
+      case 'initiativesList':
+        return (
+          <InitiativesPage
+            onCreateNewInitiative={openNewInitiative}
+            onOpenComponents={openInitiativeComponents}
+            onOpenValues={openInitiativeValues}
+            onOpenResult={openInitiativeResult}
+          />
+        )
+      case 'newInitiative':
+        return (
+          <NewInitiativePage
+            onCancel={openInitiativesList}
+            onSuccess={openInitiativesList}
+          />
+        )
+      case 'initiativeComponents':
+        return selectedInitiativeId === null ? (
+          <p>Selecione uma iniciativa antes de abrir os componentes.</p>
+        ) : (
+          <InitiativeComponentsPage
+            initiativeId={selectedInitiativeId}
+            onBackToInitiatives={openInitiativesList}
+            onOpenValues={openInitiativeValues}
+            onOpenResult={openInitiativeResult}
+          />
+        )
+      case 'initiativeValues':
+        return selectedInitiativeId === null ? (
+          <p>Selecione uma iniciativa antes de abrir os valores.</p>
+        ) : (
+          <InitiativeValuesPage
+            initiativeId={selectedInitiativeId}
+            onBackToInitiatives={openInitiativesList}
+            onOpenComponents={openInitiativeComponents}
+            onOpenResult={openInitiativeResult}
+          />
+        )
+      case 'initiativeResult':
+        return selectedInitiativeId === null ? (
+          <p>Selecione uma iniciativa antes de abrir o resultado.</p>
+        ) : (
+          <InitiativeResultPage
+            initiativeId={selectedInitiativeId}
+            onBackToInitiatives={openInitiativesList}
+            onOpenComponents={openInitiativeComponents}
+            onOpenValues={openInitiativeValues}
+          />
+        )
+      default:
+        return null
+    }
+  })()
+
   return (
-    <Routes>
-      <Route element={<AppLayout />}>
-        <Route path="/" element={<Navigate to="/initiatives" replace />} />
-        <Route path="/initiatives" element={<InitiativesPage />} />
-        <Route path="/initiatives/new" element={<NewInitiativePage />} />
-        <Route
-          path="/initiatives/:id/components"
-          element={<InitiativeComponentsPage />}
-        />
-        <Route path="/initiatives/:id/values" element={<InitiativeValuesPage />} />
-        <Route path="/initiatives/:id/result" element={<InitiativeResultPage />} />
-      </Route>
-    </Routes>
+    <AppLayout onGoToInitiatives={openInitiativesList} isInitiativesActive={view === 'initiativesList'}>
+      {currentPage}
+    </AppLayout>
   )
 }

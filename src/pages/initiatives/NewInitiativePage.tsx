@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
 import { createInitiative } from '../../services/initiativeService'
 import type { InitiativeStage, InitiativeStatus } from '../../types/initiative'
 
@@ -11,6 +10,11 @@ interface NewInitiativeFormState {
   status: InitiativeStatus
 }
 
+interface NewInitiativePageProps {
+  onCancel: () => void
+  onSuccess: () => void
+}
+
 const INITIAL_STATE: NewInitiativeFormState = {
   title: '',
   unidade: '',
@@ -19,8 +23,7 @@ const INITIAL_STATE: NewInitiativeFormState = {
   status: 'Ativa',
 }
 
-export function NewInitiativePage() {
-  const navigate = useNavigate()
+export function NewInitiativePage({ onCancel, onSuccess }: NewInitiativePageProps) {
   const [formState, setFormState] = useState<NewInitiativeFormState>(INITIAL_STATE)
   const [saving, setSaving] = useState(false)
 
@@ -30,7 +33,7 @@ export function NewInitiativePage() {
 
     try {
       await createInitiative(formState)
-      navigate('/initiatives')
+      onSuccess()
     } finally {
       setSaving(false)
     }
@@ -118,7 +121,9 @@ export function NewInitiativePage() {
           <button type="submit" disabled={saving}>
             {saving ? 'Salvando...' : 'Salvar iniciativa'}
           </button>
-          <Link to="/initiatives">Cancelar</Link>
+          <button type="button" onClick={onCancel}>
+            Cancelar
+          </button>
         </div>
       </form>
     </main>
