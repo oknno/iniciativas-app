@@ -174,7 +174,7 @@ app.get('/initiatives/:id/results', (req, res, next) => {
   }
 });
 
-app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+app.use((error: unknown, _req: express.Request, res: express.Response) => {
   if (error instanceof FunctionalError) {
     return res.status(error.statusCode).json({
       error: {

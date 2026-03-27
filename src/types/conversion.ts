@@ -1,13 +1,18 @@
-export type ConversionCode = string
+export type ConversionCode =
+  | 'COST_PER_FTE'
+  | 'COST_PER_KWH'
+  | 'COST_PER_TON'
+  | 'PRICE_PER_TON'
+  | 'COST_PER_HOUR'
+  | 'COST_PER_KG'
+  | 'COST_PER_M3'
+  | 'EXCHANGE_RATE'
+  | 'MARGIN_PER_TON'
 
 export interface ConversionMaster {
   id: number
   title: string
   code: ConversionCode
-  fromUnit: string
-  toUnit: string
-  factor: number
-  isActive?: boolean
-  created?: string
-  modified?: string
+  unit: string
+  isActive: boolean
 }

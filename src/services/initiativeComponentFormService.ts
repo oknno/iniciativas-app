@@ -1,24 +1,31 @@
+import type { ComponentMaster } from '../types/component'
 import type { FormulaMaster } from '../types/formula'
-import type { InitiativeComponentType } from '../types/initiativeComponent'
+import type { ComponentTypeCode } from '../types/component'
 
 export interface InitiativeComponentFormState {
-  componentType: InitiativeComponentType
+  componentType: ComponentTypeCode
   kpiCode: string
   conversionCode: string
   formulaCode: string
 }
 
 export const INITIAL_COMPONENT_FORM_STATE: InitiativeComponentFormState = {
-  componentType: 'KPI_BASED',
+  componentType: 'FTE_SAVING',
   kpiCode: '',
   conversionCode: '',
   formulaCode: 'MULTIPLIER',
 }
 
+function isFixedComponent(componentType: ComponentTypeCode, componentCatalog: ComponentMaster[]): boolean {
+  const component = componentCatalog.find((item) => item.componentType === componentType)
+  return component?.calculationType === 'FIXED'
+}
+
 export function normalizeComponentFormState(
   state: InitiativeComponentFormState,
+  componentCatalog: ComponentMaster[],
 ): InitiativeComponentFormState {
-  if (state.componentType === 'FIXED') {
+  if (isFixedComponent(state.componentType, componentCatalog)) {
     return {
       ...state,
       formulaCode: 'DIRECT_VALUE',
@@ -39,23 +46,26 @@ export function normalizeComponentFormState(
 
 export function validateComponentForm(
   data: InitiativeComponentFormState,
+  componentCatalog: ComponentMaster[],
 ): string | null {
-  if (data.componentType === 'KPI_BASED') {
+  const isFixed = isFixedComponent(data.componentType, componentCatalog)
+
+  if (!isFixed) {
     if (!data.kpiCode) {
-      return 'Componentes KPI_BASED exigem kpiCode.'
+      return 'Componentes KPI_BASED exigem KPI.'
     }
 
     if (!data.conversionCode) {
-      return 'Componentes KPI_BASED exigem conversionCode.'
+      return 'Componentes KPI_BASED exigem conversão.'
     }
 
     if (data.formulaCode !== 'MULTIPLIER') {
-      return 'Componentes KPI_BASED exigem formulaCode=MULTIPLIER na PoC.'
+      return 'Componentes KPI_BASED exigem fórmula MULTIPLIER na PoC.'
     }
   }
 
-  if (data.componentType === 'FIXED' && data.formulaCode !== 'DIRECT_VALUE') {
-    return 'Componentes FIXED exigem formulaCode=DIRECT_VALUE.'
+  if (isFixed && data.formulaCode !== 'DIRECT_VALUE') {
+    return 'Componentes FIXED exigem fórmula DIRECT_VALUE.'
   }
 
   return null
@@ -64,8 +74,9 @@ export function validateComponentForm(
 export function getAvailableFormulas(
   formState: InitiativeComponentFormState,
   formulas: FormulaMaster[],
+  componentCatalog: ComponentMaster[],
 ): FormulaMaster[] {
-  if (formState.componentType === 'KPI_BASED') {
+  if (!isFixedComponent(formState.componentType, componentCatalog)) {
     return formulas.filter((formula) => formula.code === 'MULTIPLIER')
   }
 

@@ -1,12 +1,11 @@
+import type { ComponentTypeCode } from './component'
 import type { ConversionCode } from './conversion'
 import type { FormulaCode } from './formula'
 import type { KPICode } from './kpi'
 
-export type InitiativeComponentType = 'KPI_BASED' | 'FIXED'
-
 export interface InitiativeComponent {
   initiativeId: number
-  componentType: InitiativeComponentType
+  componentType: ComponentTypeCode
   kpiCode?: KPICode
   conversionCode?: ConversionCode
   formulaCode: FormulaCode
