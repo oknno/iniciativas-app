@@ -1,5 +1,5 @@
-import { InitiativesPage } from './pages/initiatives/InitiativesPage'
+import { InitiativeComponentsPage } from './pages/initiative-components/InitiativeComponentsPage'
 
 export default function App() {
-  return <InitiativesPage />
+  return <InitiativeComponentsPage initiativeId={1} />
 }
