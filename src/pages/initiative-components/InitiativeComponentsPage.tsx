@@ -74,13 +74,18 @@ export function InitiativeComponentsPage({
     void loadData()
   }, [initiativeId])
 
+  const gainComponentCatalog = useMemo(
+    () => componentCatalog.filter((item) => item.direction > 0),
+    [componentCatalog],
+  )
+
   useEffect(() => {
-    setFormState((current) => normalizeComponentFormState(current, componentCatalog))
-  }, [formState.componentType, componentCatalog])
+    setFormState((current) => normalizeComponentFormState(current, gainComponentCatalog))
+  }, [formState.componentType, gainComponentCatalog])
 
   const selectedMasterComponent = useMemo(
-    () => componentCatalog.find((item) => item.componentType === formState.componentType),
-    [componentCatalog, formState.componentType],
+    () => gainComponentCatalog.find((item) => item.componentType === formState.componentType),
+    [gainComponentCatalog, formState.componentType],
   )
 
   function resetForm() {
@@ -92,7 +97,7 @@ export function InitiativeComponentsPage({
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    const error = validateComponentForm(formState, componentCatalog)
+    const error = validateComponentForm(formState, gainComponentCatalog)
     if (error) {
       setValidationError(error)
       return
@@ -140,17 +145,19 @@ export function InitiativeComponentsPage({
   }
 
   const availableFormulas = useMemo(
-    () => getAvailableFormulas(formState, formulaCatalog, componentCatalog),
-    [formState, formulaCatalog, componentCatalog],
+    () => getAvailableFormulas(formState, formulaCatalog, gainComponentCatalog),
+    [formState, formulaCatalog, gainComponentCatalog],
   )
 
+  const visibleGainComponents = useMemo(
+    () => components.filter((component) => {
+      const master = componentCatalog.find((item) => item.componentType === component.componentType)
+      return (master?.direction ?? 0) > 0
+    }),
+    [componentCatalog, components],
+  )
+  const hiddenNonGainCount = components.length - visibleGainComponents.length
   const isFixedComponent = selectedMasterComponent?.calculationType === 'FIXED'
-  const totalComponents = components.length
-  const kpiBasedComponents = components.filter((component) => {
-    const master = componentCatalog.find((item) => item.componentType === component.componentType)
-    return master?.calculationType === 'KPI_BASED'
-  }).length
-  const fixedComponents = totalComponents - kpiBasedComponents
 
   return (
     <main>
@@ -181,25 +188,15 @@ export function InitiativeComponentsPage({
         <strong>Você está preenchendo ganho.</strong> Não misture custos (ex.: compra de software) com ganho nesta etapa.
       </section>
 
-      <section style={cardsStyle}>
-        <article style={cardStyle}>
-          <strong style={cardValueStyle}>{totalComponents}</strong>
-          <span style={cardLabelStyle}>Componentes cadastrados</span>
-        </article>
-        <article style={cardStyle}>
-          <strong style={cardValueStyle}>{kpiBasedComponents}</strong>
-          <span style={cardLabelStyle}>KPI-based</span>
-        </article>
-        <article style={cardStyle}>
-          <strong style={cardValueStyle}>{fixedComponents}</strong>
-          <span style={cardLabelStyle}>Fixos</span>
-        </article>
-      </section>
-
       {loading ? (
         <p>Carregando componentes...</p>
       ) : (
         <>
+          {hiddenNonGainCount > 0 ? (
+            <section className="flow-guidance" style={{ marginBottom: '12px' }}>
+              <strong>{hiddenNonGainCount} item(ns) de custo foram ocultados nesta etapa.</strong> Custos/compensações devem ser preenchidos somente na etapa 2.
+            </section>
+          ) : null}
           <section style={{ marginBottom: '24px' }}>
             <h2 style={{ marginTop: 0 }}>KPIs/componentes de ganho</h2>
             <div style={listPanelStyle}>
@@ -216,15 +213,16 @@ export function InitiativeComponentsPage({
                   </tr>
                 </thead>
                 <tbody>
-                  {components.length === 0 ? (
+                  {visibleGainComponents.length === 0 ? (
                     <tr>
                       <td style={tdStyle} colSpan={7}>
                         Nenhum componente cadastrado.
                       </td>
                     </tr>
                   ) : (
-                    components.map((component, index) => {
+                    visibleGainComponents.map((component, index) => {
                       const master = componentCatalog.find((item) => item.componentType === component.componentType)
+                      const originalIndex = components.findIndex((current) => current === component)
                       return (
                         <tr key={`${component.initiativeId}-${index}`}>
                           <td style={tdStyle}>{index + 1}</td>
@@ -234,13 +232,13 @@ export function InitiativeComponentsPage({
                           <td style={tdStyle}>{component.conversionCode ?? '-'}</td>
                           <td style={tdStyle}>{component.formulaCode}</td>
                           <td style={tdStyle}>
-                            <button type="button" className="btn" onClick={() => handleEdit(index)}>
+                            <button type="button" className="btn" onClick={() => handleEdit(originalIndex)}>
                               Editar
                             </button>
                             <button
                               type="button"
                               className="btn"
-                              onClick={() => void handleDelete(index)}
+                              onClick={() => void handleDelete(originalIndex)}
                               style={{ marginLeft: '8px' }}
                             >
                               Excluir
@@ -269,7 +267,7 @@ export function InitiativeComponentsPage({
                     }))
                   }
                 >
-                  {componentCatalog.map((component) => (
+                  {gainComponentCatalog.map((component) => (
                     <option key={component.componentType} value={component.componentType}>
                       {component.title} ({component.componentType})
                     </option>
@@ -357,30 +355,6 @@ export function InitiativeComponentsPage({
       )}
     </main>
   )
-}
-
-const cardsStyle: React.CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(3, minmax(160px, 1fr))',
-  gap: '10px',
-  marginBottom: '14px',
-}
-
-const cardStyle: React.CSSProperties = {
-  background: '#fff',
-  border: '1px solid #e5e7eb',
-  borderRadius: '12px',
-  padding: '12px',
-  display: 'grid',
-}
-
-const cardValueStyle: React.CSSProperties = {
-  fontSize: '22px',
-}
-
-const cardLabelStyle: React.CSSProperties = {
-  color: '#6b7280',
-  fontSize: '13px',
 }
 
 const listPanelStyle: React.CSSProperties = {
