@@ -2,7 +2,19 @@ import { useEffect, useState } from 'react'
 import { getInitiatives } from '../../services/initiativeService'
 import type { Initiative } from '../../types/initiative'
 
-export function InitiativesPage() {
+interface InitiativesPageProps {
+  onCreateNewInitiative: () => void
+  onOpenComponents: (initiativeId: number) => void
+  onOpenValues: (initiativeId: number) => void
+  onOpenResult: (initiativeId: number) => void
+}
+
+export function InitiativesPage({
+  onCreateNewInitiative,
+  onOpenComponents,
+  onOpenValues,
+  onOpenResult,
+}: InitiativesPageProps) {
   const [initiatives, setInitiatives] = useState<Initiative[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -16,7 +28,7 @@ export function InitiativesPage() {
       }
     }
 
-    loadInitiatives()
+    void loadInitiatives()
   }, [])
 
   return (
@@ -31,9 +43,7 @@ export function InitiativesPage() {
       >
         <div>
           <h1 style={{ margin: 0 }}>Iniciativas</h1>
-          <p style={{ marginTop: '8px' }}>
-            PoC v0001 do sistema de iniciativas
-          </p>
+          <p style={{ marginTop: '8px' }}>PoC v0001 do sistema de iniciativas</p>
         </div>
 
         <button
@@ -45,6 +55,7 @@ export function InitiativesPage() {
             background: '#fff',
             cursor: 'pointer',
           }}
+          onClick={onCreateNewInitiative}
         >
           Nova iniciativa
         </button>
@@ -68,6 +79,7 @@ export function InitiativesPage() {
               <th style={thStyle}>Responsável</th>
               <th style={thStyle}>Stage</th>
               <th style={thStyle}>Status</th>
+              <th style={thStyle}>Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -79,6 +91,25 @@ export function InitiativesPage() {
                 <td style={tdStyle}>{initiative.responsavel}</td>
                 <td style={tdStyle}>{initiative.stage}</td>
                 <td style={tdStyle}>{initiative.status}</td>
+                <td style={tdStyle}>
+                  <button type="button" onClick={() => onOpenComponents(initiative.id)}>
+                    Componentes
+                  </button>
+                  <button
+                    type="button"
+                    style={{ marginLeft: '8px' }}
+                    onClick={() => onOpenValues(initiative.id)}
+                  >
+                    Valores
+                  </button>
+                  <button
+                    type="button"
+                    style={{ marginLeft: '8px' }}
+                    onClick={() => onOpenResult(initiative.id)}
+                  >
+                    Resultado
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>

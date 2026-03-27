@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
 import { getComponentMasterCatalog } from '../../services/componentMasterService'
 import { getConversionMasterCatalog } from '../../services/conversionMasterService'
 import { getFormulaMasterCatalog } from '../../services/formulaMasterService'
@@ -23,10 +22,19 @@ import type { FormulaMaster } from '../../types/formula'
 import type { InitiativeComponentType, InitiativeComponent } from '../../types/initiativeComponent'
 import type { KpiMaster } from '../../types/kpi'
 
-export function InitiativeComponentsPage() {
-  const params = useParams<{ id: string }>()
-  const initiativeId = Number(params.id)
+interface InitiativeComponentsPageProps {
+  initiativeId: number
+  onBackToInitiatives: () => void
+  onOpenValues: (initiativeId: number) => void
+  onOpenResult: (initiativeId: number) => void
+}
 
+export function InitiativeComponentsPage({
+  initiativeId,
+  onBackToInitiatives,
+  onOpenValues,
+  onOpenResult,
+}: InitiativeComponentsPageProps) {
   const [components, setComponents] = useState<InitiativeComponent[]>([])
   const [componentCatalog, setComponentCatalog] = useState<ComponentMaster[]>([])
   const [kpiCatalog, setKpiCatalog] = useState<KpiMaster[]>([])
@@ -40,12 +48,9 @@ export function InitiativeComponentsPage() {
   const [validationError, setValidationError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!Number.isFinite(initiativeId)) {
-      setLoading(false)
-      return
-    }
-
     async function loadData() {
+      setLoading(true)
+
       try {
         const [items, component, kpi, conversion, formula] = await Promise.all([
           listInitiativeComponents(initiativeId),
@@ -133,10 +138,6 @@ export function InitiativeComponentsPage() {
     [formState, formulaCatalog],
   )
 
-  if (!Number.isFinite(initiativeId)) {
-    return <p>ID de iniciativa inválido.</p>
-  }
-
   return (
     <main>
       <header style={{ marginBottom: '24px' }}>
@@ -145,9 +146,15 @@ export function InitiativeComponentsPage() {
       </header>
 
       <div style={{ marginBottom: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-        <Link to="/initiatives">Voltar para iniciativas</Link>
-        <Link to={`/initiatives/${initiativeId}/values`}>Valores</Link>
-        <Link to={`/initiatives/${initiativeId}/result`}>Resultado</Link>
+        <button type="button" onClick={onBackToInitiatives}>
+          Voltar para iniciativas
+        </button>
+        <button type="button" onClick={() => onOpenValues(initiativeId)}>
+          Valores
+        </button>
+        <button type="button" onClick={() => onOpenResult(initiativeId)}>
+          Resultado
+        </button>
       </div>
 
       {loading ? (
