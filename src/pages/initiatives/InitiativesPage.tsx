@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { getInitiatives } from '../../services/initiativeService'
 import type { Initiative } from '../../types/initiative'
 
@@ -17,11 +16,11 @@ export function InitiativesPage() {
       }
     }
 
-    void loadInitiatives()
+    loadInitiatives()
   }, [])
 
   return (
-    <main>
+    <main style={{ padding: '24px', fontFamily: 'Arial, sans-serif' }}>
       <header
         style={{
           display: 'flex',
@@ -37,20 +36,18 @@ export function InitiativesPage() {
           </p>
         </div>
 
-        <Link
-          to="/initiatives/new"
+        <button
+          type="button"
           style={{
             padding: '10px 16px',
             border: '1px solid #ccc',
             borderRadius: '8px',
             background: '#fff',
             cursor: 'pointer',
-            textDecoration: 'none',
-            color: '#111827',
           }}
         >
           Nova iniciativa
-        </Link>
+        </button>
       </header>
 
       {loading ? (
@@ -71,7 +68,6 @@ export function InitiativesPage() {
               <th style={thStyle}>Responsável</th>
               <th style={thStyle}>Stage</th>
               <th style={thStyle}>Status</th>
-              <th style={thStyle}>Fluxo</th>
             </tr>
           </thead>
           <tbody>
@@ -83,13 +79,6 @@ export function InitiativesPage() {
                 <td style={tdStyle}>{initiative.responsavel}</td>
                 <td style={tdStyle}>{initiative.stage}</td>
                 <td style={tdStyle}>{initiative.status}</td>
-                <td style={tdStyle}>
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    <Link to={`/initiatives/${initiative.id}/components`}>Componentes</Link>
-                    <Link to={`/initiatives/${initiative.id}/values`}>Valores</Link>
-                    <Link to={`/initiatives/${initiative.id}/result`}>Resultado</Link>
-                  </div>
-                </td>
               </tr>
             ))}
           </tbody>
