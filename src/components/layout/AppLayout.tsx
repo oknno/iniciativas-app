@@ -1,8 +1,6 @@
 import type { PropsWithChildren } from 'react'
 
-interface AppLayoutProps extends PropsWithChildren {}
-
-export function AppLayout({ children }: AppLayoutProps) {
+export function AppLayout({ children }: PropsWithChildren) {
   return (
     <div className="capex-app-shell">
       <div className="capex-app">

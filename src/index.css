@@ -57,6 +57,37 @@ textarea {
   padding: 16px 18px;
 }
 
+.capex-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.capex-topbar h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.capex-topbar p {
+  margin: 4px 0 0;
+  color: #4b5563;
+}
+
+.capex-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .capex-header {
   background: #ffffff;
   border-bottom: 1px solid #e5e7eb;

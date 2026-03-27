@@ -57,7 +57,7 @@ export function InitiativesPage({
 
   return (
     <main style={{ fontFamily: 'Arial, sans-serif' }}>
-      <header style={headerStyle}>
+      <header className="capex-topbar">
         <div>
           <h1 style={{ margin: 0 }}>Jornada das iniciativas</h1>
           <p style={{ marginTop: '8px', color: '#4b5563' }}>
@@ -65,9 +65,11 @@ export function InitiativesPage({
           </p>
         </div>
 
-        <button type="button" className="btn primary" onClick={onCreateNewInitiative}>
-          Nova iniciativa
-        </button>
+        <div className="capex-topbar-actions">
+          <button type="button" className="btn primary" onClick={onCreateNewInitiative}>
+            Nova iniciativa
+          </button>
+        </div>
       </header>
 
       <section style={kpiCardsStyle}>
@@ -165,13 +167,6 @@ export function InitiativesPage({
       )}
     </main>
   )
-}
-
-const headerStyle: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  marginBottom: '16px',
 }
 
 const kpiCardsStyle: React.CSSProperties = {
