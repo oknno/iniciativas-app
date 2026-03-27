@@ -1,7 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
 import { getComponentMasterCatalog } from '../../services/componentMasterService'
 import { getConversionMasterCatalog } from '../../services/conversionMasterService'
 import { getFormulaMasterCatalog } from '../../services/formulaMasterService'
+import {
+  getAvailableFormulas,
+  INITIAL_COMPONENT_FORM_STATE,
+  normalizeComponentFormState,
+  validateComponentForm,
+  type InitiativeComponentFormState,
+} from '../../services/initiativeComponentFormService'
 import {
   createInitiativeComponent,
   listInitiativeComponents,
@@ -12,44 +20,31 @@ import { getKpiMasterCatalog } from '../../services/kpiMasterService'
 import type { ComponentMaster } from '../../types/component'
 import type { ConversionMaster } from '../../types/conversion'
 import type { FormulaMaster } from '../../types/formula'
-import type {
-  InitiativeComponent,
-  InitiativeComponentType,
-} from '../../types/initiativeComponent'
+import type { InitiativeComponentType, InitiativeComponent } from '../../types/initiativeComponent'
 import type { KpiMaster } from '../../types/kpi'
 
-interface InitiativeComponentsPageProps {
-  initiativeId?: number
-}
+export function InitiativeComponentsPage() {
+  const params = useParams<{ id: string }>()
+  const initiativeId = Number(params.id)
 
-interface FormState {
-  componentType: InitiativeComponentType
-  kpiCode: string
-  conversionCode: string
-  formulaCode: string
-}
-
-const INITIAL_FORM_STATE: FormState = {
-  componentType: 'KPI_BASED',
-  kpiCode: '',
-  conversionCode: '',
-  formulaCode: 'MULTIPLIER',
-}
-
-export function InitiativeComponentsPage({
-  initiativeId = 1,
-}: InitiativeComponentsPageProps) {
   const [components, setComponents] = useState<InitiativeComponent[]>([])
   const [componentCatalog, setComponentCatalog] = useState<ComponentMaster[]>([])
   const [kpiCatalog, setKpiCatalog] = useState<KpiMaster[]>([])
   const [conversionCatalog, setConversionCatalog] = useState<ConversionMaster[]>([])
   const [formulaCatalog, setFormulaCatalog] = useState<FormulaMaster[]>([])
   const [loading, setLoading] = useState(true)
-  const [formState, setFormState] = useState<FormState>(INITIAL_FORM_STATE)
+  const [formState, setFormState] = useState<InitiativeComponentFormState>(
+    INITIAL_COMPONENT_FORM_STATE,
+  )
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [validationError, setValidationError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (!Number.isFinite(initiativeId)) {
+      setLoading(false)
+      return
+    }
+
     async function loadData() {
       try {
         const [items, component, kpi, conversion, formula] = await Promise.all([
@@ -65,7 +60,6 @@ export function InitiativeComponentsPage({
         setKpiCatalog(kpi)
         setConversionCatalog(conversion)
         setFormulaCatalog(formula)
-
       } finally {
         setLoading(false)
       }
@@ -75,44 +69,11 @@ export function InitiativeComponentsPage({
   }, [initiativeId])
 
   useEffect(() => {
-    if (formState.componentType === 'KPI_BASED' && formState.formulaCode === 'DIRECT_VALUE') {
-      setFormState((current) => ({ ...current, formulaCode: 'MULTIPLIER' }))
-    }
-
-    if (formState.componentType === 'FIXED') {
-      setFormState((current) => ({
-        ...current,
-        formulaCode: 'DIRECT_VALUE',
-        kpiCode: '',
-        conversionCode: '',
-      }))
-    }
+    setFormState((current) => normalizeComponentFormState(current))
   }, [formState.componentType, formState.formulaCode])
 
-  function validateForm(data: FormState): string | null {
-    if (data.componentType === 'KPI_BASED') {
-      if (!data.kpiCode) {
-        return 'Componentes KPI_BASED exigem kpiCode.'
-      }
-
-      if (!data.conversionCode) {
-        return 'Componentes KPI_BASED exigem conversionCode.'
-      }
-
-      if (data.formulaCode !== 'MULTIPLIER') {
-        return 'Componentes KPI_BASED exigem formulaCode=MULTIPLIER na PoC.'
-      }
-    }
-
-    if (data.componentType === 'FIXED' && data.formulaCode !== 'DIRECT_VALUE') {
-      return 'Componentes FIXED exigem formulaCode=DIRECT_VALUE.'
-    }
-
-    return null
-  }
-
   function resetForm() {
-    setFormState(INITIAL_FORM_STATE)
+    setFormState(INITIAL_COMPONENT_FORM_STATE)
     setEditingIndex(null)
     setValidationError(null)
   }
@@ -120,7 +81,7 @@ export function InitiativeComponentsPage({
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    const error = validateForm(formState)
+    const error = validateComponentForm(formState)
     if (error) {
       setValidationError(error)
       return
@@ -167,20 +128,27 @@ export function InitiativeComponentsPage({
     }
   }
 
-  const availableFormulas = formulaCatalog.filter((formula) => {
-    if (formState.componentType === 'KPI_BASED') {
-      return formula.code === 'MULTIPLIER'
-    }
+  const availableFormulas = useMemo(
+    () => getAvailableFormulas(formState, formulaCatalog),
+    [formState, formulaCatalog],
+  )
 
-    return formula.code === 'DIRECT_VALUE'
-  })
+  if (!Number.isFinite(initiativeId)) {
+    return <p>ID de iniciativa inválido.</p>
+  }
 
   return (
-    <main style={{ padding: '24px', fontFamily: 'Arial, sans-serif' }}>
+    <main>
       <header style={{ marginBottom: '24px' }}>
         <h1 style={{ margin: 0 }}>Componentes da iniciativa #{initiativeId}</h1>
         <p style={{ marginTop: '8px' }}>Cadastro de componentes por tipo com validações mínimas da PoC.</p>
       </header>
+
+      <div style={{ marginBottom: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        <Link to="/initiatives">Voltar para iniciativas</Link>
+        <Link to={`/initiatives/${initiativeId}/values`}>Valores</Link>
+        <Link to={`/initiatives/${initiativeId}/result`}>Resultado</Link>
+      </div>
 
       {loading ? (
         <p>Carregando componentes...</p>
