@@ -19,8 +19,11 @@ import { getKpiMasterCatalog } from '../../services/kpiMasterService'
 import type { ComponentMaster } from '../../types/component'
 import type { ConversionMaster } from '../../types/conversion'
 import type { FormulaMaster } from '../../types/formula'
-import type { InitiativeComponentType, InitiativeComponent } from '../../types/initiativeComponent'
+import type { InitiativeComponent } from '../../types/initiativeComponent'
 import type { KpiMaster } from '../../types/kpi'
+import type { ConversionCode } from '../../types/conversion'
+import type { FormulaCode } from '../../types/formula'
+import type { KPICode } from '../../types/kpi'
 
 interface InitiativeComponentsPageProps {
   initiativeId: number
@@ -74,8 +77,13 @@ export function InitiativeComponentsPage({
   }, [initiativeId])
 
   useEffect(() => {
-    setFormState((current) => normalizeComponentFormState(current))
-  }, [formState.componentType, formState.formulaCode])
+    setFormState((current) => normalizeComponentFormState(current, componentCatalog))
+  }, [formState.componentType, componentCatalog])
+
+  const selectedMasterComponent = useMemo(
+    () => componentCatalog.find((item) => item.componentType === formState.componentType),
+    [componentCatalog, formState.componentType],
+  )
 
   function resetForm() {
     setFormState(INITIAL_COMPONENT_FORM_STATE)
@@ -86,7 +94,7 @@ export function InitiativeComponentsPage({
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    const error = validateComponentForm(formState)
+    const error = validateComponentForm(formState, componentCatalog)
     if (error) {
       setValidationError(error)
       return
@@ -94,9 +102,9 @@ export function InitiativeComponentsPage({
 
     const payload = {
       componentType: formState.componentType,
-      kpiCode: formState.kpiCode || undefined,
-      conversionCode: formState.conversionCode || undefined,
-      formulaCode: formState.formulaCode,
+      kpiCode: (formState.kpiCode || undefined) as KPICode | undefined,
+      conversionCode: (formState.conversionCode || undefined) as ConversionCode | undefined,
+      formulaCode: formState.formulaCode as FormulaCode,
     }
 
     if (editingIndex === null) {
@@ -134,15 +142,17 @@ export function InitiativeComponentsPage({
   }
 
   const availableFormulas = useMemo(
-    () => getAvailableFormulas(formState, formulaCatalog),
-    [formState, formulaCatalog],
+    () => getAvailableFormulas(formState, formulaCatalog, componentCatalog),
+    [formState, formulaCatalog, componentCatalog],
   )
+
+  const isFixedComponent = selectedMasterComponent?.calculationType === 'FIXED'
 
   return (
     <main>
       <header style={{ marginBottom: '24px' }}>
         <h1 style={{ margin: 0 }}>Componentes da iniciativa #{initiativeId}</h1>
-        <p style={{ marginTop: '8px' }}>Cadastro de componentes por tipo com validações mínimas da PoC.</p>
+        <p style={{ marginTop: '8px' }}>Configure os componentes positivos/negativos que formam o ganho.</p>
       </header>
 
       <div style={{ marginBottom: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -167,7 +177,8 @@ export function InitiativeComponentsPage({
               <thead>
                 <tr>
                   <th style={thStyle}>#</th>
-                  <th style={thStyle}>Tipo</th>
+                  <th style={thStyle}>Componente</th>
+                  <th style={thStyle}>Tipo cálculo</th>
                   <th style={thStyle}>KPI</th>
                   <th style={thStyle}>Conversão</th>
                   <th style={thStyle}>Fórmula</th>
@@ -177,32 +188,36 @@ export function InitiativeComponentsPage({
               <tbody>
                 {components.length === 0 ? (
                   <tr>
-                    <td style={tdStyle} colSpan={6}>
+                    <td style={tdStyle} colSpan={7}>
                       Nenhum componente cadastrado.
                     </td>
                   </tr>
                 ) : (
-                  components.map((component, index) => (
-                    <tr key={`${component.initiativeId}-${index}`}>
-                      <td style={tdStyle}>{index + 1}</td>
-                      <td style={tdStyle}>{component.componentType}</td>
-                      <td style={tdStyle}>{component.kpiCode ?? '-'}</td>
-                      <td style={tdStyle}>{component.conversionCode ?? '-'}</td>
-                      <td style={tdStyle}>{component.formulaCode}</td>
-                      <td style={tdStyle}>
-                        <button type="button" onClick={() => handleEdit(index)}>
-                          Editar
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => void handleDelete(index)}
-                          style={{ marginLeft: '8px' }}
-                        >
-                          Excluir
-                        </button>
-                      </td>
-                    </tr>
-                  ))
+                  components.map((component, index) => {
+                    const master = componentCatalog.find((item) => item.componentType === component.componentType)
+                    return (
+                      <tr key={`${component.initiativeId}-${index}`}>
+                        <td style={tdStyle}>{index + 1}</td>
+                        <td style={tdStyle}>{component.componentType}</td>
+                        <td style={tdStyle}>{master?.calculationType ?? '-'}</td>
+                        <td style={tdStyle}>{component.kpiCode ?? '-'}</td>
+                        <td style={tdStyle}>{component.conversionCode ?? '-'}</td>
+                        <td style={tdStyle}>{component.formulaCode}</td>
+                        <td style={tdStyle}>
+                          <button type="button" onClick={() => handleEdit(index)}>
+                            Editar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void handleDelete(index)}
+                            style={{ marginLeft: '8px' }}
+                          >
+                            Excluir
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })
                 )}
               </tbody>
             </table>
@@ -212,19 +227,19 @@ export function InitiativeComponentsPage({
             <h2 style={{ marginTop: 0 }}>{editingIndex === null ? 'Novo componente' : `Editando componente #${editingIndex + 1}`}</h2>
             <form onSubmit={(event) => void handleSubmit(event)} style={formStyle}>
               <label style={labelStyle}>
-                Tipo do componente
+                Componente
                 <select
                   value={formState.componentType}
                   onChange={(event) =>
                     setFormState((current) => ({
                       ...current,
-                      componentType: event.target.value as InitiativeComponentType,
+                      componentType: event.target.value as InitiativeComponent['componentType'],
                     }))
                   }
                 >
                   {componentCatalog.map((component) => (
-                    <option key={component.code} value={component.calculationType}>
-                      {component.calculationType}
+                    <option key={component.componentType} value={component.componentType}>
+                      {component.title} ({component.componentType})
                     </option>
                   ))}
                 </select>
@@ -237,7 +252,7 @@ export function InitiativeComponentsPage({
                   onChange={(event) =>
                     setFormState((current) => ({ ...current, kpiCode: event.target.value }))
                   }
-                  disabled={formState.componentType === 'FIXED'}
+                  disabled={isFixedComponent}
                 >
                   <option value="">Selecione...</option>
                   {kpiCatalog.map((kpi) => (
@@ -258,7 +273,7 @@ export function InitiativeComponentsPage({
                       conversionCode: event.target.value,
                     }))
                   }
-                  disabled={formState.componentType === 'FIXED'}
+                  disabled={isFixedComponent}
                 >
                   <option value="">Selecione...</option>
                   {conversionCatalog.map((conversion) => (

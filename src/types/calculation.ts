@@ -1,47 +1,52 @@
-import type { Direction } from './component'
+import type { CalculationType, ComponentTypeCode, Direction } from './component'
+import type { ConversionCode } from './conversion'
+import type { FormulaCode } from './formula'
+import type { KPICode } from './kpi'
 
-export type CalculationPeriod = string
-
-export type MonthlyMetricValues = Record<CalculationPeriod, Record<number, number | undefined>>
-
-export interface InitiativeCalculationComponentConfig {
-  componentId: number
-  calculationType: 'KPI_BASED' | 'FIXED'
-  formulaType: 'MULTIPLIER' | 'DIRECT_VALUE'
-  direction: Direction
-  kpiId?: number
-  conversionId?: number
-}
-
-export interface InitiativeCalculationConfiguration {
-  components: InitiativeCalculationComponentConfig[]
-}
-
-export interface InitiativeCalculationMonthlyValues {
-  kpiValues: MonthlyMetricValues
-  componentValues: MonthlyMetricValues
-  conversionValues: MonthlyMetricValues
-}
-
-export interface InitiativeCalculationInput {
+export interface InitiativeValueBase {
   initiativeId: number
-  configuration: InitiativeCalculationConfiguration
-  monthlyValues: InitiativeCalculationMonthlyValues
+  year: number
+  month: number
+  value: number
 }
 
-export interface InitiativeComponentMonthlyResult {
-  componentId: number
-  period: CalculationPeriod
+export interface KpiValueInput extends InitiativeValueBase {
+  kpiCode: KPICode
+}
+
+export interface ComponentValueInput extends InitiativeValueBase {
+  componentType: ComponentTypeCode
+}
+
+export interface ConversionValue {
+  conversionCode: ConversionCode
+  year: number
+  month: number
+  value: number
+  scenario?: string
+}
+
+export interface InitiativeComponentConfig {
+  componentType: ComponentTypeCode
+  calculationType: CalculationType
   direction: Direction
-  rawValue: number
-  conversionValue?: number
-  finalValue: number
-  usedDefaultZero: boolean
+  formulaCode: FormulaCode
+  kpiCode?: KPICode
+  conversionCode?: ConversionCode
 }
 
-export interface InitiativeMonthlyGainResult {
+export interface ComponentMonthlyCalculationResult {
+  componentType: ComponentTypeCode
+  year: number
+  month: number
+  componentValue: number
+  signedValue: number
+}
+
+export interface MonthlyGainResult {
   initiativeId: number
-  period: CalculationPeriod
-  componentResults: InitiativeComponentMonthlyResult[]
-  monthlyGain: number
+  year: number
+  month: number
+  gainValue: number
+  components: ComponentMonthlyCalculationResult[]
 }

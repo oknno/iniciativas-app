@@ -8,10 +8,15 @@ const initiativeComponentsStore = new Map<number, InitiativeComponent[]>([
     [
       {
         initiativeId: 1,
-        componentType: 'KPI_BASED',
-        kpiCode: 'REVENUE_INCREMENTAL',
-        conversionCode: 'THOUSAND_TO_UNIT',
+        componentType: 'FTE_SAVING',
+        kpiCode: 'FTE_REDUCTION',
+        conversionCode: 'COST_PER_FTE',
         formulaCode: 'MULTIPLIER',
+      },
+      {
+        initiativeId: 1,
+        componentType: 'SOFTWARE_COST',
+        formulaCode: 'DIRECT_VALUE',
       },
     ],
   ],

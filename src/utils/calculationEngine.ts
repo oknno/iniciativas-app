@@ -1,104 +1,113 @@
 import type {
-  CalculationPeriod,
-  InitiativeCalculationComponentConfig,
-  InitiativeCalculationInput,
-  InitiativeComponentMonthlyResult,
-  InitiativeMonthlyGainResult,
-  MonthlyMetricValues,
+  ComponentValueInput,
+  ConversionValue,
+  KpiValueInput,
+  MonthlyGainResult,
 } from '../types/calculation'
+import type { ComponentMaster } from '../types/component'
+import type { InitiativeComponent } from '../types/initiativeComponent'
 
-function getMetricValue(values: MonthlyMetricValues, period: CalculationPeriod, metricId?: number) {
-  if (metricId == null) {
-    return { value: 0, usedDefaultZero: true }
-  }
-
-  const value = values[period]?.[metricId]
-  if (value == null) {
-    return { value: 0, usedDefaultZero: true }
-  }
-
-  return { value, usedDefaultZero: false }
+function periodKey(year: number, month: number): string {
+  return `${year}-${String(month).padStart(2, '0')}`
 }
 
-function calculateComponentValue(
-  component: InitiativeCalculationComponentConfig,
-  period: CalculationPeriod,
-  input: InitiativeCalculationInput,
-): InitiativeComponentMonthlyResult {
-  const { monthlyValues } = input
+function collectPeriods(
+  kpiValues: KpiValueInput[],
+  componentValues: ComponentValueInput[],
+  conversionValues: ConversionValue[],
+): Array<{ year: number; month: number }> {
+  const periodMap = new Map<string, { year: number; month: number }>()
 
-  if (component.calculationType === 'KPI_BASED' && component.formulaType === 'MULTIPLIER') {
-    const kpi = getMetricValue(monthlyValues.kpiValues, period, component.kpiId)
-    const conversion = getMetricValue(monthlyValues.conversionValues, period, component.conversionId)
-
-    if (component.conversionId != null && conversion.usedDefaultZero) {
-      throw new Error(
-        `Configuração inválida: conversão ${component.conversionId} ausente para o mês ${period}.`,
-      )
-    }
-
-    const rawValue = kpi.value * conversion.value
-    const finalValue = rawValue * component.direction
-
-    return {
-      componentId: component.componentId,
-      period,
-      direction: component.direction,
-      rawValue,
-      conversionValue: conversion.value,
-      finalValue,
-      usedDefaultZero: kpi.usedDefaultZero,
-    }
+  for (const item of [...kpiValues, ...componentValues, ...conversionValues]) {
+    periodMap.set(periodKey(item.year, item.month), { year: item.year, month: item.month })
   }
 
-  if (component.calculationType === 'FIXED' && component.formulaType === 'DIRECT_VALUE') {
-    const componentValue = getMetricValue(monthlyValues.componentValues, period, component.componentId)
-    const rawValue = componentValue.value
-
-    return {
-      componentId: component.componentId,
-      period,
-      direction: component.direction,
-      rawValue,
-      finalValue: rawValue * component.direction,
-      usedDefaultZero: componentValue.usedDefaultZero,
-    }
-  }
-
-  throw new Error(
-    `Configuração inválida no componente ${component.componentId}: combinação ${component.calculationType} + ${component.formulaType} não suportada.`,
-  )
+  return [...periodMap.values()].sort((a, b) => periodKey(a.year, a.month).localeCompare(periodKey(b.year, b.month)))
 }
 
-export function calculateInitiativeMonthlyGain(
-  input: InitiativeCalculationInput,
-): InitiativeMonthlyGainResult[] {
-  const components = input.configuration.components
+export function calculateMonthlyGain(input: {
+  initiativeId: number
+  initiativeComponents: InitiativeComponent[]
+  componentMasterCatalog: ComponentMaster[]
+  kpiValues: KpiValueInput[]
+  componentValues: ComponentValueInput[]
+  conversionValues: ConversionValue[]
+}): MonthlyGainResult[] {
+  const {
+    initiativeId,
+    initiativeComponents,
+    componentMasterCatalog,
+    kpiValues,
+    componentValues,
+    conversionValues,
+  } = input
 
-  if (!components.length) {
+  if (initiativeComponents.length === 0) {
     return []
   }
 
-  const periods = new Set<CalculationPeriod>([
-    ...Object.keys(input.monthlyValues.kpiValues),
-    ...Object.keys(input.monthlyValues.componentValues),
-    ...Object.keys(input.monthlyValues.conversionValues),
-  ])
+  const periods = collectPeriods(kpiValues, componentValues, conversionValues)
 
-  return [...periods]
-    .sort()
-    .map((period) => {
-      const componentResults = components.map((component) =>
-        calculateComponentValue(component, period, input),
-      )
+  return periods.map(({ year, month }) => {
+    let gainValue = 0
 
-      const monthlyGain = componentResults.reduce((sum, component) => sum + component.finalValue, 0)
+    const components = initiativeComponents.map((item) => {
+      const master = componentMasterCatalog.find((component) => component.componentType === item.componentType)
+      if (!master) {
+        throw new Error(`Componente ${item.componentType} não encontrado no catálogo.`)
+      }
+
+      let componentValue = 0
+
+      if (master.calculationType === 'KPI_BASED') {
+        const kpiValue = kpiValues.find(
+          (value) =>
+            value.kpiCode === item.kpiCode &&
+            value.year === year &&
+            value.month === month,
+        )?.value ?? 0
+
+        const conversionValue = conversionValues.find(
+          (value) =>
+            value.conversionCode === item.conversionCode &&
+            value.year === year &&
+            value.month === month,
+        )
+
+        if (!conversionValue) {
+          throw new Error(
+            `Erro de configuração: conversão ${item.conversionCode} ausente em ${periodKey(year, month)}.`,
+          )
+        }
+
+        componentValue = kpiValue * conversionValue.value
+      } else {
+        componentValue = componentValues.find(
+          (value) =>
+            value.componentType === item.componentType &&
+            value.year === year &&
+            value.month === month,
+        )?.value ?? 0
+      }
+
+      const signedValue = componentValue * master.direction
+      gainValue += signedValue
 
       return {
-        initiativeId: input.initiativeId,
-        period,
-        componentResults,
-        monthlyGain,
+        componentType: item.componentType,
+        year,
+        month,
+        componentValue,
+        signedValue,
       }
     })
+
+    return {
+      initiativeId,
+      year,
+      month,
+      gainValue,
+      components,
+    }
+  })
 }
