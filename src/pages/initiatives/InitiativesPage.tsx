@@ -4,9 +4,7 @@ import type { Initiative } from '../../types/initiative'
 
 interface InitiativesPageProps {
   onCreateNewInitiative: () => void
-  onOpenComponents: (initiativeId: number) => void
-  onOpenValues: (initiativeId: number) => void
-  onOpenResult: (initiativeId: number) => void
+  onStartFlow: (initiativeId: number) => void
 }
 
 function formatCurrency(value: number): string {
@@ -15,9 +13,7 @@ function formatCurrency(value: number): string {
 
 export function InitiativesPage({
   onCreateNewInitiative,
-  onOpenComponents,
-  onOpenValues,
-  onOpenResult,
+  onStartFlow,
 }: InitiativesPageProps) {
   const [initiatives, setInitiatives] = useState<Initiative[]>([])
   const [loading, setLoading] = useState(true)
@@ -59,31 +55,16 @@ export function InitiativesPage({
     <main style={{ fontFamily: 'Arial, sans-serif' }}>
       <header className="capex-topbar">
         <h1 style={{ margin: 0 }}>Initiative Value Engine</h1>
+        <p style={{ margin: 0, color: "#4b5563" }}>Fluxo único: KPI/Ganho → Compensação/Custo → Valores mensais → Resultado.</p>
 
         <div className="capex-topbar-actions">
           <button
             type="button"
             className="btn"
-            onClick={() => selectedInitiative && onOpenComponents(selectedInitiative.id)}
+            onClick={() => selectedInitiative && onStartFlow(selectedInitiative.id)}
             disabled={!selectedInitiative}
           >
-            Componentes
-          </button>
-          <button
-            type="button"
-            className="btn"
-            onClick={() => selectedInitiative && onOpenValues(selectedInitiative.id)}
-            disabled={!selectedInitiative}
-          >
-            Valores
-          </button>
-          <button
-            type="button"
-            className="btn"
-            onClick={() => selectedInitiative && onOpenResult(selectedInitiative.id)}
-            disabled={!selectedInitiative}
-          >
-            Resultado
+            Iniciar fluxo (1/4)
           </button>
           <button type="button" className="btn primary" onClick={onCreateNewInitiative}>
             Nova iniciativa

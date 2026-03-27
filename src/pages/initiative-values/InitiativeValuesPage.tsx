@@ -138,11 +138,22 @@ export function InitiativeValuesPage({
 
   return (
     <main>
-      <h1 style={{ marginTop: 0 }}>Preenchimento anual e forecast</h1>
+      <h1 style={{ marginTop: 0 }}>Etapas 2 e 3 de 4 · Compensação/Custo + Valores mensais</h1>
       <p>{initiative ? `Iniciativa: ${initiative.title}` : 'Carregando iniciativa...'}</p>
       <p style={{ marginTop: 0, color: '#4b5563' }}>
-        Estrutura sugerida: histórico de 2024/2025 + 2026 com realizado e forecast mensal, incluindo variação de conversion rates.
+        Nesta tela você separa custos de compensação e preenche os valores por mês para calcular o líquido final.
       </p>
+
+      <section className="flow-stepper">
+        <div className="flow-step"><strong>1. KPI/Ganho</strong>Componentes de ganho.</div>
+        <div className="flow-step active"><strong>2. Compensação/Custo</strong>Informar custos para viabilizar o ganho.</div>
+        <div className="flow-step active"><strong>3. Valores mensais</strong>Preencher 2024-2026 por mês.</div>
+        <div className="flow-step"><strong>4. Resultado</strong>Consolidado líquido.</div>
+      </section>
+
+      <section className="flow-guidance">
+        <strong>Separação obrigatória:</strong> ganho (KPI) é uma coisa; custo de compensação (software, implantação, etc.) é outra.
+      </section>
 
       <section style={sectionStyle}>
         <h2 style={{ marginTop: 0 }}>1) KPI mensal (2024 x 2025 x 2026)</h2>
@@ -199,7 +210,7 @@ export function InitiativeValuesPage({
       </section>
 
       <section style={sectionStyle}>
-        <h2 style={{ marginTop: 0 }}>2) Conversion rate mensal (varia por ano/mês)</h2>
+        <h2 style={{ marginTop: 0 }}>2) Compensação / custo mensal (varia por ano/mês)</h2>
         <label style={labelStyle}>
           Conversão
           <select value={conversionCode} onChange={(event) => setConversionCode(event.target.value as ConversionCode)}>
@@ -253,7 +264,7 @@ export function InitiativeValuesPage({
       </section>
 
       <section style={sectionStyle}>
-        <h2 style={{ marginTop: 0 }}>3) Componentes fixos + fórmula aplicada</h2>
+        <h2 style={{ marginTop: 0 }}>3) Valores mensais do componente (ganho)</h2>
         <label style={labelStyle}>
           Componente FIXED
           <select value={componentType} onChange={(event) => setComponentType(event.target.value as ComponentTypeCode)}>
@@ -295,7 +306,7 @@ export function InitiativeValuesPage({
         ) : null}
 
         <div style={formulaBoxStyle}>
-          <strong>Fórmula exibida para o analista</strong>
+          <strong>Regra de cálculo exibida para o analista</strong>
           <p style={{ margin: '4px 0 0' }}>
             Resultado mensal = Σ (KPI do mês × Conversion Rate do mês × Direção do componente) + componentes FIXED.
           </p>
@@ -307,13 +318,13 @@ export function InitiativeValuesPage({
 
       <div style={{ display: 'flex', gap: '8px' }}>
         <button type="button" className="btn" onClick={() => onOpenComponents(initiativeId)}>
-          Componentes
+          Voltar para etapa 1
         </button>
-        <button type="button" className="btn" onClick={() => onOpenResult(initiativeId)}>
-          Resultado
+        <button type="button" className="btn primary" onClick={() => onOpenResult(initiativeId)}>
+          Continuar para etapa 4 (Resultado)
         </button>
         <button type="button" className="btn" onClick={onBackToInitiatives}>
-          Voltar
+          Voltar para iniciativas
         </button>
       </div>
     </main>
