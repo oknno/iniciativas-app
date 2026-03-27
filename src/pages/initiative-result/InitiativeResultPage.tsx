@@ -62,6 +62,16 @@ export function InitiativeResultPage({
     [results],
   )
 
+  const yearlySummary = useMemo(() => {
+    return [2024, 2025, 2026].map((year) => {
+      const annualResults = results.filter((result) => result.year === year)
+      return {
+        year,
+        total: annualResults.reduce((sum, month) => sum + month.gainValue, 0),
+      }
+    })
+  }, [results])
+
   return (
     <main>
       <h1 style={{ marginTop: 0 }}>Resultado da iniciativa #{initiativeId}</h1>
@@ -73,12 +83,24 @@ export function InitiativeResultPage({
         <p>Nenhum resultado calculado. Verifique se há componentes e valores cadastrados.</p>
       ) : (
         <>
-          <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #ddd' }}>
+          <section style={boxStyle}>
+            <h2 style={{ marginTop: 0 }}>Comparativo 2024 x 2025 x 2026</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+              {yearlySummary.map((item) => (
+                <article key={item.year} style={{ border: '1px solid #e5e7eb', borderRadius: '8px', padding: '10px' }}>
+                  <strong>{item.year}</strong>
+                  <p style={{ margin: '4px 0 0', fontSize: '20px' }}>{item.total.toFixed(2)}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #ddd', background: '#fff' }}>
             <thead>
               <tr>
                 <th style={thStyle}>Período</th>
                 <th style={thStyle}>Ganho mensal</th>
-                <th style={thStyle}>Detalhes</th>
+                <th style={thStyle}>Detalhe do cálculo</th>
               </tr>
             </thead>
             <tbody>
@@ -88,7 +110,7 @@ export function InitiativeResultPage({
                   <td style={tdStyle}>{result.gainValue.toFixed(2)}</td>
                   <td style={tdStyle}>
                     {result.components
-                      .map((component) => `${component.componentType}: ${component.signedValue.toFixed(2)}`)
+                      .map((component) => `${component.componentType}: valor=${component.componentValue.toFixed(2)} × direção => ${component.signedValue.toFixed(2)}`)
                       .join(' | ')}
                   </td>
                 </tr>
@@ -102,22 +124,45 @@ export function InitiativeResultPage({
               </tr>
             </tfoot>
           </table>
+
+          <section style={formulaStyle}>
+            <strong>Fórmula usada no resultado</strong>
+            <p style={{ margin: '4px 0 0' }}>
+              Para componentes KPI_BASED: <em>KPI mensal × conversion rate mensal × direção</em>. Para componentes FIXED: <em>valor fixo mensal × direção</em>.
+            </p>
+          </section>
         </>
       )}
 
       <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-        <button type="button" onClick={() => onOpenComponents(initiativeId)}>
+        <button type="button" onClick={() => onOpenComponents(initiativeId)} className="btn">
           Componentes
         </button>
-        <button type="button" onClick={() => onOpenValues(initiativeId)}>
+        <button type="button" onClick={() => onOpenValues(initiativeId)} className="btn">
           Valores
         </button>
-        <button type="button" onClick={onBackToInitiatives}>
+        <button type="button" onClick={onBackToInitiatives} className="btn">
           Voltar
         </button>
       </div>
     </main>
   )
+}
+
+const boxStyle: React.CSSProperties = {
+  marginBottom: '12px',
+  border: '1px solid #ddd',
+  borderRadius: '8px',
+  background: '#fff',
+  padding: '12px',
+}
+
+const formulaStyle: React.CSSProperties = {
+  marginTop: '12px',
+  border: '1px dashed #94a3b8',
+  borderRadius: '8px',
+  background: '#f8fafc',
+  padding: '10px',
 }
 
 const thStyle: React.CSSProperties = {

@@ -9,6 +9,12 @@ const seedInitiatives: Initiative[] = [
     responsavel: 'Matheus Okano',
     stage: 'L2',
     status: 'Ativa',
+    budget: 850000,
+    approvalYear: 2025,
+    startDate: '2025-05-01',
+    endDate: '2026-12-31',
+    businessNeed: 'Reduzir esforço manual em processos administrativos com alto volume.',
+    proposedSolution: 'Orquestração de fluxos com RPA e integrações com ERP.',
   },
   {
     id: 2,
@@ -17,6 +23,12 @@ const seedInitiatives: Initiative[] = [
     responsavel: 'João Silva',
     stage: 'L2',
     status: 'Em validação',
+    budget: 1450000,
+    approvalYear: 2024,
+    startDate: '2024-02-15',
+    endDate: '2026-11-30',
+    businessNeed: 'Controlar o custo energético e reduzir variação de consumo em picos.',
+    proposedSolution: 'Modelo preditivo de setpoint e ajustes operacionais em tempo real.',
   },
   {
     id: 3,
@@ -25,6 +37,12 @@ const seedInitiatives: Initiative[] = [
     responsavel: 'Maria Souza',
     stage: 'L3',
     status: 'Concluída',
+    budget: 2100000,
+    approvalYear: 2023,
+    startDate: '2023-06-01',
+    endDate: '2025-10-20',
+    businessNeed: 'Elevar produtividade da linha para atender crescimento da demanda.',
+    proposedSolution: 'Retrofit de equipamentos críticos e plano de manutenção assistida por dados.',
   },
 ]
 
