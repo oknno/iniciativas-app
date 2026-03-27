@@ -58,14 +58,33 @@ export function InitiativesPage({
   return (
     <main style={{ fontFamily: 'Arial, sans-serif' }}>
       <header className="capex-topbar">
-        <div>
-          <h1 style={{ margin: 0 }}>Jornada das iniciativas</h1>
-          <p style={{ marginTop: '8px', color: '#4b5563' }}>
-            Visualização macro das iniciativas e acesso rápido ao cadastro.
-          </p>
-        </div>
+        <h1 style={{ margin: 0 }}>Initiative Value Engine</h1>
 
         <div className="capex-topbar-actions">
+          <button
+            type="button"
+            className="btn"
+            onClick={() => selectedInitiative && onOpenComponents(selectedInitiative.id)}
+            disabled={!selectedInitiative}
+          >
+            Componentes
+          </button>
+          <button
+            type="button"
+            className="btn"
+            onClick={() => selectedInitiative && onOpenValues(selectedInitiative.id)}
+            disabled={!selectedInitiative}
+          >
+            Valores
+          </button>
+          <button
+            type="button"
+            className="btn"
+            onClick={() => selectedInitiative && onOpenResult(selectedInitiative.id)}
+            disabled={!selectedInitiative}
+          >
+            Resultado
+          </button>
           <button type="button" className="btn primary" onClick={onCreateNewInitiative}>
             Nova iniciativa
           </button>
@@ -146,18 +165,6 @@ export function InitiativesPage({
 
                 <h3 style={{ marginBottom: '4px' }}>Proposed Solution</h3>
                 <p style={{ marginTop: 0 }}>{selectedInitiative.proposedSolution ?? '-'}</p>
-
-                <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
-                  <button type="button" className="btn" onClick={() => onOpenComponents(selectedInitiative.id)}>
-                    Componentes
-                  </button>
-                  <button type="button" className="btn" onClick={() => onOpenValues(selectedInitiative.id)}>
-                    Valores
-                  </button>
-                  <button type="button" className="btn" onClick={() => onOpenResult(selectedInitiative.id)}>
-                    Resultado
-                  </button>
-                </div>
               </>
             ) : (
               <p>Selecione uma iniciativa para ver o resumo.</p>
