@@ -1,32 +1,29 @@
 import type { Initiative } from '../types/initiative'
-
-const initiativesMock: Initiative[] = [
-  {
-    id: 1,
-    title: 'Automação Processo Administrativo',
-    unidade: 'Corporativo',
-    responsavel: 'Matheus Okano',
-    stage: 'L2',
-    status: 'Ativa',
-  },
-  {
-    id: 2,
-    title: 'Redução Consumo Energia Forno',
-    unidade: 'Operação',
-    responsavel: 'João Silva',
-    stage: 'L2',
-    status: 'Em validação',
-  },
-  {
-    id: 3,
-    title: 'Aumento Produção Laminador',
-    unidade: 'Laminação',
-    responsavel: 'Maria Souza',
-    stage: 'L3',
-    status: 'Concluída',
-  },
-]
+import { initiativeRepository } from './index'
 
 export async function getInitiatives(): Promise<Initiative[]> {
-  return Promise.resolve(initiativesMock)
+  return initiativeRepository.list()
+}
+
+export async function getInitiativeById(
+  id: Initiative['id'],
+): Promise<Initiative | null> {
+  return initiativeRepository.getById(id)
+}
+
+export async function createInitiative(
+  data: Omit<Initiative, 'id'>,
+): Promise<Initiative> {
+  return initiativeRepository.create(data)
+}
+
+export async function updateInitiative(
+  id: Initiative['id'],
+  data: Partial<Omit<Initiative, 'id'>>,
+): Promise<Initiative> {
+  return initiativeRepository.update(id, data)
+}
+
+export async function removeInitiative(id: Initiative['id']): Promise<void> {
+  return initiativeRepository.remove(id)
 }
