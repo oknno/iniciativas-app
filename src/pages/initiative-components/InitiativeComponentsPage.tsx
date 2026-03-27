@@ -147,25 +147,48 @@ export function InitiativeComponentsPage({
   )
 
   const isFixedComponent = selectedMasterComponent?.calculationType === 'FIXED'
+  const totalComponents = components.length
+  const kpiBasedComponents = components.filter((component) => {
+    const master = componentCatalog.find((item) => item.componentType === component.componentType)
+    return master?.calculationType === 'KPI_BASED'
+  }).length
+  const fixedComponents = totalComponents - kpiBasedComponents
 
   return (
     <main>
-      <header style={{ marginBottom: '24px' }}>
-        <h1 style={{ margin: 0 }}>Componentes da iniciativa #{initiativeId}</h1>
-        <p style={{ marginTop: '8px' }}>Configure os componentes positivos/negativos que formam o ganho.</p>
+      <header className="capex-topbar">
+        <div>
+          <h1 style={{ margin: 0 }}>Componentes da iniciativa #{initiativeId}</h1>
+          <p style={{ marginTop: '6px', marginBottom: 0 }}>Configure os componentes positivos/negativos que formam o ganho.</p>
+        </div>
+
+        <div className="capex-topbar-actions">
+          <button type="button" className="btn" onClick={onBackToInitiatives}>
+            Voltar para iniciativas
+          </button>
+          <button type="button" className="btn" onClick={() => onOpenValues(initiativeId)}>
+            Valores
+          </button>
+          <button type="button" className="btn" onClick={() => onOpenResult(initiativeId)}>
+            Resultado
+          </button>
+        </div>
       </header>
 
-      <div style={{ marginBottom: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-        <button type="button" onClick={onBackToInitiatives}>
-          Voltar para iniciativas
-        </button>
-        <button type="button" onClick={() => onOpenValues(initiativeId)}>
-          Valores
-        </button>
-        <button type="button" onClick={() => onOpenResult(initiativeId)}>
-          Resultado
-        </button>
-      </div>
+      <section style={cardsStyle}>
+        <article style={cardStyle}>
+          <strong style={cardValueStyle}>{totalComponents}</strong>
+          <span style={cardLabelStyle}>Componentes cadastrados</span>
+        </article>
+        <article style={cardStyle}>
+          <strong style={cardValueStyle}>{kpiBasedComponents}</strong>
+          <span style={cardLabelStyle}>KPI-based</span>
+        </article>
+        <article style={cardStyle}>
+          <strong style={cardValueStyle}>{fixedComponents}</strong>
+          <span style={cardLabelStyle}>Fixos</span>
+        </article>
+      </section>
 
       {loading ? (
         <p>Carregando componentes...</p>
@@ -173,57 +196,60 @@ export function InitiativeComponentsPage({
         <>
           <section style={{ marginBottom: '24px' }}>
             <h2 style={{ marginTop: 0 }}>Lista de componentes</h2>
-            <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #ddd' }}>
-              <thead>
-                <tr>
-                  <th style={thStyle}>#</th>
-                  <th style={thStyle}>Componente</th>
-                  <th style={thStyle}>Tipo cálculo</th>
-                  <th style={thStyle}>KPI</th>
-                  <th style={thStyle}>Conversão</th>
-                  <th style={thStyle}>Fórmula</th>
-                  <th style={thStyle}>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {components.length === 0 ? (
+            <div style={listPanelStyle}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
                   <tr>
-                    <td style={tdStyle} colSpan={7}>
-                      Nenhum componente cadastrado.
-                    </td>
+                    <th style={thStyle}>#</th>
+                    <th style={thStyle}>Componente</th>
+                    <th style={thStyle}>Tipo cálculo</th>
+                    <th style={thStyle}>KPI</th>
+                    <th style={thStyle}>Conversão</th>
+                    <th style={thStyle}>Fórmula</th>
+                    <th style={thStyle}>Ações</th>
                   </tr>
-                ) : (
-                  components.map((component, index) => {
-                    const master = componentCatalog.find((item) => item.componentType === component.componentType)
-                    return (
-                      <tr key={`${component.initiativeId}-${index}`}>
-                        <td style={tdStyle}>{index + 1}</td>
-                        <td style={tdStyle}>{component.componentType}</td>
-                        <td style={tdStyle}>{master?.calculationType ?? '-'}</td>
-                        <td style={tdStyle}>{component.kpiCode ?? '-'}</td>
-                        <td style={tdStyle}>{component.conversionCode ?? '-'}</td>
-                        <td style={tdStyle}>{component.formulaCode}</td>
-                        <td style={tdStyle}>
-                          <button type="button" onClick={() => handleEdit(index)}>
-                            Editar
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => void handleDelete(index)}
-                            style={{ marginLeft: '8px' }}
-                          >
-                            Excluir
-                          </button>
-                        </td>
-                      </tr>
-                    )
-                  })
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {components.length === 0 ? (
+                    <tr>
+                      <td style={tdStyle} colSpan={7}>
+                        Nenhum componente cadastrado.
+                      </td>
+                    </tr>
+                  ) : (
+                    components.map((component, index) => {
+                      const master = componentCatalog.find((item) => item.componentType === component.componentType)
+                      return (
+                        <tr key={`${component.initiativeId}-${index}`}>
+                          <td style={tdStyle}>{index + 1}</td>
+                          <td style={tdStyle}>{component.componentType}</td>
+                          <td style={tdStyle}>{master?.calculationType ?? '-'}</td>
+                          <td style={tdStyle}>{component.kpiCode ?? '-'}</td>
+                          <td style={tdStyle}>{component.conversionCode ?? '-'}</td>
+                          <td style={tdStyle}>{component.formulaCode}</td>
+                          <td style={tdStyle}>
+                            <button type="button" className="btn" onClick={() => handleEdit(index)}>
+                              Editar
+                            </button>
+                            <button
+                              type="button"
+                              className="btn"
+                              onClick={() => void handleDelete(index)}
+                              style={{ marginLeft: '8px' }}
+                            >
+                              Excluir
+                            </button>
+                          </td>
+                        </tr>
+                      )
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
           </section>
 
-          <section>
+          <section style={formPanelStyle}>
             <h2 style={{ marginTop: 0 }}>{editingIndex === null ? 'Novo componente' : `Editando componente #${editingIndex + 1}`}</h2>
             <form onSubmit={(event) => void handleSubmit(event)} style={formStyle}>
               <label style={labelStyle}>
@@ -305,12 +331,13 @@ export function InitiativeComponentsPage({
               ) : null}
 
               <div>
-                <button type="submit">
+                <button type="submit" className="btn primary">
                   {editingIndex === null ? 'Adicionar componente' : 'Salvar edição'}
                 </button>
                 {editingIndex !== null ? (
                   <button
                     type="button"
+                    className="btn"
                     style={{ marginLeft: '8px' }}
                     onClick={resetForm}
                   >
@@ -326,9 +353,47 @@ export function InitiativeComponentsPage({
   )
 }
 
+const cardsStyle: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(3, minmax(160px, 1fr))',
+  gap: '10px',
+  marginBottom: '14px',
+}
+
+const cardStyle: React.CSSProperties = {
+  background: '#fff',
+  border: '1px solid #e5e7eb',
+  borderRadius: '12px',
+  padding: '12px',
+  display: 'grid',
+}
+
+const cardValueStyle: React.CSSProperties = {
+  fontSize: '22px',
+}
+
+const cardLabelStyle: React.CSSProperties = {
+  color: '#6b7280',
+  fontSize: '13px',
+}
+
+const listPanelStyle: React.CSSProperties = {
+  border: '1px solid #e5e7eb',
+  borderRadius: '12px',
+  overflow: 'hidden',
+  background: '#fff',
+}
+
+const formPanelStyle: React.CSSProperties = {
+  border: '1px solid #e5e7eb',
+  borderRadius: '12px',
+  background: '#fff',
+  padding: '14px',
+}
+
 const formStyle: React.CSSProperties = {
   display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
   gap: '12px',
   alignItems: 'end',
 }
@@ -340,12 +405,12 @@ const labelStyle: React.CSSProperties = {
 
 const thStyle: React.CSSProperties = {
   textAlign: 'left',
-  padding: '12px',
+  padding: '10px',
   borderBottom: '1px solid #ddd',
-  backgroundColor: '#f5f5f5',
+  backgroundColor: '#f8fafc',
 }
 
 const tdStyle: React.CSSProperties = {
-  padding: '12px',
-  borderBottom: '1px solid #eee',
+  padding: '10px',
+  borderBottom: '1px solid #f1f5f9',
 }
