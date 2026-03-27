@@ -38,19 +38,6 @@ export function InitiativesPage({
     [initiatives, selectedId],
   )
 
-  const summary = useMemo(() => {
-    const totalBudget = initiatives.reduce((sum, initiative) => sum + (initiative.budget ?? 0), 0)
-    const emAprovacao = initiatives.filter((initiative) => initiative.status === 'Em aprovação').length
-    const ativas = initiatives.filter((initiative) => initiative.status === 'Ativa' || initiative.status === 'Em validação').length
-
-    return {
-      total: initiatives.length,
-      totalBudget,
-      emAprovacao,
-      ativas,
-    }
-  }, [initiatives])
-
   return (
     <main style={{ fontFamily: 'Arial, sans-serif' }}>
       <header className="capex-topbar">
@@ -71,25 +58,6 @@ export function InitiativesPage({
           </button>
         </div>
       </header>
-
-      <section style={kpiCardsStyle}>
-        <article style={cardStyle}>
-          <strong style={cardValueStyle}>{summary.total}</strong>
-          <span style={cardLabelStyle}>Iniciativas totais</span>
-        </article>
-        <article style={cardStyle}>
-          <strong style={cardValueStyle}>{summary.ativas}</strong>
-          <span style={cardLabelStyle}>Ativas / em validação</span>
-        </article>
-        <article style={cardStyle}>
-          <strong style={cardValueStyle}>{summary.emAprovacao}</strong>
-          <span style={cardLabelStyle}>Em aprovação</span>
-        </article>
-        <article style={cardStyle}>
-          <strong style={cardValueStyle}>{formatCurrency(summary.totalBudget)}</strong>
-          <span style={cardLabelStyle}>Orçamento acumulado</span>
-        </article>
-      </section>
 
       {loading ? (
         <p>Carregando iniciativas...</p>
@@ -155,30 +123,6 @@ export function InitiativesPage({
       )}
     </main>
   )
-}
-
-const kpiCardsStyle: React.CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(4, minmax(180px, 1fr))',
-  gap: '10px',
-  marginBottom: '14px',
-}
-
-const cardStyle: React.CSSProperties = {
-  background: '#fff',
-  border: '1px solid #e5e7eb',
-  borderRadius: '12px',
-  padding: '12px',
-  display: 'grid',
-}
-
-const cardValueStyle: React.CSSProperties = {
-  fontSize: '22px',
-}
-
-const cardLabelStyle: React.CSSProperties = {
-  color: '#6b7280',
-  fontSize: '13px',
 }
 
 const gridStyle: React.CSSProperties = {
