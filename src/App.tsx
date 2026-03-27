@@ -96,9 +96,5 @@ export default function App() {
     }
   })()
 
-  return (
-    <AppLayout onGoToInitiatives={openInitiativesList} isInitiativesActive={view === 'initiativesList'}>
-      {currentPage}
-    </AppLayout>
-  )
+  return <AppLayout>{currentPage}</AppLayout>
 }
