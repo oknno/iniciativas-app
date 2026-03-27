@@ -46,9 +46,7 @@ export default function App() {
         return (
           <InitiativesPage
             onCreateNewInitiative={openNewInitiative}
-            onOpenComponents={openInitiativeComponents}
-            onOpenValues={openInitiativeValues}
-            onOpenResult={openInitiativeResult}
+            onStartFlow={openInitiativeComponents}
           />
         )
       case 'newInitiative':
@@ -60,13 +58,12 @@ export default function App() {
         )
       case 'initiativeComponents':
         return selectedInitiativeId === null ? (
-          <p>Selecione uma iniciativa antes de abrir os componentes.</p>
+          <p>Selecione uma iniciativa antes de iniciar o fluxo.</p>
         ) : (
           <InitiativeComponentsPage
             initiativeId={selectedInitiativeId}
             onBackToInitiatives={openInitiativesList}
             onOpenValues={openInitiativeValues}
-            onOpenResult={openInitiativeResult}
           />
         )
       case 'initiativeValues':

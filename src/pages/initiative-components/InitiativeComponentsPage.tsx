@@ -29,14 +29,12 @@ interface InitiativeComponentsPageProps {
   initiativeId: number
   onBackToInitiatives: () => void
   onOpenValues: (initiativeId: number) => void
-  onOpenResult: (initiativeId: number) => void
 }
 
 export function InitiativeComponentsPage({
   initiativeId,
   onBackToInitiatives,
   onOpenValues,
-  onOpenResult,
 }: InitiativeComponentsPageProps) {
   const [components, setComponents] = useState<InitiativeComponent[]>([])
   const [componentCatalog, setComponentCatalog] = useState<ComponentMaster[]>([])
@@ -158,22 +156,30 @@ export function InitiativeComponentsPage({
     <main>
       <header className="capex-topbar">
         <div>
-          <h1 style={{ margin: 0 }}>Componentes da iniciativa #{initiativeId}</h1>
-          <p style={{ marginTop: '6px', marginBottom: 0 }}>Configure os componentes positivos/negativos que formam o ganho.</p>
+          <h1 style={{ margin: 0 }}>Etapa 1 de 4 · KPI e ganho da iniciativa #{initiativeId}</h1>
+          <p style={{ marginTop: '6px', marginBottom: 0 }}>Cadastre somente o KPI de ganho nesta etapa. Custos/compensações ficam separados na próxima etapa.</p>
         </div>
 
         <div className="capex-topbar-actions">
           <button type="button" className="btn" onClick={onBackToInitiatives}>
             Voltar para iniciativas
           </button>
-          <button type="button" className="btn" onClick={() => onOpenValues(initiativeId)}>
-            Valores
-          </button>
-          <button type="button" className="btn" onClick={() => onOpenResult(initiativeId)}>
-            Resultado
+          <button type="button" className="btn primary" onClick={() => onOpenValues(initiativeId)}>
+            Continuar para etapa 2 (Compensação/Custo)
           </button>
         </div>
       </header>
+
+      <section className="flow-stepper">
+        <div className="flow-step active"><strong>1. KPI/Ganho</strong>Cadastrar componentes de ganho.</div>
+        <div className="flow-step"><strong>2. Compensação/Custo</strong>Separar custos de viabilização.</div>
+        <div className="flow-step"><strong>3. Valores mensais</strong>Preencher série mensal.</div>
+        <div className="flow-step"><strong>4. Resultado</strong>Visualizar líquido final.</div>
+      </section>
+
+      <section className="flow-guidance">
+        <strong>Você está preenchendo ganho.</strong> Não misture custos (ex.: compra de software) com ganho nesta etapa.
+      </section>
 
       <section style={cardsStyle}>
         <article style={cardStyle}>
@@ -195,7 +201,7 @@ export function InitiativeComponentsPage({
       ) : (
         <>
           <section style={{ marginBottom: '24px' }}>
-            <h2 style={{ marginTop: 0 }}>Lista de componentes</h2>
+            <h2 style={{ marginTop: 0 }}>KPIs/componentes de ganho</h2>
             <div style={listPanelStyle}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
@@ -250,7 +256,7 @@ export function InitiativeComponentsPage({
           </section>
 
           <section style={formPanelStyle}>
-            <h2 style={{ marginTop: 0 }}>{editingIndex === null ? 'Novo componente' : `Editando componente #${editingIndex + 1}`}</h2>
+            <h2 style={{ marginTop: 0 }}>{editingIndex === null ? 'Novo KPI de ganho' : `Editando KPI de ganho #${editingIndex + 1}`}</h2>
             <form onSubmit={(event) => void handleSubmit(event)} style={formStyle}>
               <label style={labelStyle}>
                 Componente
@@ -272,7 +278,7 @@ export function InitiativeComponentsPage({
               </label>
 
               <label style={labelStyle}>
-                KPI
+                KPI de ganho
                 <select
                   value={formState.kpiCode}
                   onChange={(event) =>

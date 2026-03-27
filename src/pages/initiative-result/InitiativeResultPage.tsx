@@ -91,15 +91,15 @@ export function InitiativeResultPage({
     <main>
       <header className="capex-topbar">
         <div>
-          <h1>Resultado mensal</h1>
+          <h1>Etapa 4 de 4 · Resultado consolidado</h1>
           <p>{initiative ? `Iniciativa #${initiativeId}: ${initiative.title}` : 'Carregando iniciativa...'}</p>
         </div>
         <div className="capex-topbar-actions">
           <button type="button" onClick={() => onOpenComponents(initiativeId)} className="btn">
-            Componentes
+            Etapa 1 (KPI/Ganho)
           </button>
           <button type="button" onClick={() => onOpenValues(initiativeId)} className="btn">
-            Valores
+            Etapas 2-3 (Custos/Valores)
           </button>
           <button type="button" onClick={onBackToInitiatives} className="btn">
             Voltar
@@ -108,6 +108,13 @@ export function InitiativeResultPage({
       </header>
 
       {error ? <p style={{ color: '#b00020' }}>{error}</p> : null}
+
+      <section className="flow-stepper">
+        <div className="flow-step"><strong>1. KPI/Ganho</strong>Definição do ganho.</div>
+        <div className="flow-step"><strong>2. Compensação/Custo</strong>Custos separados.</div>
+        <div className="flow-step"><strong>3. Valores mensais</strong>Série por mês.</div>
+        <div className="flow-step active"><strong>4. Resultado</strong>Consolidação final.</div>
+      </section>
 
       {results.length === 0 && !error ? (
         <p>Nenhum resultado calculado. Verifique se há componentes e valores cadastrados.</p>
