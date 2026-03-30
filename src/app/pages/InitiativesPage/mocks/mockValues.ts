@@ -12,6 +12,22 @@ export const mockKpiValues: readonly SaveKpiValueDto[] = [
     scenario: 'BASE',
     value: 460000,
   },
+  {
+    initiativeId: asInitiativeId('INIT-001'),
+    componentId: 'COMP-001',
+    kpiCode: asKpiCode('KPI-KWH-SAVED'),
+    monthRef: '2026-02',
+    scenario: 'BASE',
+    value: 472500,
+  },
+  {
+    initiativeId: asInitiativeId('INIT-001'),
+    componentId: 'COMP-001',
+    kpiCode: asKpiCode('KPI-KWH-SAVED'),
+    monthRef: '2026-03',
+    scenario: 'BASE',
+    value: 480000,
+  },
 ]
 
 export const mockComponentValues: readonly SaveComponentValueDto[] = [
@@ -25,10 +41,34 @@ export const mockComponentValues: readonly SaveComponentValueDto[] = [
   },
   {
     initiativeId: asInitiativeId('INIT-001'),
+    componentId: 'COMP-001',
+    monthRef: '2026-02',
+    scenario: 'BASE',
+    baseValue: 65000,
+    direction: 1,
+  },
+  {
+    initiativeId: asInitiativeId('INIT-001'),
+    componentId: 'COMP-001',
+    monthRef: '2026-03',
+    scenario: 'BASE',
+    baseValue: 66120,
+    direction: 1,
+  },
+  {
+    initiativeId: asInitiativeId('INIT-001'),
     componentId: 'COMP-002',
     monthRef: '2026-01',
     scenario: 'BASE',
     baseValue: 265000,
+    direction: -1,
+  },
+  {
+    initiativeId: asInitiativeId('INIT-001'),
+    componentId: 'COMP-002',
+    monthRef: '2026-02',
+    scenario: 'BASE',
+    baseValue: 240000,
     direction: -1,
   },
 ]
