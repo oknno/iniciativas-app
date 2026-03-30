@@ -5,9 +5,10 @@ import { tokens } from '../../components/ui/tokens'
 
 type CommandBarProps = {
   totalItems: number
+  onOpenWizard: () => void
 }
 
-export function CommandBar({ totalItems }: CommandBarProps) {
+export function CommandBar({ totalItems, onOpenWizard }: CommandBarProps) {
   const { pushToast } = useToast()
 
   return (
@@ -43,13 +44,14 @@ export function CommandBar({ totalItems }: CommandBarProps) {
           </Button>
           <Button
             variant="primary"
-            onClick={() =>
+            onClick={() => {
+              onOpenWizard()
               pushToast({
                 title: 'Create initiative',
-                message: 'Wizard foundation will be implemented in the next step.',
+                message: 'Initiative wizard opened.',
                 tone: 'success',
               })
-            }
+            }}
           >
             New Initiative
           </Button>
