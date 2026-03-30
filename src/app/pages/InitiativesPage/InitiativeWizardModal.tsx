@@ -1,8 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
+import type { ConversionCode } from '../../../domain/catalogs/value-objects/ConversionCode'
+import type { FormulaCode } from '../../../domain/catalogs/value-objects/FormulaCode'
+import type { KpiCode } from '../../../domain/catalogs/value-objects/KpiCode'
 import type { SaveInitiativeDto } from '../../../application/dto/initiatives/SaveInitiativeDto'
 import type { InitiativeDetailDto } from '../../../application/dto/initiatives/InitiativeDetailDto'
 import type { InitiativeStage } from '../../../domain/initiatives/entities/InitiativeStage'
 import type { InitiativeStatus } from '../../../domain/initiatives/entities/InitiativeStatus'
+import { getInitiativeComponents } from '../../../application/use-cases/initiative-components/getInitiativeComponents'
+import { saveInitiativeComponents } from '../../../application/use-cases/initiative-components/saveInitiativeComponents'
+import type { InitiativeComponentDraftDto } from '../../../application/mappers/initiatives/initiativeComponentMappers'
+import { getInitiativeComponentDraftErrors } from '../../../application/mappers/initiatives/initiativeComponentMappers'
 import { tokens } from '../../components/ui/tokens'
 import { WizardUi } from './wizard/WizardUi'
 import type { WizardStepOption } from './wizard/wizardOptions'
@@ -11,7 +18,7 @@ import { ComponentsStep } from './wizard/steps/ComponentsStep'
 import { ValuesStep } from './wizard/steps/ValuesStep'
 import { ReviewStep } from './wizard/steps/ReviewStep'
 import { mockCalculationResult } from './mocks/mockCalculation'
-import { mockComponentCatalog, mockConversionCatalog, mockKpiCatalog } from './mocks/mockCatalogs'
+import { mockComponentCatalog, mockConversionCatalog, mockFormulaCatalog, mockKpiCatalog } from './mocks/mockCatalogs'
 import { mockComponentValues, mockKpiValues } from './mocks/mockValues'
 import type { InitiativeWizardMode } from './hooks/useInitiativesPage'
 
@@ -21,7 +28,7 @@ type InitiativeWizardModalProps = {
   isSaving: boolean
   selectedInitiative?: InitiativeDetailDto
   onClose: () => void
-  onSave: (input: SaveInitiativeDto) => Promise<void>
+  onSave: (input: SaveInitiativeDto) => Promise<InitiativeDetailDto>
 }
 
 type InitiativeFormState = {
@@ -38,9 +45,20 @@ const getInitialFormState = (initiative: InitiativeDetailDto | undefined): Initi
   status: initiative?.status ?? 'DRAFT',
 })
 
+const getNewComponentDraft = (): InitiativeComponentDraftDto => ({
+  componentCode: '',
+  componentType: 'OTHER',
+  direction: 1,
+  calculationType: 'KPI_BASED',
+  formulaCode: mockFormulaCatalog[0]?.code,
+  sortOrder: 1,
+})
+
 export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiative, onClose, onSave }: InitiativeWizardModalProps) {
   const [activeStepIndex, setActiveStepIndex] = useState<number>(0)
   const [form, setForm] = useState<InitiativeFormState>(getInitialFormState(selectedInitiative))
+  const [components, setComponents] = useState<readonly InitiativeComponentDraftDto[]>([])
+  const [isLoadingComponents, setIsLoadingComponents] = useState<boolean>(false)
 
   useEffect(() => {
     if (!isOpen) {
@@ -49,6 +67,22 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
 
     setForm(getInitialFormState(mode === 'edit' ? selectedInitiative : undefined))
     setActiveStepIndex(0)
+  }, [isOpen, mode, selectedInitiative])
+
+  useEffect(() => {
+    if (!isOpen) {
+      return
+    }
+
+    if (mode !== 'edit' || !selectedInitiative) {
+      setComponents([])
+      return
+    }
+
+    setIsLoadingComponents(true)
+    void getInitiativeComponents(selectedInitiative.id, mockComponentCatalog)
+      .then(setComponents)
+      .finally(() => setIsLoadingComponents(false))
   }, [isOpen, mode, selectedInitiative])
 
   const steps = useMemo<WizardStepOption[]>(
@@ -71,10 +105,54 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
         label: 'Components',
         render: () => (
           <ComponentsStep
-            selectedInitiative={selectedInitiative}
-            componentCatalogSize={mockComponentCatalog.length}
-            kpiCatalogSize={mockKpiCatalog.length}
-            conversionCatalogSize={mockConversionCatalog.length}
+            components={components}
+            componentCatalog={mockComponentCatalog}
+            kpiCatalog={mockKpiCatalog}
+            conversionCatalog={mockConversionCatalog}
+            formulaCatalog={mockFormulaCatalog}
+            isLoading={isLoadingComponents}
+            onAddComponent={() =>
+              setComponents((current) => [
+                ...current,
+                {
+                  ...getNewComponentDraft(),
+                  sortOrder: current.length + 1,
+                },
+              ])
+            }
+            onRemoveComponent={(index) =>
+              setComponents((current) => current.filter((_, currentIndex) => currentIndex !== index).map((item, i) => ({ ...item, sortOrder: i + 1 })))
+            }
+            onUpdateComponent={(index, patch) =>
+              setComponents((current) =>
+                current.map((component, componentIndex) => {
+                  if (componentIndex !== index) {
+                    return component
+                  }
+
+                  const nextComponentCode = patch.componentCode ?? component.componentCode
+                  const selectedCatalog = mockComponentCatalog.find((catalogItem) => catalogItem.code === nextComponentCode)
+                  const calculationType = selectedCatalog?.defaultCalculationType ?? component.calculationType
+
+                  return {
+                    ...component,
+                    ...patch,
+                    componentType: selectedCatalog?.componentType ?? component.componentType,
+                    direction: selectedCatalog?.defaultDirection ?? component.direction,
+                    calculationType,
+                    kpiCode:
+                      calculationType === 'FIXED'
+                        ? undefined
+                        : ((patch.kpiCode ?? component.kpiCode) as KpiCode | undefined),
+                    conversionCode:
+                      calculationType === 'FIXED'
+                        ? undefined
+                        : ((patch.conversionCode ?? component.conversionCode) as ConversionCode | undefined),
+                    formulaCode: (patch.formulaCode ?? component.formulaCode) as FormulaCode | undefined,
+                  }
+                }),
+              )
+            }
           />
         ),
       },
@@ -95,7 +173,7 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
         render: () => <ReviewStep selectedInitiative={selectedInitiative} calculation={mockCalculationResult} />,
       },
     ],
-    [form, selectedInitiative],
+    [components, form, isLoadingComponents, selectedInitiative],
   )
 
   if (!isOpen) {
@@ -122,10 +200,12 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
       endMonthRef: '2026-12',
     }
 
-    await onSave(dto)
+    const savedInitiative = await onSave(dto)
+    await saveInitiativeComponents(savedInitiative.id, components, mockComponentCatalog)
   }
 
-  const isSaveDisabled = form.title.trim().length === 0 || form.owner.trim().length === 0 || isSaving
+  const hasInvalidComponent = components.some((component) => getInitiativeComponentDraftErrors(component, mockComponentCatalog).length > 0)
+  const isSaveDisabled = form.title.trim().length === 0 || form.owner.trim().length === 0 || isSaving || hasInvalidComponent
 
   return (
     <div
