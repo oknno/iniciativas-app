@@ -166,37 +166,48 @@ export function InitiativesPage({
         <h1>Motor de Ganhos</h1>
 
         <div className="initiatives-actions" aria-label="Barra de ações da tela inicial" data-filter-container>
-          <button type="button" className="btn" onClick={() => {
-            void loadInitiatives()
-            showToast('success', 'Iniciativas atualizadas com sucesso.')
-          }}
-          >
-            Atualizar
-          </button>
-          <button type="button" className="btn primary" onClick={onCreateNewInitiative}>Nova iniciativa</button>
-          <button
-            type="button"
-            className="btn"
-            onClick={() => selectedInitiative && onStartFlow(selectedInitiative.id)}
-            disabled={!hasSelection}
-          >
-            Visualizar
-          </button>
-          <button type="button" className="btn" disabled={!hasSelection}>Editar</button>
-          <button type="button" className="btn" disabled={!hasSelection} onClick={() => setIsConfirmOpen(true)}>Excluir</button>
-          <button type="button" className="btn" disabled={!hasSelection}>Enviar para aprovação</button>
-          <button type="button" className="btn" disabled={!hasSelection}>Voltar status</button>
-          <button
-            type="button"
-            className="btn"
-            onClick={() => {
-              setDraftFilters(filters)
-              setIsFilterOpen((state) => !state)
+          <div className="actions-group">
+            <button type="button" className="btn compact" onClick={() => {
+              void loadInitiatives()
+              showToast('success', 'Iniciativas atualizadas com sucesso.')
             }}
-          >
-            Filtro
-          </button>
-          <button type="button" className="btn" onClick={() => showToast('info', 'Exportação iniciada.')}>Exportar</button>
+            >
+              Atualizar
+            </button>
+            <button type="button" className="btn primary compact" onClick={onCreateNewInitiative}>Nova iniciativa</button>
+          </div>
+          <span className="actions-divider" aria-hidden="true" />
+          <div className="actions-group">
+            <button
+              type="button"
+              className="btn compact"
+              onClick={() => selectedInitiative && onStartFlow(selectedInitiative.id)}
+              disabled={!hasSelection}
+            >
+              Visualizar
+            </button>
+            <button type="button" className="btn compact" disabled={!hasSelection}>Editar</button>
+            <button type="button" className="btn compact" disabled={!hasSelection} onClick={() => setIsConfirmOpen(true)}>Excluir</button>
+          </div>
+          <span className="actions-divider" aria-hidden="true" />
+          <div className="actions-group">
+            <button type="button" className="btn compact" disabled={!hasSelection}>Enviar para aprovação</button>
+            <button type="button" className="btn compact" disabled={!hasSelection}>Voltar status</button>
+          </div>
+          <span className="actions-divider" aria-hidden="true" />
+          <div className="actions-group">
+            <button
+              type="button"
+              className="btn compact"
+              onClick={() => {
+                setDraftFilters(filters)
+                setIsFilterOpen((state) => !state)
+              }}
+            >
+              Filtro
+            </button>
+            <button type="button" className="btn compact" onClick={() => showToast('info', 'Exportação iniciada.')}>Exportar</button>
+          </div>
 
           {isFilterOpen && (
             <div className="initiatives-filter-popover" role="dialog" aria-label="Filtro de iniciativas">
@@ -271,69 +282,99 @@ export function InitiativesPage({
 
       <section className="initiatives-main-grid">
         <div className="initiatives-list-panel">
-          {loading ? (
-            <div className="initiatives-state">Carregando iniciativas...</div>
-          ) : error ? (
-            <div className="initiatives-state">Erro ao carregar iniciativas.</div>
-          ) : filteredInitiatives.length === 0 ? (
-            <div className="initiatives-state">Nenhuma iniciativa encontrada.</div>
-          ) : (
-            <table className="initiatives-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Título</th>
-                  <th>Unidade</th>
-                  <th>Responsável</th>
-                  <th>Stage</th>
-                  <th>Status</th>
-                  <th>Última atualização</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredInitiatives.map((initiative) => {
-                  const isSelected = initiative.id === selectedInitiative?.id
-                  return (
-                    <tr
-                      key={initiative.id}
-                      className={isSelected ? 'is-selected' : undefined}
-                      onClick={() => setSelectedId(initiative.id)}
-                    >
-                      <td className="id-cell">MG-{String(initiative.id).padStart(3, '0')}</td>
-                      <td title={initiative.title}>{initiative.title}</td>
-                      <td>{initiative.unidade}</td>
-                      <td>{initiative.responsavel}</td>
-                      <td>{initiative.stage}</td>
-                      <td>
-                        <span className={`status-badge ${getStatusTone(initiative.status)}`}>{initiative.status}</span>
-                      </td>
-                      <td>{initiative.updatedAt ?? '-'}</td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          )}
+          <div className="initiatives-table-shell">
+            {loading ? (
+              <div className="initiatives-state">Carregando iniciativas...</div>
+            ) : error ? (
+              <div className="initiatives-state">Erro ao carregar iniciativas.</div>
+            ) : filteredInitiatives.length === 0 ? (
+              <div className="initiatives-state">Nenhuma iniciativa encontrada.</div>
+            ) : (
+              <table className="initiatives-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Título</th>
+                    <th>Unidade</th>
+                    <th>Responsável</th>
+                    <th>Stage</th>
+                    <th>Status</th>
+                    <th>Última atualização</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredInitiatives.map((initiative) => {
+                    const isSelected = initiative.id === selectedInitiative?.id
+                    return (
+                      <tr
+                        key={initiative.id}
+                        className={isSelected ? 'is-selected' : undefined}
+                        onClick={() => setSelectedId(initiative.id)}
+                      >
+                        <td className="id-cell">MG-{String(initiative.id).padStart(3, '0')}</td>
+                        <td title={initiative.title}>{initiative.title}</td>
+                        <td>{initiative.unidade}</td>
+                        <td>{initiative.responsavel}</td>
+                        <td>{initiative.stage}</td>
+                        <td>
+                          <span className={`status-badge ${getStatusTone(initiative.status)}`}>{initiative.status}</span>
+                        </td>
+                        <td>{initiative.updatedAt ?? '-'}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            )}
+          </div>
+          <footer className="initiatives-list-footer">
+            <span>Itens carregados: {filteredInitiatives.length}</span>
+            <button type="button" className="btn compact secondary">Carregar mais</button>
+          </footer>
         </div>
 
         <aside className="initiatives-summary-panel">
           <h2>Resumo</h2>
           {selectedInitiative ? (
-            <div className="initiatives-summary-meta">
-              <p><strong>Título:</strong> {selectedInitiative.title}</p>
-              <p><strong>Unidade:</strong> {selectedInitiative.unidade}</p>
-              <p><strong>Responsável:</strong> {selectedInitiative.responsavel}</p>
-              <p><strong>Stage:</strong> {selectedInitiative.stage}</p>
-              <p>
-                <strong>Status:</strong>{' '}
+            <div className="initiatives-summary-content">
+              <div className="summary-header">
+                <h3>{selectedInitiative.title}</h3>
                 <span className={`status-badge ${getStatusTone(selectedInitiative.status)}`}>
                   {selectedInitiative.status}
                 </span>
-              </p>
-              <p><strong>Componentes:</strong> {selectedInitiative.componentsCount ?? 0}</p>
-              <p><strong>Total estimado:</strong> {formatCurrency(selectedInitiative.estimatedTotal ?? selectedInitiative.budget ?? 0)}</p>
-              <p><strong>Ganho acumulado:</strong> {formatCurrency(selectedInitiative.accumulatedGain ?? 0)}</p>
-              <p><strong>Última atualização:</strong> {selectedInitiative.updatedAt ?? '-'}</p>
+              </div>
+
+              <div className="summary-divider" />
+
+              <dl className="summary-fields">
+                <div><dt>Código / ID</dt><dd>MG-{String(selectedInitiative.id).padStart(3, '0')}</dd></div>
+                <div><dt>Unidade</dt><dd>{selectedInitiative.unidade}</dd></div>
+                <div><dt>Responsável</dt><dd>{selectedInitiative.responsavel}</dd></div>
+                <div><dt>Stage</dt><dd>{selectedInitiative.stage}</dd></div>
+                <div><dt>Status</dt><dd>{selectedInitiative.status}</dd></div>
+                <div><dt>Componentes</dt><dd>{selectedInitiative.componentsCount ?? 0}</dd></div>
+                <div><dt>Total estimado</dt><dd>{formatCurrency(selectedInitiative.estimatedTotal ?? selectedInitiative.budget ?? 0)}</dd></div>
+                <div><dt>Ganho acumulado</dt><dd>{formatCurrency(selectedInitiative.accumulatedGain ?? 0)}</dd></div>
+                <div><dt>Última atualização</dt><dd>{selectedInitiative.updatedAt ?? '-'}</dd></div>
+              </dl>
+
+              <div className="summary-divider" />
+
+              <section className="summary-section">
+                <h4>Objetivo da iniciativa</h4>
+                <p>
+                  {selectedInitiative.businessNeed
+                    ?? 'Aprimorar a eficiência operacional da unidade com ações de captura de ganhos e padronização do processo.'}
+                </p>
+              </section>
+
+              <section className="summary-section">
+                <h4>Observações</h4>
+                <p>
+                  {selectedInitiative.proposedSolution
+                    ?? `Iniciativa em ${selectedInitiative.stage}. Acompanhamento semanal com o responsável para evolução do plano.`}
+                </p>
+              </section>
             </div>
           ) : (
             <p className="initiatives-summary-empty">Selecione uma iniciativa para visualizar o resumo.</p>
