@@ -1,22 +1,13 @@
 import { Card } from '../../../components/ui/Card'
 import { tokens } from '../../../components/ui/tokens'
+import type { InitiativeListItemDto } from '../../../../application/dto/initiatives/InitiativeListItemDto'
+import type { InitiativeId } from '../../../../domain/initiatives/value-objects/InitiativeId'
 import { InitiativeStatusBadge } from './InitiativeStatusBadge'
 
-type InitiativeStatus = 'Draft' | 'In Review' | 'Approved' | 'Rejected'
-
-export type InitiativeListItem = {
-  id: string
-  title: string
-  owner: string
-  stage: string
-  status: InitiativeStatus
-  annualGain: number
-}
-
 type InitiativesTableSectionProps = {
-  items: InitiativeListItem[]
-  selectedId: string
-  onSelect: (id: string) => void
+  items: readonly InitiativeListItemDto[]
+  selectedId?: InitiativeId
+  onSelect: (id: InitiativeId) => void
 }
 
 const compactCurrency = new Intl.NumberFormat('en-US', {
@@ -25,6 +16,13 @@ const compactCurrency = new Intl.NumberFormat('en-US', {
   notation: 'compact',
   maximumFractionDigits: 1,
 })
+
+const stageLabel: Record<InitiativeListItemDto['stage'], string> = {
+  DRAFTING: 'Drafting',
+  ASSESSMENT: 'Assessment',
+  VALIDATION: 'Validation',
+  GOVERNANCE_GATE: 'Governance Gate',
+}
 
 export function InitiativesTableSection({ items, selectedId, onSelect }: InitiativesTableSectionProps) {
   return (
@@ -74,7 +72,7 @@ export function InitiativesTableSection({ items, selectedId, onSelect }: Initiat
               <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: tokens.colors.textPrimary }}>
                 {item.title}
               </p>
-              <p style={{ margin: '2px 0 0', fontSize: 12, color: tokens.colors.textMuted }}>{item.stage}</p>
+              <p style={{ margin: '2px 0 0', fontSize: 12, color: tokens.colors.textMuted }}>{stageLabel[item.stage]}</p>
             </div>
             <span style={{ fontSize: 13, color: tokens.colors.textSecondary }}>{item.owner}</span>
             <InitiativeStatusBadge status={item.status} />

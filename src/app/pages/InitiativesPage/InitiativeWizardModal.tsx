@@ -6,23 +6,57 @@ import { InitiativeStep } from './wizard/steps/InitiativeStep'
 import { ComponentsStep } from './wizard/steps/ComponentsStep'
 import { ValuesStep } from './wizard/steps/ValuesStep'
 import { ReviewStep } from './wizard/steps/ReviewStep'
+import type { InitiativeDetailDto } from '../../../application/dto/initiatives/InitiativeDetailDto'
+import { mockCalculationResult } from './mocks/mockCalculation'
+import { mockComponentCatalog, mockConversionCatalog, mockKpiCatalog } from './mocks/mockCatalogs'
+import { mockComponentValues, mockKpiValues } from './mocks/mockValues'
 
 type InitiativeWizardModalProps = {
   isOpen: boolean
+  selectedInitiative?: InitiativeDetailDto
   onClose: () => void
 }
 
-export function InitiativeWizardModal({ isOpen, onClose }: InitiativeWizardModalProps) {
+export function InitiativeWizardModal({ isOpen, selectedInitiative, onClose }: InitiativeWizardModalProps) {
   const [activeStepIndex, setActiveStepIndex] = useState<number>(0)
 
   const steps = useMemo<WizardStepOption[]>(
     () => [
-      { id: 'initiative', label: 'Initiative', render: () => <InitiativeStep /> },
-      { id: 'components', label: 'Components', render: () => <ComponentsStep /> },
-      { id: 'values', label: 'Values', render: () => <ValuesStep /> },
-      { id: 'review', label: 'Review', render: () => <ReviewStep /> },
+      {
+        id: 'initiative',
+        label: 'Initiative',
+        render: () => <InitiativeStep selectedInitiative={selectedInitiative} />,
+      },
+      {
+        id: 'components',
+        label: 'Components',
+        render: () => (
+          <ComponentsStep
+            selectedInitiative={selectedInitiative}
+            componentCatalogSize={mockComponentCatalog.length}
+            kpiCatalogSize={mockKpiCatalog.length}
+            conversionCatalogSize={mockConversionCatalog.length}
+          />
+        ),
+      },
+      {
+        id: 'values',
+        label: 'Values',
+        render: () => (
+          <ValuesStep
+            selectedInitiative={selectedInitiative}
+            kpiValuesCount={mockKpiValues.length}
+            componentValuesCount={mockComponentValues.length}
+          />
+        ),
+      },
+      {
+        id: 'review',
+        label: 'Review',
+        render: () => <ReviewStep selectedInitiative={selectedInitiative} calculation={mockCalculationResult} />,
+      },
     ],
-    [],
+    [selectedInitiative],
   )
 
   if (!isOpen) {
