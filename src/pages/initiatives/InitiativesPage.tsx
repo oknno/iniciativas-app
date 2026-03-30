@@ -296,10 +296,8 @@ export function InitiativesPage({
                     <th>ID</th>
                     <th>Título</th>
                     <th>Unidade</th>
-                    <th>Responsável</th>
                     <th>Stage</th>
                     <th>Status</th>
-                    <th>Última atualização</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -314,12 +312,10 @@ export function InitiativesPage({
                         <td className="id-cell">MG-{String(initiative.id).padStart(3, '0')}</td>
                         <td title={initiative.title}>{initiative.title}</td>
                         <td>{initiative.unidade}</td>
-                        <td>{initiative.responsavel}</td>
                         <td>{initiative.stage}</td>
                         <td>
                           <span className={`status-badge ${getStatusTone(initiative.status)}`}>{initiative.status}</span>
                         </td>
-                        <td>{initiative.updatedAt ?? '-'}</td>
                       </tr>
                     )
                   })}
