@@ -30,13 +30,14 @@ import { InitiativeStep } from './wizard/steps/InitiativeStep'
 import { ComponentsStep } from './wizard/steps/ComponentsStep'
 import { ValuesStep } from './wizard/steps/ValuesStep'
 import { ReviewStep } from './wizard/steps/ReviewStep'
-import { mockComponentCatalog, mockConversionCatalog, mockConversionValues, mockFormulaCatalog, mockKpiCatalog } from './mocks/mockCatalogs'
 import { previewInitiativeCalculation } from '../../../application/use-cases/calculation/previewInitiativeCalculation'
 import { calculateInitiative } from '../../../application/use-cases/calculation/calculateInitiative'
 import { asInitiativeId } from '../../../domain/initiatives/value-objects/InitiativeId'
 import type { InitiativeComponent } from '../../../domain/initiatives/entities/InitiativeComponent'
 import type { CalculateInitiativeResultDto } from '../../../application/dto/calculation/CalculateInitiativeResultDto'
 import type { MonthRef } from '../../../domain/initiatives/value-objects/MonthRef'
+import { getCatalogs } from '../../../application/use-cases/catalogs/getCatalogs'
+import type { CatalogsDtoBundle } from '../../../application/mappers/catalogs/catalogMappers'
 
 import type { InitiativeWizardMode } from './hooks/useInitiativesPage'
 
@@ -67,12 +68,20 @@ const getInitialFormState = (initiative: InitiativeDetailDto | undefined): Initi
 const DEFAULT_VALUES_YEAR = 2026
 const DEFAULT_VALUES_SCENARIO = 'BASE' as const
 
-const getNewComponentDraft = (): InitiativeComponentDraftDto => ({
+const emptyCatalogs: CatalogsDtoBundle = {
+  componentCatalog: [],
+  kpiCatalog: [],
+  conversionCatalog: [],
+  formulaCatalog: [],
+  conversionValues: [],
+}
+
+const getNewComponentDraft = (formulaCode?: FormulaCode): InitiativeComponentDraftDto => ({
   componentCode: '',
   componentType: 'OTHER',
   direction: 1,
   calculationType: 'KPI_BASED',
-  formulaCode: mockFormulaCatalog[0]?.code,
+  formulaCode,
   sortOrder: 1,
 })
 
@@ -85,6 +94,8 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
   const [valuesScenario] = useState<typeof DEFAULT_VALUES_SCENARIO>(DEFAULT_VALUES_SCENARIO)
   const [kpiValuesByRow, setKpiValuesByRow] = useState<Readonly<Record<string, MonthlyInputMap>>>({})
   const [fixedValuesByRow, setFixedValuesByRow] = useState<Readonly<Record<string, MonthlyInputMap>>>({})
+  const [catalogs, setCatalogs] = useState<CatalogsDtoBundle>(emptyCatalogs)
+  const [isLoadingCatalogs, setIsLoadingCatalogs] = useState<boolean>(false)
   const [calculationPreview, setCalculationPreview] = useState<CalculateInitiativeResultDto>({
     initiativeId: asInitiativeId('INIT-NEW'),
     year: valuesYear,
@@ -110,31 +121,74 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
       return
     }
 
+    setIsLoadingCatalogs(true)
+    void getCatalogs()
+      .then(setCatalogs)
+      .catch((error) => {
+        console.error('Failed to load catalogs from SharePoint.', error)
+        setCatalogs(emptyCatalogs)
+      })
+      .finally(() => setIsLoadingCatalogs(false))
+  }, [isOpen])
+
+  useEffect(() => {
+    if (!isOpen) {
+      return
+    }
+
     if (mode !== 'edit' || !selectedInitiative) {
       setComponents([])
       return
     }
 
     setIsLoadingComponents(true)
-    void getInitiativeComponents(selectedInitiative.id, mockComponentCatalog)
+    void getInitiativeComponents(selectedInitiative.id, catalogs.componentCatalog)
       .then(setComponents)
+      .catch((error) => {
+        console.error('Failed to load initiative components from SharePoint.', error)
+        setComponents([])
+      })
       .finally(() => setIsLoadingComponents(false))
-  }, [isOpen, mode, selectedInitiative])
+  }, [catalogs.componentCatalog, isOpen, mode, selectedInitiative])
 
 
   useEffect(() => {
-    if (!isOpen || mode !== 'edit' || !selectedInitiative || isLoadingComponents || components.length === 0) {
+    if (
+      !isOpen ||
+      mode !== 'edit' ||
+      !selectedInitiative ||
+      isLoadingComponents ||
+      components.length === 0 ||
+      isLoadingCatalogs
+    ) {
       return
     }
 
-    const kpiRows = buildKpiValueGridRows(components, mockComponentCatalog, mockKpiCatalog)
-    const fixedRows = buildFixedValueGridRows(components, mockComponentCatalog)
+    const kpiRows = buildKpiValueGridRows(components, catalogs.componentCatalog, catalogs.kpiCatalog)
+    const fixedRows = buildFixedValueGridRows(components, catalogs.componentCatalog)
 
-    void getInitiativeValues(selectedInitiative.id, valuesYear, valuesScenario).then(({ kpiValues, componentValues }) => {
-      setKpiValuesByRow(toKpiValueDraftMap(kpiValues, kpiRows, valuesYear))
-      setFixedValuesByRow(toFixedValueDraftMap(componentValues, fixedRows, valuesYear))
-    })
-  }, [components, isLoadingComponents, isOpen, mode, selectedInitiative, valuesScenario, valuesYear])
+    void getInitiativeValues(selectedInitiative.id, valuesYear, valuesScenario)
+      .then(({ kpiValues, componentValues }) => {
+        setKpiValuesByRow(toKpiValueDraftMap(kpiValues, kpiRows, valuesYear))
+        setFixedValuesByRow(toFixedValueDraftMap(componentValues, fixedRows, valuesYear))
+      })
+      .catch((error) => {
+        console.error('Failed to load initiative values from SharePoint.', error)
+        setKpiValuesByRow({})
+        setFixedValuesByRow({})
+      })
+  }, [
+    catalogs.componentCatalog,
+    catalogs.kpiCatalog,
+    components,
+    isLoadingCatalogs,
+    isLoadingComponents,
+    isOpen,
+    mode,
+    selectedInitiative,
+    valuesScenario,
+    valuesYear,
+  ])
 
   const steps = useMemo<WizardStepOption[]>(
     () => [
@@ -157,16 +211,16 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
         render: () => (
           <ComponentsStep
             components={components}
-            componentCatalog={mockComponentCatalog}
-            kpiCatalog={mockKpiCatalog}
-            conversionCatalog={mockConversionCatalog}
-            formulaCatalog={mockFormulaCatalog}
-            isLoading={isLoadingComponents}
+            componentCatalog={catalogs.componentCatalog}
+            kpiCatalog={catalogs.kpiCatalog}
+            conversionCatalog={catalogs.conversionCatalog}
+            formulaCatalog={catalogs.formulaCatalog}
+            isLoading={isLoadingComponents || isLoadingCatalogs}
             onAddComponent={() =>
               setComponents((current) => [
                 ...current,
                 {
-                  ...getNewComponentDraft(),
+                  ...getNewComponentDraft(catalogs.formulaCatalog[0]?.code),
                   sortOrder: current.length + 1,
                 },
               ])
@@ -182,7 +236,7 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
                   }
 
                   const nextComponentCode = patch.componentCode ?? component.componentCode
-                  const selectedCatalog = mockComponentCatalog.find((catalogItem) => catalogItem.code === nextComponentCode)
+                  const selectedCatalog = catalogs.componentCatalog.find((catalogItem) => catalogItem.code === nextComponentCode)
                   const calculationType = selectedCatalog?.defaultCalculationType ?? component.calculationType
 
                   return {
@@ -213,10 +267,10 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
         render: () => (
           <ValuesStep
             components={components}
-            componentCatalog={mockComponentCatalog}
-            kpiCatalog={mockKpiCatalog}
-            conversionCatalog={mockConversionCatalog}
-            conversionValues={mockConversionValues}
+            componentCatalog={catalogs.componentCatalog}
+            kpiCatalog={catalogs.kpiCatalog}
+            conversionCatalog={catalogs.conversionCatalog}
+            conversionValues={catalogs.conversionValues}
             year={valuesYear}
             scenario={valuesScenario}
             kpiValuesByRow={kpiValuesByRow}
@@ -250,14 +304,19 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
             selectedInitiative={selectedInitiative}
             calculation={calculationPreview}
             componentsCount={components.length}
-            kpiRowsCount={buildKpiValueGridRows(components, mockComponentCatalog, mockKpiCatalog).length}
-            fixedRowsCount={buildFixedValueGridRows(components, mockComponentCatalog).length}
+            kpiRowsCount={buildKpiValueGridRows(components, catalogs.componentCatalog, catalogs.kpiCatalog).length}
+            fixedRowsCount={buildFixedValueGridRows(components, catalogs.componentCatalog).length}
           />
         ),
       },
     ],
     [
       calculationPreview,
+      catalogs.componentCatalog,
+      catalogs.conversionCatalog,
+      catalogs.conversionValues,
+      catalogs.formulaCatalog,
+      catalogs.kpiCatalog,
       components,
       fixedValuesByRow,
       form,
@@ -272,7 +331,7 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
   useEffect(() => {
     const effectiveInitiativeId = selectedInitiative?.id ?? asInitiativeId('INIT-NEW')
     const persistedLikeComponents: InitiativeComponent[] = components.map((component, index) => {
-      const match = mockComponentCatalog.find((item) => item.code === component.componentCode)
+      const match = catalogs.componentCatalog.find((item) => item.code === component.componentCode)
       return {
         id: component.id ?? `TMP-${index + 1}`,
         initiativeId: effectiveInitiativeId,
@@ -287,8 +346,8 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
       }
     })
 
-    const kpiRows = buildKpiValueGridRows(components, mockComponentCatalog, mockKpiCatalog)
-    const fixedRows = buildFixedValueGridRows(components, mockComponentCatalog)
+    const kpiRows = buildKpiValueGridRows(components, catalogs.componentCatalog, catalogs.kpiCatalog)
+    const fixedRows = buildFixedValueGridRows(components, catalogs.componentCatalog)
 
     void previewInitiativeCalculation({
       initiativeId: effectiveInitiativeId,
@@ -297,9 +356,23 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
       components: persistedLikeComponents,
       kpiValues: toSaveKpiValueDtos(effectiveInitiativeId, valuesYear, valuesScenario, kpiRows, kpiValuesByRow),
       componentValues: toSaveComponentValueDtos(effectiveInitiativeId, valuesYear, valuesScenario, fixedRows, fixedValuesByRow),
-      conversionValues: mockConversionValues,
-    }).then(setCalculationPreview)
-  }, [components, fixedValuesByRow, kpiValuesByRow, selectedInitiative?.id, valuesScenario, valuesYear])
+      conversionValues: catalogs.conversionValues,
+    })
+      .then(setCalculationPreview)
+      .catch((error) => {
+        console.error('Failed to preview initiative calculation.', error)
+      })
+  }, [
+    catalogs.componentCatalog,
+    catalogs.conversionValues,
+    catalogs.kpiCatalog,
+    components,
+    fixedValuesByRow,
+    kpiValuesByRow,
+    selectedInitiative?.id,
+    valuesScenario,
+    valuesYear,
+  ])
 
   if (!isOpen) {
     return null
@@ -326,11 +399,11 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
     }
 
     const savedInitiative = await onSave(dto)
-    await saveInitiativeComponents(savedInitiative.id, components, mockComponentCatalog)
+    await saveInitiativeComponents(savedInitiative.id, components, catalogs.componentCatalog)
 
-    const persistedComponents = await getInitiativeComponents(savedInitiative.id, mockComponentCatalog)
-    const kpiRows = buildKpiValueGridRows(persistedComponents, mockComponentCatalog, mockKpiCatalog)
-    const fixedRows = buildFixedValueGridRows(persistedComponents, mockComponentCatalog)
+    const persistedComponents = await getInitiativeComponents(savedInitiative.id, catalogs.componentCatalog)
+    const kpiRows = buildKpiValueGridRows(persistedComponents, catalogs.componentCatalog, catalogs.kpiCatalog)
+    const fixedRows = buildFixedValueGridRows(persistedComponents, catalogs.componentCatalog)
 
     await saveKpiValues(toSaveKpiValueDtos(savedInitiative.id, valuesYear, valuesScenario, kpiRows, kpiValuesByRow))
     await saveComponentValues(
@@ -343,7 +416,9 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
     })
   }
 
-  const hasInvalidComponent = components.some((component) => getInitiativeComponentDraftErrors(component, mockComponentCatalog).length > 0)
+  const hasInvalidComponent = components.some(
+    (component) => getInitiativeComponentDraftErrors(component, catalogs.componentCatalog).length > 0,
+  )
   const isSaveDisabled = form.title.trim().length === 0 || form.owner.trim().length === 0 || isSaving || hasInvalidComponent
 
   return (
