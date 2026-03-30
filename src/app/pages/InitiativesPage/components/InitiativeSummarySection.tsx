@@ -1,9 +1,12 @@
+import { useEffect, useState } from 'react'
 import { Card } from '../../../components/ui/Card'
 import { StateMessage } from '../../../components/ui/StateMessage'
 import { tokens } from '../../../components/ui/tokens'
 import type { InitiativeDetailDto } from '../../../../application/dto/initiatives/InitiativeDetailDto'
 import { InitiativeMetricsPanel } from './InitiativeMetricsPanel'
 import { InitiativeStatusBadge } from './InitiativeStatusBadge'
+import { getCalculationResult } from '../../../../application/use-cases/calculation/getCalculationResult'
+import { getInitiativeValues } from '../../../../application/use-cases/initiative-values/getInitiativeValues'
 
 type InitiativeSummarySectionProps = {
   item: InitiativeDetailDto | undefined
@@ -23,6 +26,28 @@ const scenarioLabel: Record<InitiativeDetailDto['scenario'], string> = {
 }
 
 export function InitiativeSummarySection({ item }: InitiativeSummarySectionProps) {
+  const [annualCalculatedGain, setAnnualCalculatedGain] = useState<number>(0)
+  const [kpiRowsCount, setKpiRowsCount] = useState<number>(0)
+  const [fixedRowsCount, setFixedRowsCount] = useState<number>(0)
+
+  useEffect(() => {
+    if (!item) {
+      setAnnualCalculatedGain(0)
+      setKpiRowsCount(0)
+      setFixedRowsCount(0)
+      return
+    }
+
+    void getCalculationResult(item.id).then((results) => {
+      setAnnualCalculatedGain(results.reduce((sum, result) => sum + result.gainValue, 0))
+    })
+
+    void getInitiativeValues(item.id, 2026, item.scenario).then(({ kpiValues, componentValues }) => {
+      setKpiRowsCount(kpiValues.length)
+      setFixedRowsCount(componentValues.length)
+    })
+  }, [item])
+
   if (!item) {
     return <StateMessage title="No initiative selected" description="Select one item to view its summary." />
   }
@@ -51,9 +76,10 @@ export function InitiativeSummarySection({ item }: InitiativeSummarySectionProps
       </Card>
 
       <InitiativeMetricsPanel
-        annualGain={item.annualGain}
-        implementationCost={item.implementationCost}
+        annualCalculatedGain={annualCalculatedGain}
         componentsCount={item.components.length}
+        kpiRowsCount={kpiRowsCount}
+        fixedRowsCount={fixedRowsCount}
         stage={item.stage}
         status={item.status}
       />

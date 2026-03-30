@@ -33,30 +33,6 @@ export const mockKpiValues: readonly SaveKpiValueDto[] = [
 export const mockComponentValues: readonly SaveComponentValueDto[] = [
   {
     initiativeId: asInitiativeId('INIT-001'),
-    componentId: 'COMP-001',
-    monthRef: '2026-01',
-    scenario: 'BASE',
-    baseValue: 64400,
-    direction: 1,
-  },
-  {
-    initiativeId: asInitiativeId('INIT-001'),
-    componentId: 'COMP-001',
-    monthRef: '2026-02',
-    scenario: 'BASE',
-    baseValue: 65000,
-    direction: 1,
-  },
-  {
-    initiativeId: asInitiativeId('INIT-001'),
-    componentId: 'COMP-001',
-    monthRef: '2026-03',
-    scenario: 'BASE',
-    baseValue: 66120,
-    direction: 1,
-  },
-  {
-    initiativeId: asInitiativeId('INIT-001'),
     componentId: 'COMP-002',
     monthRef: '2026-01',
     scenario: 'BASE',
@@ -69,6 +45,14 @@ export const mockComponentValues: readonly SaveComponentValueDto[] = [
     monthRef: '2026-02',
     scenario: 'BASE',
     baseValue: 240000,
+    direction: -1,
+  },
+  {
+    initiativeId: asInitiativeId('INIT-001'),
+    componentId: 'COMP-002',
+    monthRef: '2026-03',
+    scenario: 'BASE',
+    baseValue: 225000,
     direction: -1,
   },
 ]

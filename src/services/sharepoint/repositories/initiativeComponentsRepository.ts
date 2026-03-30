@@ -27,7 +27,7 @@ let initiativeComponentsState: Record<string, InitiativeComponent[]> = {
       calculationType: 'KPI_BASED',
       kpiCode: asKpiCode('KPI-KWH-SAVED'),
       conversionCode: asConversionCode('CONV-KWH-USD'),
-      formulaCode: asFormulaCode('FORMULA-LINEAR-DEFAULT'),
+      formulaCode: asFormulaCode('FORMULA-MULTIPLIER'),
       sortOrder: 1,
     },
     {
@@ -37,7 +37,7 @@ let initiativeComponentsState: Record<string, InitiativeComponent[]> = {
       componentType: 'OTHER',
       direction: -1,
       calculationType: 'FIXED',
-      formulaCode: asFormulaCode('FORMULA-LINEAR-DEFAULT'),
+      formulaCode: asFormulaCode('FORMULA-DIRECT-VALUE'),
       sortOrder: 2,
     },
   ],

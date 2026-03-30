@@ -1,28 +1,33 @@
 import type { CalculateInitiativeResultDto } from '../../../../application/dto/calculation/CalculateInitiativeResultDto'
+import { asConversionCode } from '../../../../domain/catalogs/value-objects/ConversionCode'
+import { asFormulaCode } from '../../../../domain/catalogs/value-objects/FormulaCode'
+import { asKpiCode } from '../../../../domain/catalogs/value-objects/KpiCode'
 import { asInitiativeId } from '../../../../domain/initiatives/value-objects/InitiativeId'
 
 export const mockCalculationResult: CalculateInitiativeResultDto = {
   initiativeId: asInitiativeId('INIT-001'),
-  monthRef: '2026-01',
-  scenario: 'BASE',
-  finalGain: -200600,
+  year: 2026,
   calculatedAt: '2026-01-31T00:00:00.000Z',
-  detail: [
+  issues: [],
+  results: [
+    { initiativeId: asInitiativeId('INIT-001'), year: 2026, month: 1, gainValue: -200600 },
+    { initiativeId: asInitiativeId('INIT-001'), year: 2026, month: 2, gainValue: -173850 },
+    { initiativeId: asInitiativeId('INIT-001'), year: 2026, month: 3, gainValue: -157800 },
+  ],
+  details: [
     {
-      componentId: 'COMP-001',
-      componentName: 'Electricity savings',
+      initiativeId: asInitiativeId('INIT-001'),
+      componentType: 'ENERGY',
+      year: 2026,
+      month: 1,
+      formulaCode: asFormulaCode('FORMULA-MULTIPLIER'),
       direction: 1,
-      baseValue: 64400,
+      rawValue: 64400,
       signedValue: 64400,
-      explanation: 'KPI based = 460000 * 0.14',
-    },
-    {
-      componentId: 'COMP-002',
-      componentName: 'One-time implementation',
-      direction: -1,
-      baseValue: 265000,
-      signedValue: -265000,
-      explanation: 'Fixed value applied directly',
+      kpiCode: asKpiCode('KPI-KWH-SAVED'),
+      conversionCode: asConversionCode('CONV-KWH-USD'),
+      sourceType: 'KPI_BASED',
+      explanation: 'KPI-KWH-SAVED × CONV-KWH-USD',
     },
   ],
 }

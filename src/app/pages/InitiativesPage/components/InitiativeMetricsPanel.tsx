@@ -5,9 +5,10 @@ import type { InitiativeStage } from '../../../../domain/initiatives/entities/In
 import type { InitiativeStatus } from '../../../../domain/initiatives/entities/InitiativeStatus'
 
 type InitiativeMetricsPanelProps = {
-  annualGain: number
-  implementationCost: number
+  annualCalculatedGain: number
   componentsCount: number
+  kpiRowsCount: number
+  fixedRowsCount: number
   stage: InitiativeStage
   status: InitiativeStatus
 }
@@ -32,7 +33,14 @@ const readinessByStatus: Record<InitiativeStatus, number> = {
   REJECTED: 12,
 }
 
-export function InitiativeMetricsPanel({ annualGain, implementationCost, componentsCount, stage, status }: InitiativeMetricsPanelProps) {
+export function InitiativeMetricsPanel({
+  annualCalculatedGain,
+  componentsCount,
+  kpiRowsCount,
+  fixedRowsCount,
+  stage,
+  status,
+}: InitiativeMetricsPanelProps) {
   const metricStyle: CSSProperties = {
     margin: 0,
     fontSize: 22,
@@ -45,20 +53,20 @@ export function InitiativeMetricsPanel({ annualGain, implementationCost, compone
       <h3 style={{ margin: '0 0 12px', fontSize: 16 }}>Key Metrics</h3>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: tokens.spacing.md }}>
         <div>
-          <p style={{ margin: 0, fontSize: 12, color: tokens.colors.textMuted }}>Annual Gain</p>
-          <p style={metricStyle}>{currency.format(annualGain)}</p>
-        </div>
-        <div>
-          <p style={{ margin: 0, fontSize: 12, color: tokens.colors.textMuted }}>Implementation Cost</p>
-          <p style={metricStyle}>{currency.format(implementationCost)}</p>
+          <p style={{ margin: 0, fontSize: 12, color: tokens.colors.textMuted }}>Annual Calculated Gain</p>
+          <p style={metricStyle}>{currency.format(annualCalculatedGain)}</p>
         </div>
         <div>
           <p style={{ margin: 0, fontSize: 12, color: tokens.colors.textMuted }}>Components</p>
           <p style={metricStyle}>{componentsCount}</p>
         </div>
         <div>
-          <p style={{ margin: 0, fontSize: 12, color: tokens.colors.textMuted }}>Net Annual Impact</p>
-          <p style={metricStyle}>{currency.format(annualGain - implementationCost)}</p>
+          <p style={{ margin: 0, fontSize: 12, color: tokens.colors.textMuted }}>KPI Rows</p>
+          <p style={metricStyle}>{kpiRowsCount}</p>
+        </div>
+        <div>
+          <p style={{ margin: 0, fontSize: 12, color: tokens.colors.textMuted }}>Fixed Rows</p>
+          <p style={metricStyle}>{fixedRowsCount}</p>
         </div>
         <div>
           <p style={{ margin: 0, fontSize: 12, color: tokens.colors.textMuted }}>Delivery Confidence</p>
