@@ -1,37 +1,41 @@
-import { useMemo, useState } from 'react'
 import { CommandBar } from './CommandBar'
 import { styles } from './InitiativesPage.styles'
 import { InitiativeWizardModal } from './InitiativeWizardModal'
 import { InitiativesTableSection } from './components/InitiativesTableSection'
 import { InitiativeSummarySection } from './components/InitiativeSummarySection'
-import { mockInitiativeDetails, mockInitiativeList } from './mocks/mockInitiatives'
+import { useInitiativesPage } from './hooks/useInitiativesPage'
 
 export function InitiativesPage() {
-  const [selectedId, setSelectedId] = useState(mockInitiativeList[0]?.id)
-  const [isWizardOpen, setIsWizardOpen] = useState<boolean>(false)
-
-  const selectedItem = useMemo(
-    () => mockInitiativeDetails.find((item) => item.id === selectedId),
-    [selectedId],
-  )
+  const { items, selectedId, selectedItemDetail, isWizardOpen, wizardMode, isLoading, isSaving, commandState, actions } =
+    useInitiativesPage()
 
   return (
     <div style={styles.page}>
-      <CommandBar totalItems={mockInitiativeList.length} onOpenWizard={() => setIsWizardOpen(true)} />
+      <CommandBar
+        totalItems={items.length}
+        isLoading={isLoading}
+        canEdit={commandState.canEdit}
+        canDuplicate={commandState.canDuplicate}
+        canDelete={commandState.canDelete}
+        onRefresh={actions.refresh}
+        onNew={actions.openCreate}
+        onEdit={actions.openEdit}
+        onDuplicate={actions.duplicateSelected}
+        onDelete={actions.deleteSelected}
+      />
       <main style={styles.content}>
         <section style={styles.mainGrid}>
-          <InitiativesTableSection
-            items={mockInitiativeList}
-            selectedId={selectedId}
-            onSelect={setSelectedId}
-          />
-          <InitiativeSummarySection item={selectedItem} />
+          <InitiativesTableSection items={items} selectedId={selectedId} onSelect={actions.select} />
+          <InitiativeSummarySection item={selectedItemDetail} />
         </section>
       </main>
       <InitiativeWizardModal
         isOpen={isWizardOpen}
-        selectedInitiative={selectedItem}
-        onClose={() => setIsWizardOpen(false)}
+        mode={wizardMode}
+        isSaving={isSaving}
+        selectedInitiative={selectedItemDetail}
+        onClose={actions.closeWizard}
+        onSave={actions.saveFromWizard}
       />
     </div>
   )
