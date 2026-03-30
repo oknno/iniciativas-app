@@ -25,6 +25,16 @@ function collectPeriods(
   return [...periodMap.values()].sort((a, b) => periodKey(a.year, a.month).localeCompare(periodKey(b.year, b.month)))
 }
 
+function createValueIndex<T extends { year: number, month: number, value: number }>(
+  values: T[],
+  keyBuilder: (value: T) => string,
+): Map<string, number> {
+  return values.reduce((index, item) => {
+    index.set(`${keyBuilder(item)}-${periodKey(item.year, item.month)}`, item.value)
+    return index
+  }, new Map<string, number>())
+}
+
 export function calculateMonthlyGain(input: {
   initiativeId: number
   initiativeComponents: InitiativeComponent[]
@@ -47,12 +57,19 @@ export function calculateMonthlyGain(input: {
   }
 
   const periods = collectPeriods(kpiValues, componentValues, conversionValues)
+  const componentMasterByType = new Map(
+    componentMasterCatalog.map((component) => [component.componentType, component]),
+  )
+  const kpiValueIndex = createValueIndex(kpiValues, (value) => value.kpiCode)
+  const conversionValueIndex = createValueIndex(conversionValues, (value) => value.conversionCode)
+  const componentValueIndex = createValueIndex(componentValues, (value) => value.componentType)
 
   return periods.map(({ year, month }) => {
     let gainValue = 0
+    const currentPeriodKey = periodKey(year, month)
 
     const components = initiativeComponents.map((item) => {
-      const master = componentMasterCatalog.find((component) => component.componentType === item.componentType)
+      const master = componentMasterByType.get(item.componentType)
       if (!master) {
         throw new Error(`Componente ${item.componentType} não encontrado no catálogo.`)
       }
@@ -60,34 +77,18 @@ export function calculateMonthlyGain(input: {
       let componentValue = 0
 
       if (master.calculationType === 'KPI_BASED') {
-        const kpiValue = kpiValues.find(
-          (value) =>
-            value.kpiCode === item.kpiCode &&
-            value.year === year &&
-            value.month === month,
-        )?.value ?? 0
+        const kpiValue = kpiValueIndex.get(`${item.kpiCode}-${currentPeriodKey}`) ?? 0
+        const conversionValue = conversionValueIndex.get(`${item.conversionCode}-${currentPeriodKey}`)
 
-        const conversionValue = conversionValues.find(
-          (value) =>
-            value.conversionCode === item.conversionCode &&
-            value.year === year &&
-            value.month === month,
-        )
-
-        if (!conversionValue) {
+        if (conversionValue === undefined) {
           throw new Error(
             `Erro de configuração: conversão ${item.conversionCode} ausente em ${periodKey(year, month)}.`,
           )
         }
 
-        componentValue = kpiValue * conversionValue.value
+        componentValue = kpiValue * conversionValue
       } else {
-        componentValue = componentValues.find(
-          (value) =>
-            value.componentType === item.componentType &&
-            value.year === year &&
-            value.month === month,
-        )?.value ?? 0
+        componentValue = componentValueIndex.get(`${item.componentType}-${currentPeriodKey}`) ?? 0
       }
 
       const signedValue = componentValue * master.direction
