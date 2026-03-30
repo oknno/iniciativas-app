@@ -76,7 +76,7 @@ export function useInitiativesPage() {
     setIsWizardOpen(false)
   }
 
-  const saveFromWizard = async (input: SaveInitiativeDto) => {
+  const saveFromWizard = async (input: SaveInitiativeDto): Promise<InitiativeDetailDto> => {
     setIsSaving(true)
 
     try {
@@ -100,6 +100,8 @@ export function useInitiativesPage() {
         title: wizardMode === 'create' ? 'Initiative created' : 'Initiative updated',
         message: `${detail.title} saved successfully.`,
       })
+
+      return detail
     } finally {
       setIsSaving(false)
     }
