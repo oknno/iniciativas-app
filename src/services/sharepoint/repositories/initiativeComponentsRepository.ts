@@ -1,84 +1,49 @@
 import type { SaveInitiativeComponentDto } from '../../../application/dto/initiatives/SaveInitiativeComponentDto'
 import type { InitiativeComponent } from '../../../domain/initiatives/entities/InitiativeComponent'
 import type { InitiativeId } from '../../../domain/initiatives/value-objects/InitiativeId'
-import { asConversionCode } from '../../../domain/catalogs/value-objects/ConversionCode'
-import { asFormulaCode } from '../../../domain/catalogs/value-objects/FormulaCode'
-import { asKpiCode } from '../../../domain/catalogs/value-objects/KpiCode'
-import { asInitiativeId } from '../../../domain/initiatives/value-objects/InitiativeId'
-
-const wait = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms))
-
-let nextComponentId = 3
-
-const newComponentId = (): string => {
-  const id = `COMP-${String(nextComponentId).padStart(3, '0')}`
-  nextComponentId += 1
-  return id
-}
-
-let initiativeComponentsState: Record<string, InitiativeComponent[]> = {
-  'INIT-001': [
-    {
-      id: 'COMP-001',
-      initiativeId: asInitiativeId('INIT-001'),
-      name: 'Energy Savings',
-      componentType: 'ENERGY',
-      direction: 1,
-      calculationType: 'KPI_BASED',
-      kpiCode: asKpiCode('KPI-KWH-SAVED'),
-      conversionCode: asConversionCode('CONV-KWH-USD'),
-      formulaCode: asFormulaCode('FORMULA-MULTIPLIER'),
-      sortOrder: 1,
-    },
-    {
-      id: 'COMP-002',
-      initiativeId: asInitiativeId('INIT-001'),
-      name: 'Implementation Cost',
-      componentType: 'OTHER',
-      direction: -1,
-      calculationType: 'FIXED',
-      formulaCode: asFormulaCode('FORMULA-DIRECT-VALUE'),
-      sortOrder: 2,
-    },
-  ],
-}
-
-const cloneComponent = (component: InitiativeComponent): InitiativeComponent => structuredClone(component)
+import {
+  fromSharePointInitiativeComponent,
+  initiativeIdToSharePoint,
+  toCreateInitiativeComponentPayload,
+} from '../adapters/sharePointInitiativeAdapter'
+import {
+  createManyForInitiative,
+  deleteByInitiativeId,
+  listByInitiativeId,
+} from '../lists/initiativeComponentsListApi'
 
 export const initiativeComponentsRepository = {
   async listByInitiativeId(initiativeId: InitiativeId): Promise<readonly InitiativeComponent[]> {
-    await wait(80)
-    return (initiativeComponentsState[initiativeId] ?? []).map(cloneComponent)
+    const sharePointInitiativeId = initiativeIdToSharePoint(initiativeId)
+    const items = await listByInitiativeId(sharePointInitiativeId)
+
+    return items.map(fromSharePointInitiativeComponent)
+  },
+
+  async replaceByInitiativeId(
+    initiativeId: InitiativeId,
+    components: readonly SaveInitiativeComponentDto[],
+  ): Promise<readonly InitiativeComponent[]> {
+    const sharePointInitiativeId = initiativeIdToSharePoint(initiativeId)
+    await deleteByInitiativeId(sharePointInitiativeId)
+
+    if (components.length === 0) {
+      return []
+    }
+
+    const payload = components
+      .slice()
+      .sort((left, right) => left.sortOrder - right.sortOrder)
+      .map((component, index) => toCreateInitiativeComponentPayload(component, index + 1))
+
+    const created = await createManyForInitiative(sharePointInitiativeId, payload)
+    return created.map(fromSharePointInitiativeComponent)
   },
 
   async saveByInitiativeId(
     initiativeId: InitiativeId,
     components: readonly SaveInitiativeComponentDto[],
   ): Promise<readonly InitiativeComponent[]> {
-    await wait(120)
-
-    const nextState = components
-      .slice()
-      .sort((left, right) => left.sortOrder - right.sortOrder)
-      .map<InitiativeComponent>((component, index) => ({
-        id: component.id ?? newComponentId(),
-        initiativeId,
-        name: component.name,
-        componentType: component.componentType,
-        direction: component.direction,
-        calculationType: component.calculationType,
-        kpiCode: component.kpiCode,
-        conversionCode: component.conversionCode,
-        formulaCode: component.formulaCode,
-        fixedValue: component.fixedValue,
-        sortOrder: index + 1,
-      }))
-
-    initiativeComponentsState = {
-      ...initiativeComponentsState,
-      [initiativeId]: nextState,
-    }
-
-    return nextState.map(cloneComponent)
+    return this.replaceByInitiativeId(initiativeId, components)
   },
 }
