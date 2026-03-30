@@ -10,6 +10,9 @@ type WizardUiProps = {
   onSelectStep: (stepIndex: number) => void
   onBack: () => void
   onNext: () => void
+  onSave: () => void
+  saveLabel: string
+  disableSave?: boolean
   onClose: () => void
 }
 
@@ -21,6 +24,9 @@ export function WizardUi({
   onSelectStep,
   onBack,
   onNext,
+  onSave,
+  saveLabel,
+  disableSave,
   onClose,
 }: WizardUiProps) {
   const activeStep = steps[activeStepIndex]
@@ -107,8 +113,11 @@ export function WizardUi({
           <Button onClick={onBack} disabled={activeStepIndex === 0}>
             Back
           </Button>
-          <Button onClick={onNext} variant="primary" disabled={activeStepIndex === steps.length - 1}>
+          <Button onClick={onNext} variant="secondary" disabled={activeStepIndex === steps.length - 1}>
             Next
+          </Button>
+          <Button onClick={onSave} variant="primary" disabled={disableSave}>
+            {saveLabel}
           </Button>
         </div>
       </footer>

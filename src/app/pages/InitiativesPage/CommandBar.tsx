@@ -1,16 +1,32 @@
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
-import { useToast } from '../../components/notifications/useToast'
 import { tokens } from '../../components/ui/tokens'
 
 type CommandBarProps = {
   totalItems: number
-  onOpenWizard: () => void
+  isLoading: boolean
+  canEdit: boolean
+  canDuplicate: boolean
+  canDelete: boolean
+  onRefresh: () => void
+  onNew: () => void
+  onEdit: () => void
+  onDuplicate: () => void
+  onDelete: () => void
 }
 
-export function CommandBar({ totalItems, onOpenWizard }: CommandBarProps) {
-  const { pushToast } = useToast()
-
+export function CommandBar({
+  totalItems,
+  isLoading,
+  canEdit,
+  canDuplicate,
+  canDelete,
+  onRefresh,
+  onNew,
+  onEdit,
+  onDuplicate,
+  onDelete,
+}: CommandBarProps) {
   return (
     <div
       style={{
@@ -27,6 +43,7 @@ export function CommandBar({ totalItems, onOpenWizard }: CommandBarProps) {
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: tokens.spacing.md,
+          flexWrap: 'wrap',
         }}
       >
         <div>
@@ -35,25 +52,21 @@ export function CommandBar({ totalItems, onOpenWizard }: CommandBarProps) {
             Portfolio overview ({totalItems} initiatives)
           </p>
         </div>
-        <div style={{ display: 'flex', gap: tokens.spacing.sm }}>
-          <Button
-            variant="secondary"
-            onClick={() => pushToast({ title: 'Refresh queued', message: 'Data refresh will be available soon.' })}
-          >
-            Refresh
+        <div style={{ display: 'flex', gap: tokens.spacing.sm, flexWrap: 'wrap' }}>
+          <Button variant="secondary" onClick={onRefresh} disabled={isLoading}>
+            {isLoading ? 'Refreshing...' : 'Refresh'}
           </Button>
-          <Button
-            variant="primary"
-            onClick={() => {
-              onOpenWizard()
-              pushToast({
-                title: 'Create initiative',
-                message: 'Initiative wizard opened.',
-                tone: 'success',
-              })
-            }}
-          >
+          <Button variant="primary" onClick={onNew}>
             New Initiative
+          </Button>
+          <Button onClick={onEdit} disabled={!canEdit}>
+            Edit
+          </Button>
+          <Button onClick={onDuplicate} disabled={!canDuplicate}>
+            Duplicate
+          </Button>
+          <Button onClick={onDelete} disabled={!canDelete}>
+            Delete
           </Button>
         </div>
       </Card>

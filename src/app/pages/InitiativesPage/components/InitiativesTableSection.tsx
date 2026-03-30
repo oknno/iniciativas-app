@@ -1,4 +1,5 @@
 import { Card } from '../../../components/ui/Card'
+import { StateMessage } from '../../../components/ui/StateMessage'
 import { tokens } from '../../../components/ui/tokens'
 import type { InitiativeListItemDto } from '../../../../application/dto/initiatives/InitiativeListItemDto'
 import type { InitiativeId } from '../../../../domain/initiatives/value-objects/InitiativeId'
@@ -25,6 +26,15 @@ const stageLabel: Record<InitiativeListItemDto['stage'], string> = {
 }
 
 export function InitiativesTableSection({ items, selectedId, onSelect }: InitiativesTableSectionProps) {
+  if (items.length === 0) {
+    return (
+      <StateMessage
+        title="No initiatives available"
+        description="Use New Initiative to create your first CAPEX initiative."
+      />
+    )
+  }
+
   return (
     <Card style={{ padding: 0, overflow: 'hidden' }}>
       <div
@@ -43,7 +53,7 @@ export function InitiativesTableSection({ items, selectedId, onSelect }: Initiat
         }}
       >
         <span>Initiative</span>
-        <span>Owner</span>
+        <span>Responsible</span>
         <span>Status</span>
         <span>Annual Gain</span>
       </div>
@@ -69,16 +79,12 @@ export function InitiativesTableSection({ items, selectedId, onSelect }: Initiat
             }}
           >
             <div>
-              <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: tokens.colors.textPrimary }}>
-                {item.title}
-              </p>
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: tokens.colors.textPrimary }}>{item.title}</p>
               <p style={{ margin: '2px 0 0', fontSize: 12, color: tokens.colors.textMuted }}>{stageLabel[item.stage]}</p>
             </div>
             <span style={{ fontSize: 13, color: tokens.colors.textSecondary }}>{item.owner}</span>
             <InitiativeStatusBadge status={item.status} />
-            <span style={{ fontSize: 13, color: tokens.colors.textSecondary }}>
-              {compactCurrency.format(item.annualGain)}
-            </span>
+            <span style={{ fontSize: 13, color: tokens.colors.textSecondary }}>{compactCurrency.format(item.annualGain)}</span>
           </button>
         )
       })}
