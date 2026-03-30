@@ -40,6 +40,9 @@ export function useInitiativesPage() {
       const loadedItems = await getInitiatives()
       setItems(loadedItems)
       pushToast({ title: 'Data refreshed', message: `Loaded ${loadedItems.length} initiatives.`, tone: 'info' })
+    } catch (error) {
+      console.error('Failed to load initiatives from SharePoint.', error)
+      pushToast({ title: 'Unable to load initiatives', message: 'Try refreshing again in a few seconds.', tone: 'error' })
     } finally {
       setIsLoading(false)
     }
@@ -55,8 +58,14 @@ export function useInitiativesPage() {
       return
     }
 
-    void getInitiativeById(selectedId).then(setSelectedItemDetail)
-  }, [selectedId])
+    void getInitiativeById(selectedId)
+      .then(setSelectedItemDetail)
+      .catch((error) => {
+        console.error(`Failed to load initiative details for ${selectedId}.`, error)
+        pushToast({ title: 'Unable to load initiative details', tone: 'error' })
+        setSelectedItemDetail(undefined)
+      })
+  }, [pushToast, selectedId])
 
   const openCreate = () => {
     setWizardMode('create')
@@ -102,6 +111,10 @@ export function useInitiativesPage() {
       })
 
       return detail
+    } catch (error) {
+      console.error('Failed to save initiative.', error)
+      pushToast({ tone: 'error', title: 'Failed to save initiative' })
+      throw error
     } finally {
       setIsSaving(false)
     }
@@ -112,11 +125,16 @@ export function useInitiativesPage() {
       return
     }
 
-    const duplicated = await duplicateInitiative(selectedId)
-    setItems((current) => [toListItem(duplicated), ...current])
-    setSelectedId(duplicated.id)
-    setSelectedItemDetail(duplicated)
-    pushToast({ tone: 'success', title: 'Initiative duplicated', message: duplicated.title })
+    try {
+      const duplicated = await duplicateInitiative(selectedId)
+      setItems((current) => [toListItem(duplicated), ...current])
+      setSelectedId(duplicated.id)
+      setSelectedItemDetail(duplicated)
+      pushToast({ tone: 'success', title: 'Initiative duplicated', message: duplicated.title })
+    } catch (error) {
+      console.error(`Failed to duplicate initiative ${selectedId}.`, error)
+      pushToast({ tone: 'error', title: 'Failed to duplicate initiative' })
+    }
   }
 
   const deleteSelected = async () => {
@@ -124,11 +142,16 @@ export function useInitiativesPage() {
       return
     }
 
-    await deleteInitiative(selectedId)
+    try {
+      await deleteInitiative(selectedId)
 
-    setItems((current) => current.filter((item) => item.id !== selectedId))
-    selectAfterDelete(selectedId)
-    pushToast({ tone: 'warning', title: 'Initiative deleted' })
+      setItems((current) => current.filter((item) => item.id !== selectedId))
+      selectAfterDelete(selectedId)
+      pushToast({ tone: 'warning', title: 'Initiative deleted' })
+    } catch (error) {
+      console.error(`Failed to delete initiative ${selectedId}.`, error)
+      pushToast({ tone: 'error', title: 'Failed to delete initiative' })
+    }
   }
 
   const commandState = useMemo(
