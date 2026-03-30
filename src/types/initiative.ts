@@ -5,7 +5,15 @@ import type { KpiMaster } from './kpi'
 
 export type InitiativeStage = 'L0' | 'L1' | 'L2' | 'L3' | 'L4' | 'L5'
 
-export type InitiativeStatus = 'Ativa' | 'Em validação' | 'Concluída' | 'Em aprovação'
+export type InitiativeStatus =
+  | 'Ativa'
+  | 'Em validação'
+  | 'Concluída'
+  | 'Em aprovação'
+  | 'Em preenchimento'
+  | 'Em revisão'
+  | 'Aprovada'
+  | 'Rascunho'
 
 export interface Initiative {
   id: number
@@ -18,6 +26,10 @@ export interface Initiative {
   approvalYear?: number
   startDate?: string
   endDate?: string
+  updatedAt?: string
+  componentsCount?: number
+  estimatedTotal?: number
+  accumulatedGain?: number
   businessNeed?: string
   proposedSolution?: string
 }
