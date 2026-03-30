@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { type ReactNode, useEffect, useMemo, useState } from 'react'
+import { Badge, Button, Card, Field, Section, StateMessage } from '../../components/ui/system'
+import { uiTokens } from '../../components/ui/uiTokens'
 import { getInitiatives, removeInitiative } from '../../services/initiativeService'
 import type { Initiative } from '../../types/initiative'
 
@@ -54,6 +56,21 @@ interface InitiativesCommandBarProps {
   onApplyFilters: () => void
 }
 
+function FilterControl({ children }: { children: ReactNode }) {
+  return (
+    <div
+      style={{
+        border: `1px solid ${uiTokens.colors.borderDefault}`,
+        borderRadius: uiTokens.radius.control,
+        background: uiTokens.colors.surface,
+        padding: `${uiTokens.spacing.sm} ${uiTokens.spacing.md}`,
+      }}
+    >
+      {children}
+    </div>
+  )
+}
+
 function InitiativesCommandBar({
   hasSelection,
   draftFilters,
@@ -73,86 +90,142 @@ function InitiativesCommandBar({
   onApplyFilters,
 }: InitiativesCommandBarProps) {
   return (
-    <header className="initiatives-command-bar" aria-label="Barra de ações da tela inicial" data-filter-container>
-      <div className="initiatives-command-groups">
-        <div className="actions-group">
-          <button type="button" className="btn compact" onClick={onRefresh}>Atualizar</button>
-          <button type="button" className="btn primary compact" onClick={onCreateNewInitiative}>Nova</button>
+    <header
+      aria-label="Barra de ações da tela inicial"
+      data-filter-container
+      style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 15,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        minHeight: '38px',
+        padding: `${uiTokens.spacing.sm} ${uiTokens.spacing.lg}`,
+        borderBottom: `1px solid ${uiTokens.colors.borderDefault}`,
+        borderRadius: uiTokens.radius.card,
+        background: uiTokens.colors.surface,
+      }}
+    >
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: uiTokens.spacing.sm }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: uiTokens.spacing.sm }}>
+          <Button onClick={onRefresh}>Atualizar</Button>
+          <Button tone="primary" onClick={onCreateNewInitiative}>Nova</Button>
         </div>
 
-        <span className="actions-divider" aria-hidden="true" />
+        <span aria-hidden="true" style={{ width: '1px', height: '20px', background: uiTokens.colors.borderDefault }} />
 
-        <div className="actions-group">
-          <button type="button" className="btn compact" onClick={onOpenSelected} disabled={!hasSelection}>Visualizar</button>
-          <button type="button" className="btn compact" disabled={!hasSelection}>Editar</button>
-          <button type="button" className="btn compact" disabled={!hasSelection} onClick={onDelete}>Excluir</button>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: uiTokens.spacing.sm }}>
+          <Button onClick={onOpenSelected} disabled={!hasSelection}>Visualizar</Button>
+          <Button disabled={!hasSelection}>Editar</Button>
+          <Button disabled={!hasSelection} onClick={onDelete}>Excluir</Button>
         </div>
 
-        <span className="actions-divider" aria-hidden="true" />
+        <span aria-hidden="true" style={{ width: '1px', height: '20px', background: uiTokens.colors.borderDefault }} />
 
-        <div className="actions-group">
-          <button type="button" className="btn compact" disabled={!hasSelection}>Enviar</button>
-          <button type="button" className="btn compact" disabled={!hasSelection}>Voltar</button>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: uiTokens.spacing.sm }}>
+          <Button disabled={!hasSelection}>Enviar</Button>
+          <Button disabled={!hasSelection}>Voltar</Button>
         </div>
 
-        <span className="actions-divider" aria-hidden="true" />
+        <span aria-hidden="true" style={{ width: '1px', height: '20px', background: uiTokens.colors.borderDefault }} />
 
-        <div className="actions-group">
-          <button type="button" className="btn compact" onClick={onToggleFilter}>Filtro</button>
-          <button type="button" className="btn compact" onClick={onExport}>Exportar</button>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: uiTokens.spacing.sm }}>
+          <Button onClick={onToggleFilter}>Filtro</Button>
+          <Button onClick={onExport}>Exportar</Button>
         </div>
+
+        {isFilterOpen && (
+          <Card
+            style={{
+              position: 'absolute',
+              top: `calc(100% + ${uiTokens.spacing.sm})`,
+              left: 0,
+              width: 'min(420px, 90vw)',
+              maxHeight: '60vh',
+              overflowY: 'auto',
+              zIndex: 20,
+              padding: uiTokens.spacing.xl,
+              boxShadow: `0 8px 24px ${uiTokens.colors.shadow}`,
+            }}
+          >
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: uiTokens.spacing.md }}>
+              <Field label="Unidade">
+                <FilterControl>
+                  <select
+                    style={{ width: '100%', border: 0, fontSize: uiTokens.typography.sm, color: uiTokens.colors.textStrong, background: 'transparent' }}
+                    value={draftFilters.unidade}
+                    onChange={(event) => onDraftFilterChange({ ...draftFilters, unidade: event.target.value })}
+                  >
+                    <option value="">Todas</option>
+                    {units.map((unit) => <option key={unit} value={unit}>{unit}</option>)}
+                  </select>
+                </FilterControl>
+              </Field>
+
+              <Field label="Stage">
+                <FilterControl>
+                  <select
+                    style={{ width: '100%', border: 0, fontSize: uiTokens.typography.sm, color: uiTokens.colors.textStrong, background: 'transparent' }}
+                    value={draftFilters.stage}
+                    onChange={(event) => onDraftFilterChange({ ...draftFilters, stage: event.target.value })}
+                  >
+                    <option value="">Todos</option>
+                    {stages.map((stage) => <option key={stage} value={stage}>{stage}</option>)}
+                  </select>
+                </FilterControl>
+              </Field>
+
+              <Field label="Status">
+                <FilterControl>
+                  <select
+                    style={{ width: '100%', border: 0, fontSize: uiTokens.typography.sm, color: uiTokens.colors.textStrong, background: 'transparent' }}
+                    value={draftFilters.status}
+                    onChange={(event) => onDraftFilterChange({ ...draftFilters, status: event.target.value })}
+                  >
+                    <option value="">Todos</option>
+                    {statuses.map((status) => <option key={status} value={status}>{status}</option>)}
+                  </select>
+                </FilterControl>
+              </Field>
+
+              <Field label="Responsável">
+                <FilterControl>
+                  <select
+                    style={{ width: '100%', border: 0, fontSize: uiTokens.typography.sm, color: uiTokens.colors.textStrong, background: 'transparent' }}
+                    value={draftFilters.responsavel}
+                    onChange={(event) => onDraftFilterChange({ ...draftFilters, responsavel: event.target.value })}
+                  >
+                    <option value="">Todos</option>
+                    {responsaveis.map((responsavel) => <option key={responsavel} value={responsavel}>{responsavel}</option>)}
+                  </select>
+                </FilterControl>
+              </Field>
+
+              <div style={{ gridColumn: '1 / -1' }}>
+                <Field label="Título">
+                  <FilterControl>
+                    <input
+                      style={{ width: '100%', border: 0, fontSize: uiTokens.typography.sm, color: uiTokens.colors.textStrong, background: 'transparent' }}
+                      type="text"
+                      value={draftFilters.title}
+                      onChange={(event) => onDraftFilterChange({ ...draftFilters, title: event.target.value })}
+                      placeholder="Buscar por título"
+                    />
+                  </FilterControl>
+                </Field>
+              </div>
+            </div>
+
+            <div style={{ marginTop: uiTokens.spacing.lg, display: 'flex', justifyContent: 'flex-end', gap: uiTokens.spacing.sm }}>
+              <Button onClick={onClearFilters}>Limpar</Button>
+              <Button tone="primary" onClick={onApplyFilters}>Aplicar filtros</Button>
+            </div>
+          </Card>
+        )}
       </div>
 
-      {isFilterOpen && (
-        <div className="initiatives-filter-popover" role="dialog" aria-label="Filtro de iniciativas">
-          <div className="initiatives-filter-grid">
-            <label>
-              <span>Unidade</span>
-              <select value={draftFilters.unidade} onChange={(event) => onDraftFilterChange({ ...draftFilters, unidade: event.target.value })}>
-                <option value="">Todas</option>
-                {units.map((unit) => <option key={unit} value={unit}>{unit}</option>)}
-              </select>
-            </label>
-            <label>
-              <span>Stage</span>
-              <select value={draftFilters.stage} onChange={(event) => onDraftFilterChange({ ...draftFilters, stage: event.target.value })}>
-                <option value="">Todos</option>
-                {stages.map((stage) => <option key={stage} value={stage}>{stage}</option>)}
-              </select>
-            </label>
-            <label>
-              <span>Status</span>
-              <select value={draftFilters.status} onChange={(event) => onDraftFilterChange({ ...draftFilters, status: event.target.value })}>
-                <option value="">Todos</option>
-                {statuses.map((status) => <option key={status} value={status}>{status}</option>)}
-              </select>
-            </label>
-            <label>
-              <span>Responsável</span>
-              <select value={draftFilters.responsavel} onChange={(event) => onDraftFilterChange({ ...draftFilters, responsavel: event.target.value })}>
-                <option value="">Todos</option>
-                {responsaveis.map((responsavel) => <option key={responsavel} value={responsavel}>{responsavel}</option>)}
-              </select>
-            </label>
-            <label className="full-width">
-              <span>Título</span>
-              <input
-                type="text"
-                value={draftFilters.title}
-                onChange={(event) => onDraftFilterChange({ ...draftFilters, title: event.target.value })}
-                placeholder="Buscar por título"
-              />
-            </label>
-          </div>
-
-          <div className="initiatives-filter-footer">
-            <button type="button" className="btn" onClick={onClearFilters}>Limpar</button>
-            <button type="button" className="btn primary" onClick={onApplyFilters}>Aplicar filtros</button>
-          </div>
-        </div>
-      )}
-
-      <h1 className="initiatives-page-title">Motor de Ganhos</h1>
+      <h1 style={{ margin: 0, fontSize: uiTokens.typography.title, fontWeight: uiTokens.typography.titleWeight, color: uiTokens.colors.textStrong }}>Motor de Ganhos</h1>
     </header>
   )
 }
@@ -174,47 +247,48 @@ function InitiativesTableSection({
   onSelect,
   getStatusTone,
 }: InitiativesTableSectionProps) {
-  if (loading) {
-    return <div className="initiatives-state">Carregando iniciativas...</div>
-  }
-
-  if (error) {
-    return <div className="initiatives-state">Erro ao carregar iniciativas.</div>
-  }
-
-  if (initiatives.length === 0) {
-    return <div className="initiatives-state">Nenhuma iniciativa encontrada.</div>
-  }
+  if (loading) return <StateMessage state="loading" />
+  if (error) return <StateMessage state="error" />
+  if (initiatives.length === 0) return <StateMessage state="empty" />
 
   return (
-    <div className="initiatives-table-section" role="table" aria-label="Tabela de iniciativas">
-      <div className="initiatives-table-header" role="rowgroup">
-        <div role="row">
-          <div role="columnheader">ID</div>
-          <div role="columnheader">Título</div>
-          <div role="columnheader">Unidade</div>
-          <div role="columnheader">Stage</div>
-          <div role="columnheader">Status</div>
+    <div role="table" aria-label="Tabela de iniciativas" style={{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1, border: `1px solid ${uiTokens.colors.borderStrong}`, borderRadius: uiTokens.radius.control, overflow: 'hidden', background: uiTokens.colors.subtleSurface }}>
+      <div role="rowgroup" style={{ borderBottom: `1px solid ${uiTokens.colors.borderDefault}`, background: uiTokens.colors.subtleSurface }}>
+        <div role="row" style={{ display: 'grid', gridTemplateColumns: '104px minmax(220px, 2.1fr) minmax(130px, 1fr) minmax(120px, 1fr) minmax(120px, 1fr)', alignItems: 'center' }}>
+          {['ID', 'Título', 'Unidade', 'Stage', 'Status'].map((header) => (
+            <div key={header} role="columnheader" style={{ padding: uiTokens.spacing.md, fontSize: uiTokens.typography.sm, fontWeight: 700, color: uiTokens.colors.textStrong }}>{header}</div>
+          ))}
         </div>
       </div>
 
-      <div className="initiatives-table-body" role="rowgroup">
+      <div role="rowgroup" style={{ flex: 1, minHeight: 0, maxHeight: '510px', overflow: 'auto', background: uiTokens.colors.surface }}>
         {initiatives.map((initiative) => {
           const isSelected = initiative.id === selectedInitiative?.id
           return (
             <button
               key={initiative.id}
               type="button"
-              className={`initiatives-table-row ${isSelected ? 'is-selected' : ''}`}
               role="row"
               onClick={() => onSelect(initiative.id)}
+              style={{
+                width: '100%',
+                border: 0,
+                borderBottom: `1px solid ${uiTokens.colors.borderSoft}`,
+                background: isSelected ? uiTokens.colors.selectedSurface : uiTokens.colors.surface,
+                padding: 0,
+                textAlign: 'left',
+                cursor: 'pointer',
+                display: 'grid',
+                gridTemplateColumns: '104px minmax(220px, 2.1fr) minmax(130px, 1fr) minmax(120px, 1fr) minmax(120px, 1fr)',
+                alignItems: 'center',
+              }}
             >
-              <span className="id-cell" role="cell">MG-{String(initiative.id).padStart(3, '0')}</span>
-              <span role="cell" title={initiative.title}>{initiative.title}</span>
-              <span role="cell">{initiative.unidade}</span>
-              <span role="cell">{initiative.stage}</span>
-              <span role="cell">
-                <span className={`status-badge ${getStatusTone(initiative.status)}`}>{initiative.status}</span>
+              <span role="cell" style={{ display: 'block', padding: uiTokens.spacing.md, fontSize: uiTokens.typography.sm, color: uiTokens.colors.textBody }}>MG-{String(initiative.id).padStart(3, '0')}</span>
+              <span role="cell" title={initiative.title} style={{ display: 'block', padding: uiTokens.spacing.md, fontSize: uiTokens.typography.sm, color: uiTokens.colors.textBody, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{initiative.title}</span>
+              <span role="cell" style={{ display: 'block', padding: uiTokens.spacing.md, fontSize: uiTokens.typography.sm, color: uiTokens.colors.textBody }}>{initiative.unidade}</span>
+              <span role="cell" style={{ display: 'block', padding: uiTokens.spacing.md, fontSize: uiTokens.typography.sm, color: uiTokens.colors.textBody }}>{initiative.stage}</span>
+              <span role="cell" style={{ display: 'block', padding: uiTokens.spacing.md, fontSize: uiTokens.typography.sm, color: uiTokens.colors.textBody }}>
+                <Badge tone={getStatusTone(initiative.status)}>{initiative.status}</Badge>
               </span>
             </button>
           )
@@ -231,52 +305,44 @@ interface InitiativesSummarySectionProps {
 
 function InitiativesSummarySection({ selectedInitiative, getStatusTone }: InitiativesSummarySectionProps) {
   if (!selectedInitiative) {
-    return <p className="initiatives-summary-empty">Selecione uma iniciativa para visualizar o resumo.</p>
+    return <StateMessage state="empty" />
   }
 
   return (
-    <div className="initiatives-summary-content">
-      <h2>Resumo</h2>
-
-      <div className="summary-header">
-        <h3 className="summary-initiative-title">{selectedInitiative.title}</h3>
-        <span className={`status-badge ${getStatusTone(selectedInitiative.status)}`}>
-          {selectedInitiative.status}
-        </span>
+    <Section title="Resumo">
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: uiTokens.spacing.sm }}>
+        <h3 style={{ margin: 0, fontSize: uiTokens.typography.title, fontWeight: uiTokens.typography.titleWeight, color: uiTokens.colors.textStrong }}>{selectedInitiative.title}</h3>
+        <Badge tone={getStatusTone(selectedInitiative.status)}>{selectedInitiative.status}</Badge>
       </div>
 
-      <div className="summary-divider" />
+      <div style={{ height: '1px', background: uiTokens.colors.borderDefault }} />
 
-      <dl className="summary-fields">
-        <div><dt>Código / ID</dt><dd>MG-{String(selectedInitiative.id).padStart(3, '0')}</dd></div>
-        <div><dt>Unidade</dt><dd>{selectedInitiative.unidade}</dd></div>
-        <div><dt>Responsável</dt><dd>{selectedInitiative.responsavel}</dd></div>
-        <div><dt>Stage</dt><dd>{selectedInitiative.stage}</dd></div>
-        <div><dt>Status</dt><dd>{selectedInitiative.status}</dd></div>
-        <div><dt>Componentes</dt><dd>{selectedInitiative.componentsCount ?? 0}</dd></div>
-        <div><dt>Total estimado</dt><dd>{formatCurrency(selectedInitiative.estimatedTotal ?? selectedInitiative.budget ?? 0)}</dd></div>
-        <div><dt>Ganho acumulado</dt><dd>{formatCurrency(selectedInitiative.accumulatedGain ?? 0)}</dd></div>
-        <div><dt>Última atualização</dt><dd>{selectedInitiative.updatedAt ?? '-'}</dd></div>
-      </dl>
+      <div style={{ display: 'grid', gap: uiTokens.spacing.xs }}>
+        <Field inline label="Código / ID" value={`MG-${String(selectedInitiative.id).padStart(3, '0')}`} />
+        <Field inline label="Unidade" value={selectedInitiative.unidade} />
+        <Field inline label="Stage" value={selectedInitiative.stage} />
+        <Field inline label="Status" value={selectedInitiative.status} />
+        <Field inline label="Componentes" value={selectedInitiative.componentsCount ?? 0} />
+        <Field inline label="Total estimado" value={formatCurrency(selectedInitiative.estimatedTotal ?? selectedInitiative.budget ?? 0)} />
+        <Field inline label="Ganho acumulado" value={formatCurrency(selectedInitiative.accumulatedGain ?? 0)} />
+      </div>
 
-      <div className="summary-divider" />
+      <div style={{ height: '1px', background: uiTokens.colors.borderDefault }} />
 
-      <section className="summary-section">
-        <h4>Objetivo da iniciativa</h4>
-        <p>
+      <Section title="Objetivo">
+        <p style={{ margin: 0, color: uiTokens.colors.textBody, fontSize: uiTokens.typography.md }}>
           {selectedInitiative.businessNeed
             ?? 'Aprimorar a eficiência operacional da unidade com ações de captura de ganhos e padronização do processo.'}
         </p>
-      </section>
+      </Section>
 
-      <section className="summary-section">
-        <h4>Observações</h4>
-        <p>
+      <Section title="Observações">
+        <p style={{ margin: 0, color: uiTokens.colors.textBody, fontSize: uiTokens.typography.md }}>
           {selectedInitiative.proposedSolution
             ?? `Iniciativa em ${selectedInitiative.stage}. Acompanhamento semanal com o responsável para evolução do plano.`}
         </p>
-      </section>
-    </div>
+      </Section>
+    </Section>
   )
 }
 
@@ -406,7 +472,7 @@ export function InitiativesPage({
   }
 
   return (
-    <main className="initiatives-page">
+    <main style={{ display: 'flex', flexDirection: 'column', gap: uiTokens.spacing.sm, color: uiTokens.colors.textBody, background: uiTokens.colors.pageBg }}>
       <InitiativesCommandBar
         hasSelection={hasSelection}
         draftFilters={draftFilters}
@@ -440,8 +506,8 @@ export function InitiativesPage({
         }}
       />
 
-      <section className="initiatives-content-grid">
-        <article className="initiatives-card initiatives-list-card">
+      <section style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.8fr) minmax(330px, 0.95fr)', gap: uiTokens.spacing.sm, alignItems: 'start' }}>
+        <Card style={{ display: 'flex', flexDirection: 'column', gap: uiTokens.spacing.xs, minHeight: '540px', padding: uiTokens.spacing.sm }}>
           <InitiativesTableSection
             loading={loading}
             error={error}
@@ -451,37 +517,37 @@ export function InitiativesPage({
             getStatusTone={getStatusTone}
           />
 
-          <footer className="initiatives-list-footer">
+          <footer style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: '34px', color: uiTokens.colors.textMuted, fontSize: uiTokens.typography.xs, padding: `0 ${uiTokens.spacing.xxs}`, borderTop: `1px solid ${uiTokens.colors.borderSoft}` }}>
             <span>Itens carregados: {filteredInitiatives.length}</span>
-            <button type="button" className="btn compact secondary">Carregar mais</button>
+            <Button>Carregar mais</Button>
           </footer>
-        </article>
+        </Card>
 
-        <aside className="initiatives-card initiatives-summary-card">
+        <Card style={{ padding: uiTokens.spacing.md }}>
           <InitiativesSummarySection selectedInitiative={selectedInitiative} getStatusTone={getStatusTone} />
-        </aside>
+        </Card>
       </section>
 
       {isConfirmOpen && selectedInitiative && (
-        <div className="dialog-overlay" role="presentation" onClick={() => setIsConfirmOpen(false)}>
-          <div className="confirm-dialog" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
-            <h3>Confirmar exclusão</h3>
-            <p>
+        <div role="presentation" onClick={() => setIsConfirmOpen(false)} style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: uiTokens.colors.overlay, zIndex: 30, padding: uiTokens.spacing.xxl }}>
+          <Card style={{ width: 'min(460px, 92vw)', borderRadius: uiTokens.radius.modal, boxShadow: `0 10px 30px ${uiTokens.colors.shadow}`, padding: uiTokens.spacing.xxl }}>
+            <h3 style={{ margin: `0 0 ${uiTokens.spacing.sm}`, fontSize: uiTokens.typography.title, fontWeight: uiTokens.typography.titleWeight, color: uiTokens.colors.textStrong }}>Confirmar exclusão</h3>
+            <p style={{ margin: 0, color: uiTokens.colors.textBody, fontSize: uiTokens.typography.md }}>
               Deseja excluir a iniciativa <strong>{selectedInitiative.title}</strong>?
             </p>
-            <div className="confirm-dialog-actions">
-              <button type="button" className="btn" onClick={() => setIsConfirmOpen(false)}>Cancelar</button>
-              <button type="button" className="btn danger" onClick={() => void handleDelete()}>Confirmar exclusão</button>
+            <div style={{ marginTop: uiTokens.spacing.xxl, display: 'flex', justifyContent: 'flex-end', gap: uiTokens.spacing.sm }} onClick={(event) => event.stopPropagation()}>
+              <Button onClick={() => setIsConfirmOpen(false)}>Cancelar</Button>
+              <Button tone="danger" onClick={() => void handleDelete()}>Confirmar exclusão</Button>
             </div>
-          </div>
+          </Card>
         </div>
       )}
 
-      <div className="toast-stack" role="status" aria-live="polite">
+      <div role="status" aria-live="polite" style={{ position: 'fixed', right: '20px', bottom: '20px', zIndex: 40, display: 'flex', flexDirection: 'column', gap: uiTokens.spacing.sm }}>
         {toasts.map((toast) => (
-          <div key={toast.id} className={`toast-item ${toast.type}`}>
-            {toast.message}
-          </div>
+          <Card key={toast.id} style={{ padding: `${uiTokens.spacing.sm} ${uiTokens.spacing.md}`, boxShadow: `0 8px 24px ${uiTokens.colors.shadow}` }}>
+            <Badge tone={toast.type === 'success' ? 'success' : toast.type === 'error' ? 'error' : 'info'}>{toast.message}</Badge>
+          </Card>
         ))}
       </div>
     </main>
