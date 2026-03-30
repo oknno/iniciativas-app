@@ -21,7 +21,7 @@ export interface KpiMasterListItem {
 
 export const listAll = async (): Promise<readonly KpiMasterListItem[]> => {
   try {
-    const response = await get<SharePointListResponse<KpiMasterListItem>>(listItemsEndpoint(LIST_TITLE, { orderBy: 'Code asc' }))
+    const response = await get<SharePointListResponse<KpiMasterListItem>>(listItemsEndpoint(LIST_TITLE, { orderBy: 'KPICode asc' }))
     return response.value
   } catch (error) {
     throw new Error(`Failed to list KPI master records from ${CONTEXT_SITE_URL || 'configured SharePoint site'}. ${(error as Error).message}`)
@@ -31,7 +31,7 @@ export const listAll = async (): Promise<readonly KpiMasterListItem[]> => {
 export const getByCode = async (code: string): Promise<KpiMasterListItem | undefined> => {
   try {
     const response = await get<SharePointListResponse<KpiMasterListItem>>(
-      filteredListItemsEndpoint(LIST_TITLE, `Code eq '${code.replace(/'/g, "''")}'`, { top: 1 }),
+      filteredListItemsEndpoint(LIST_TITLE, `KPICode eq '${code.replace(/'/g, "''")}'`, { top: 1 }),
     )
 
     return response.value[0]

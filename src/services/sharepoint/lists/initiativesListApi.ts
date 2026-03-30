@@ -39,8 +39,7 @@ export interface CreateInitiativePayload {
 
 export type UpdateInitiativePayload = Partial<CreateInitiativePayload>
 
-const select =
-  'Id,Title,Code,Description,Owner,Stage,Status,Scenario,ImplementationCost,StartMonthRef,EndMonthRef,Created,Modified'
+const select = 'Id,Title,Unidade,Responsavel,Stage,Status'
 
 const withEntityType = <TPayload extends object>(payload: TPayload): TPayload | (TPayload & { __metadata: { type: string } }) => {
   const entityType = sharePointContext.listItemEntityTypeNames[LIST_TITLE]

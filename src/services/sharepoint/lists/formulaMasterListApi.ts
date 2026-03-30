@@ -23,7 +23,7 @@ export interface FormulaMasterListItem {
 export const listAll = async (): Promise<readonly FormulaMasterListItem[]> => {
   try {
     const response = await get<SharePointListResponse<FormulaMasterListItem>>(
-      listItemsEndpoint(LIST_TITLE, { orderBy: 'Code asc' }),
+      listItemsEndpoint(LIST_TITLE, { orderBy: 'FormulaCode asc' }),
     )
 
     return response.value
@@ -35,7 +35,7 @@ export const listAll = async (): Promise<readonly FormulaMasterListItem[]> => {
 export const getByCode = async (code: string): Promise<FormulaMasterListItem | undefined> => {
   try {
     const response = await get<SharePointListResponse<FormulaMasterListItem>>(
-      filteredListItemsEndpoint(LIST_TITLE, `Code eq '${code.replace(/'/g, "''")}'`, { top: 1 }),
+      filteredListItemsEndpoint(LIST_TITLE, `FormulaCode eq '${code.replace(/'/g, "''")}'`, { top: 1 }),
     )
 
     return response.value[0]

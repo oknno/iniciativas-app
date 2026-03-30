@@ -23,7 +23,7 @@ export interface ConversionMasterListItem {
 export const listAll = async (): Promise<readonly ConversionMasterListItem[]> => {
   try {
     const response = await get<SharePointListResponse<ConversionMasterListItem>>(
-      listItemsEndpoint(LIST_TITLE, { orderBy: 'Code asc' }),
+      listItemsEndpoint(LIST_TITLE, { orderBy: 'ConversionCode asc' }),
     )
 
     return response.value
@@ -35,7 +35,7 @@ export const listAll = async (): Promise<readonly ConversionMasterListItem[]> =>
 export const getByCode = async (code: string): Promise<ConversionMasterListItem | undefined> => {
   try {
     const response = await get<SharePointListResponse<ConversionMasterListItem>>(
-      filteredListItemsEndpoint(LIST_TITLE, `Code eq '${code.replace(/'/g, "''")}'`, { top: 1 }),
+      filteredListItemsEndpoint(LIST_TITLE, `ConversionCode eq '${code.replace(/'/g, "''")}'`, { top: 1 }),
     )
 
     return response.value[0]

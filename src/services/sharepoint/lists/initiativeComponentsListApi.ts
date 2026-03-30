@@ -53,7 +53,7 @@ const withEntityType = <TPayload extends object>(payload: TPayload): TPayload | 
 export const listByInitiativeId = async (initiativeId: number): Promise<readonly InitiativeComponentListItem[]> => {
   try {
     const response = await get<SharePointListResponse<InitiativeComponentListItem>>(
-      filteredListItemsEndpoint(LIST_TITLE, `InitiativeId eq ${initiativeId}`, { orderBy: 'SortOrder asc' }),
+      filteredListItemsEndpoint(LIST_TITLE, `InitiativeId eq ${initiativeId}`),
     )
 
     return response.value
