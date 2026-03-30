@@ -89,6 +89,19 @@ function InitiativesCommandBar({
   onClearFilters,
   onApplyFilters,
 }: InitiativesCommandBarProps) {
+  const compactButtonStyle = {
+    minHeight: '28px',
+    padding: `5px ${uiTokens.spacing.md}`,
+    fontSize: uiTokens.typography.xs,
+  } as const
+
+  const dividerStyle = {
+    width: '1px',
+    height: '16px',
+    margin: `0 ${uiTokens.spacing.sm}`,
+    background: uiTokens.colors.borderDefault,
+  } as const
+
   return (
     <header
       aria-label="Barra de ações da tela inicial"
@@ -100,39 +113,39 @@ function InitiativesCommandBar({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        minHeight: '38px',
-        padding: `${uiTokens.spacing.sm} ${uiTokens.spacing.lg}`,
+        minHeight: '34px',
+        padding: `${uiTokens.spacing.xs} ${uiTokens.spacing.lg}`,
         borderBottom: `1px solid ${uiTokens.colors.borderDefault}`,
         borderRadius: uiTokens.radius.card,
         background: uiTokens.colors.surface,
       }}
     >
-      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: uiTokens.spacing.sm }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: uiTokens.spacing.sm }}>
-          <Button onClick={onRefresh}>Atualizar</Button>
-          <Button tone="primary" onClick={onCreateNewInitiative}>Nova</Button>
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: uiTokens.spacing.xs }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: uiTokens.spacing.xs }}>
+          <Button onClick={onRefresh} style={compactButtonStyle}>Atualizar</Button>
+          <Button tone="primary" onClick={onCreateNewInitiative} style={compactButtonStyle}>Nova</Button>
         </div>
 
-        <span aria-hidden="true" style={{ width: '1px', height: '20px', background: uiTokens.colors.borderDefault }} />
+        <span aria-hidden="true" style={dividerStyle} />
 
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: uiTokens.spacing.sm }}>
-          <Button onClick={onOpenSelected} disabled={!hasSelection}>Visualizar</Button>
-          <Button disabled={!hasSelection}>Editar</Button>
-          <Button disabled={!hasSelection} onClick={onDelete}>Excluir</Button>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: uiTokens.spacing.xs }}>
+          <Button onClick={onOpenSelected} disabled={!hasSelection} style={compactButtonStyle}>Visualizar</Button>
+          <Button disabled={!hasSelection} style={compactButtonStyle}>Editar</Button>
+          <Button disabled={!hasSelection} onClick={onDelete} style={compactButtonStyle}>Excluir</Button>
         </div>
 
-        <span aria-hidden="true" style={{ width: '1px', height: '20px', background: uiTokens.colors.borderDefault }} />
+        <span aria-hidden="true" style={dividerStyle} />
 
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: uiTokens.spacing.sm }}>
-          <Button disabled={!hasSelection}>Enviar</Button>
-          <Button disabled={!hasSelection}>Voltar</Button>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: uiTokens.spacing.xs }}>
+          <Button disabled={!hasSelection} style={compactButtonStyle}>Enviar</Button>
+          <Button disabled={!hasSelection} style={compactButtonStyle}>Voltar</Button>
         </div>
 
-        <span aria-hidden="true" style={{ width: '1px', height: '20px', background: uiTokens.colors.borderDefault }} />
+        <span aria-hidden="true" style={dividerStyle} />
 
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: uiTokens.spacing.sm }}>
-          <Button onClick={onToggleFilter}>Filtro</Button>
-          <Button onClick={onExport}>Exportar</Button>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: uiTokens.spacing.xs }}>
+          <Button onClick={onToggleFilter} style={compactButtonStyle}>Filtro</Button>
+          <Button onClick={onExport} style={compactButtonStyle}>Exportar</Button>
         </div>
 
         {isFilterOpen && (
@@ -247,16 +260,18 @@ function InitiativesTableSection({
   onSelect,
   getStatusTone,
 }: InitiativesTableSectionProps) {
+  const [hoveredId, setHoveredId] = useState<number | null>(null)
+
   if (loading) return <StateMessage state="loading" />
   if (error) return <StateMessage state="error" />
   if (initiatives.length === 0) return <StateMessage state="empty" />
 
   return (
-    <div role="table" aria-label="Tabela de iniciativas" style={{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1, border: `1px solid ${uiTokens.colors.borderStrong}`, borderRadius: uiTokens.radius.control, overflow: 'hidden', background: uiTokens.colors.subtleSurface }}>
+    <div role="table" aria-label="Tabela de iniciativas" style={{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1, overflow: 'hidden', background: uiTokens.colors.subtleSurface }}>
       <div role="rowgroup" style={{ borderBottom: `1px solid ${uiTokens.colors.borderDefault}`, background: uiTokens.colors.subtleSurface }}>
-        <div role="row" style={{ display: 'grid', gridTemplateColumns: '104px minmax(220px, 2.1fr) minmax(130px, 1fr) minmax(120px, 1fr) minmax(120px, 1fr)', alignItems: 'center' }}>
+        <div role="row" style={{ display: 'grid', gridTemplateColumns: '88px minmax(280px, 2.6fr) minmax(120px, 1.1fr) 108px 120px', alignItems: 'center' }}>
           {['ID', 'Título', 'Unidade', 'Stage', 'Status'].map((header) => (
-            <div key={header} role="columnheader" style={{ padding: uiTokens.spacing.md, fontSize: uiTokens.typography.sm, fontWeight: 700, color: uiTokens.colors.textStrong }}>{header}</div>
+            <div key={header} role="columnheader" style={{ padding: `${uiTokens.spacing.sm} ${uiTokens.spacing.md}`, fontSize: uiTokens.typography.sm, fontWeight: 700, color: uiTokens.colors.textStrong }}>{header}</div>
           ))}
         </div>
       </div>
@@ -264,30 +279,33 @@ function InitiativesTableSection({
       <div role="rowgroup" style={{ flex: 1, minHeight: 0, maxHeight: '510px', overflow: 'auto', background: uiTokens.colors.surface }}>
         {initiatives.map((initiative) => {
           const isSelected = initiative.id === selectedInitiative?.id
+          const isHovered = hoveredId === initiative.id
           return (
             <button
               key={initiative.id}
               type="button"
               role="row"
               onClick={() => onSelect(initiative.id)}
+              onMouseEnter={() => setHoveredId(initiative.id)}
+              onMouseLeave={() => setHoveredId((current) => (current === initiative.id ? null : current))}
               style={{
                 width: '100%',
                 border: 0,
                 borderBottom: `1px solid ${uiTokens.colors.borderSoft}`,
-                background: isSelected ? uiTokens.colors.selectedSurface : uiTokens.colors.surface,
+                background: isSelected ? uiTokens.colors.selectedSurface : isHovered ? uiTokens.colors.hoverSurface : uiTokens.colors.surface,
                 padding: 0,
                 textAlign: 'left',
                 cursor: 'pointer',
                 display: 'grid',
-                gridTemplateColumns: '104px minmax(220px, 2.1fr) minmax(130px, 1fr) minmax(120px, 1fr) minmax(120px, 1fr)',
+                gridTemplateColumns: '88px minmax(280px, 2.6fr) minmax(120px, 1.1fr) 108px 120px',
                 alignItems: 'center',
               }}
             >
-              <span role="cell" style={{ display: 'block', padding: uiTokens.spacing.md, fontSize: uiTokens.typography.sm, color: uiTokens.colors.textBody }}>MG-{String(initiative.id).padStart(3, '0')}</span>
-              <span role="cell" title={initiative.title} style={{ display: 'block', padding: uiTokens.spacing.md, fontSize: uiTokens.typography.sm, color: uiTokens.colors.textBody, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{initiative.title}</span>
-              <span role="cell" style={{ display: 'block', padding: uiTokens.spacing.md, fontSize: uiTokens.typography.sm, color: uiTokens.colors.textBody }}>{initiative.unidade}</span>
-              <span role="cell" style={{ display: 'block', padding: uiTokens.spacing.md, fontSize: uiTokens.typography.sm, color: uiTokens.colors.textBody }}>{initiative.stage}</span>
-              <span role="cell" style={{ display: 'block', padding: uiTokens.spacing.md, fontSize: uiTokens.typography.sm, color: uiTokens.colors.textBody }}>
+              <span role="cell" style={{ display: 'block', padding: `${uiTokens.spacing.sm} ${uiTokens.spacing.md}`, fontSize: uiTokens.typography.sm, color: uiTokens.colors.textBody }}>MG-{String(initiative.id).padStart(3, '0')}</span>
+              <span role="cell" title={initiative.title} style={{ display: 'block', padding: `${uiTokens.spacing.sm} ${uiTokens.spacing.md}`, fontSize: uiTokens.typography.sm, color: uiTokens.colors.textBody, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{initiative.title}</span>
+              <span role="cell" style={{ display: 'block', padding: `${uiTokens.spacing.sm} ${uiTokens.spacing.md}`, fontSize: uiTokens.typography.sm, color: uiTokens.colors.textBody }}>{initiative.unidade}</span>
+              <span role="cell" style={{ display: 'block', padding: `${uiTokens.spacing.sm} ${uiTokens.spacing.md}`, fontSize: uiTokens.typography.sm, color: uiTokens.colors.textBody }}>{initiative.stage}</span>
+              <span role="cell" style={{ display: 'block', padding: `${uiTokens.spacing.sm} ${uiTokens.spacing.md}`, fontSize: uiTokens.typography.sm, color: uiTokens.colors.textBody }}>
                 <Badge tone={getStatusTone(initiative.status)}>{initiative.status}</Badge>
               </span>
             </button>
@@ -303,6 +321,22 @@ interface InitiativesSummarySectionProps {
   getStatusTone: (status: string) => 'neutral' | 'info' | 'success' | 'warning' | 'error'
 }
 
+function CompactStatusBadge({ tone, label }: { tone: 'neutral' | 'info' | 'success' | 'warning' | 'error', label: string }) {
+  const toneStyle: Record<'neutral' | 'info' | 'success' | 'warning' | 'error', { background: string, color: string, borderColor: string }> = {
+    neutral: { background: uiTokens.colors.neutralBadgeBg, color: uiTokens.colors.neutralBadgeText, borderColor: uiTokens.colors.borderDefault },
+    info: { background: uiTokens.colors.infoBadgeBg, color: uiTokens.colors.infoBadgeText, borderColor: uiTokens.colors.infoBadgeBorder },
+    success: { background: uiTokens.colors.successBadgeBg, color: uiTokens.colors.successBadgeText, borderColor: uiTokens.colors.successBadgeBorder },
+    warning: { background: uiTokens.colors.warningBadgeBg, color: uiTokens.colors.warningBadgeText, borderColor: uiTokens.colors.warningBadgeBorder },
+    error: { background: uiTokens.colors.errorBadgeBg, color: uiTokens.colors.errorBadgeText, borderColor: uiTokens.colors.errorBadgeBorder },
+  }
+
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: `2px ${uiTokens.spacing.xs}`, borderRadius: uiTokens.radius.pill, border: `1px solid ${toneStyle[tone].borderColor}`, background: toneStyle[tone].background, color: toneStyle[tone].color, fontSize: uiTokens.typography.xs, fontWeight: uiTokens.typography.titleWeight, whiteSpace: 'nowrap' }}>
+      {label}
+    </span>
+  )
+}
+
 function InitiativesSummarySection({ selectedInitiative, getStatusTone }: InitiativesSummarySectionProps) {
   if (!selectedInitiative) {
     return <StateMessage state="empty" />
@@ -311,8 +345,8 @@ function InitiativesSummarySection({ selectedInitiative, getStatusTone }: Initia
   return (
     <Section title="Resumo">
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: uiTokens.spacing.sm }}>
-        <h3 style={{ margin: 0, fontSize: uiTokens.typography.title, fontWeight: uiTokens.typography.titleWeight, color: uiTokens.colors.textStrong }}>{selectedInitiative.title}</h3>
-        <Badge tone={getStatusTone(selectedInitiative.status)}>{selectedInitiative.status}</Badge>
+        <h3 style={{ margin: 0, fontSize: uiTokens.typography.title, fontWeight: 800, color: uiTokens.colors.textStrong }}>{selectedInitiative.title}</h3>
+        <CompactStatusBadge tone={getStatusTone(selectedInitiative.status)} label={selectedInitiative.status} />
       </div>
 
       <div style={{ height: '1px', background: uiTokens.colors.borderDefault }} />
@@ -330,14 +364,14 @@ function InitiativesSummarySection({ selectedInitiative, getStatusTone }: Initia
       <div style={{ height: '1px', background: uiTokens.colors.borderDefault }} />
 
       <Section title="Objetivo">
-        <p style={{ margin: 0, color: uiTokens.colors.textBody, fontSize: uiTokens.typography.md }}>
+        <p style={{ margin: 0, color: uiTokens.colors.textBody, fontSize: uiTokens.typography.md, lineHeight: 1.5 }}>
           {selectedInitiative.businessNeed
             ?? 'Aprimorar a eficiência operacional da unidade com ações de captura de ganhos e padronização do processo.'}
         </p>
       </Section>
 
       <Section title="Observações">
-        <p style={{ margin: 0, color: uiTokens.colors.textBody, fontSize: uiTokens.typography.md }}>
+        <p style={{ margin: 0, color: uiTokens.colors.textBody, fontSize: uiTokens.typography.md, lineHeight: 1.5 }}>
           {selectedInitiative.proposedSolution
             ?? `Iniciativa em ${selectedInitiative.stage}. Acompanhamento semanal com o responsável para evolução do plano.`}
         </p>
@@ -472,7 +506,7 @@ export function InitiativesPage({
   }
 
   return (
-    <main style={{ display: 'flex', flexDirection: 'column', gap: uiTokens.spacing.sm, color: uiTokens.colors.textBody, background: uiTokens.colors.pageBg }}>
+    <main style={{ display: 'flex', flexDirection: 'column', gap: uiTokens.spacing.xs, color: uiTokens.colors.textBody, background: uiTokens.colors.pageBg }}>
       <InitiativesCommandBar
         hasSelection={hasSelection}
         draftFilters={draftFilters}
@@ -506,16 +540,18 @@ export function InitiativesPage({
         }}
       />
 
-      <section style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.8fr) minmax(330px, 0.95fr)', gap: uiTokens.spacing.sm, alignItems: 'start' }}>
-        <Card style={{ display: 'flex', flexDirection: 'column', gap: uiTokens.spacing.xs, minHeight: '540px', padding: uiTokens.spacing.sm }}>
-          <InitiativesTableSection
-            loading={loading}
-            error={error}
-            initiatives={filteredInitiatives}
-            selectedInitiative={selectedInitiative}
-            onSelect={setSelectedId}
-            getStatusTone={getStatusTone}
-          />
+      <section style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.8fr) minmax(330px, 0.95fr)', gap: uiTokens.spacing.xs, alignItems: 'start' }}>
+        <Card style={{ display: 'flex', flexDirection: 'column', gap: uiTokens.spacing.xs, minHeight: '540px', padding: `${uiTokens.spacing.xs} ${uiTokens.spacing.sm}` }}>
+          <div style={{ border: `1px solid ${uiTokens.colors.borderDefault}`, borderRadius: uiTokens.radius.control, overflow: 'hidden' }}>
+            <InitiativesTableSection
+              loading={loading}
+              error={error}
+              initiatives={filteredInitiatives}
+              selectedInitiative={selectedInitiative}
+              onSelect={setSelectedId}
+              getStatusTone={getStatusTone}
+            />
+          </div>
 
           <footer style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: '34px', color: uiTokens.colors.textMuted, fontSize: uiTokens.typography.xs, padding: `0 ${uiTokens.spacing.xxs}`, borderTop: `1px solid ${uiTokens.colors.borderSoft}` }}>
             <span>Itens carregados: {filteredInitiatives.length}</span>
@@ -523,7 +559,7 @@ export function InitiativesPage({
           </footer>
         </Card>
 
-        <Card style={{ padding: uiTokens.spacing.md }}>
+        <Card style={{ padding: `${uiTokens.spacing.sm} ${uiTokens.spacing.md}` }}>
           <InitiativesSummarySection selectedInitiative={selectedInitiative} getStatusTone={getStatusTone} />
         </Card>
       </section>
