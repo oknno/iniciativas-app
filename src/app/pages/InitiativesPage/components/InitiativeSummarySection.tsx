@@ -1,12 +1,25 @@
 import { Card } from '../../../components/ui/Card'
 import { StateMessage } from '../../../components/ui/StateMessage'
 import { tokens } from '../../../components/ui/tokens'
-import type { InitiativeListItem } from './InitiativesTableSection'
+import type { InitiativeDetailDto } from '../../../../application/dto/initiatives/InitiativeDetailDto'
 import { InitiativeMetricsPanel } from './InitiativeMetricsPanel'
 import { InitiativeStatusBadge } from './InitiativeStatusBadge'
 
 type InitiativeSummarySectionProps = {
-  item: InitiativeListItem | undefined
+  item: InitiativeDetailDto | undefined
+}
+
+const stageLabel: Record<InitiativeDetailDto['stage'], string> = {
+  DRAFTING: 'Drafting',
+  ASSESSMENT: 'Assessment',
+  VALIDATION: 'Validation',
+  GOVERNANCE_GATE: 'Governance Gate',
+}
+
+const scenarioLabel: Record<InitiativeDetailDto['scenario'], string> = {
+  BASE: 'Base',
+  BEST: 'Best',
+  WORST: 'Worst',
 }
 
 export function InitiativeSummarySection({ item }: InitiativeSummarySectionProps) {
@@ -20,21 +33,22 @@ export function InitiativeSummarySection({ item }: InitiativeSummarySectionProps
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: tokens.spacing.sm }}>
           <div>
             <h2 style={{ margin: 0, fontSize: 20 }}>{item.title}</h2>
-            <p style={{ margin: '6px 0 0', color: tokens.colors.textSecondary, fontSize: 14 }}>
-              Owner: {item.owner}
-            </p>
+            <p style={{ margin: '6px 0 0', color: tokens.colors.textSecondary, fontSize: 14 }}>Owner: {item.owner}</p>
           </div>
           <InitiativeStatusBadge status={item.status} />
         </div>
         <p style={{ margin: '12px 0 0', fontSize: 14, color: tokens.colors.textSecondary }}>
-          Stage: <strong style={{ color: tokens.colors.textPrimary }}>{item.stage}</strong>
+          Stage: <strong style={{ color: tokens.colors.textPrimary }}>{stageLabel[item.stage]}</strong>
+        </p>
+        <p style={{ margin: '6px 0 0', fontSize: 14, color: tokens.colors.textSecondary }}>
+          Scenario: <strong style={{ color: tokens.colors.textPrimary }}>{scenarioLabel[item.scenario]}</strong>
         </p>
       </Card>
 
       <InitiativeMetricsPanel
         annualGain={item.annualGain}
-        implementationCost={Math.round(item.annualGain * 0.34)}
-        componentsCount={Math.max(2, Math.round(item.annualGain / 150000))}
+        implementationCost={item.implementationCost}
+        componentsCount={item.components.length}
       />
     </div>
   )
