@@ -6,6 +6,7 @@ import type { KpiMasterDto } from '../../../../application/dto/catalogs/KpiMaste
 import { asConversionCode } from '../../../../domain/catalogs/value-objects/ConversionCode'
 import { asFormulaCode } from '../../../../domain/catalogs/value-objects/FormulaCode'
 import { asKpiCode } from '../../../../domain/catalogs/value-objects/KpiCode'
+import type { MonthRef } from '../../../../domain/initiatives/value-objects/MonthRef'
 
 export const mockComponentCatalog: readonly ComponentMasterDto[] = [
   {
@@ -58,25 +59,47 @@ export const mockConversionCatalog: readonly ConversionMasterDto[] = [
 
 export const mockFormulaCatalog: readonly FormulaMasterDto[] = [
   {
-    code: asFormulaCode('FORMULA-LINEAR-DEFAULT'),
-    name: 'Linear default',
+    code: asFormulaCode('FORMULA-MULTIPLIER'),
+    name: 'Multiplier',
     formulaType: 'LINEAR',
-    expression: 'value',
+    expression: 'kpi * conversion',
+    active: true,
+  },
+  {
+    code: asFormulaCode('FORMULA-DIRECT-VALUE'),
+    name: 'Direct value',
+    formulaType: 'LINEAR',
+    expression: 'fixed',
     active: true,
   },
 ]
 
+const MONTH_REFS_2026: readonly MonthRef[] = [
+  '2026-01',
+  '2026-02',
+  '2026-03',
+  '2026-04',
+  '2026-05',
+  '2026-06',
+  '2026-07',
+  '2026-08',
+  '2026-09',
+  '2026-10',
+  '2026-11',
+  '2026-12',
+]
+
 export const mockConversionValues: readonly ConversionValueDto[] = [
-  {
+  ...MONTH_REFS_2026.map((monthRef) => ({
     conversionCode: asConversionCode('CONV-KWH-USD'),
-    monthRef: '2026-01',
-    scenario: 'BASE',
+    monthRef,
+    scenario: 'BASE' as const,
     value: 0.14,
-  },
-  {
+  })),
+  ...MONTH_REFS_2026.map((monthRef) => ({
     conversionCode: asConversionCode('CONV-TON-USD'),
-    monthRef: '2026-01',
-    scenario: 'BASE',
+    monthRef,
+    scenario: 'BASE' as const,
     value: 34,
-  },
+  })),
 ]

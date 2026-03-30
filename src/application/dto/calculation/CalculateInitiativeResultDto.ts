@@ -1,3 +1,3 @@
-import type { CalculationResult } from '../../../domain/calculation/entities/CalculationResult'
+import type { InitiativeCalculationSnapshot } from '../../../domain/calculation/entities/CalculationResult'
 
-export type CalculateInitiativeResultDto = CalculationResult
+export type CalculateInitiativeResultDto = InitiativeCalculationSnapshot

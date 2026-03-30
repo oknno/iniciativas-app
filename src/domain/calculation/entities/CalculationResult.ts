@@ -1,13 +1,17 @@
-import type { MonthRef } from '../../initiatives/value-objects/MonthRef'
-import type { Scenario } from '../../initiatives/value-objects/Scenario'
 import type { InitiativeId } from '../../initiatives/value-objects/InitiativeId'
-import type { CalculationDetail } from './CalculationDetail'
 
 export interface CalculationResult {
   readonly initiativeId: InitiativeId
-  readonly monthRef: MonthRef
-  readonly scenario: Scenario
-  readonly finalGain: number
-  readonly detail: readonly CalculationDetail[]
+  readonly year: number
+  readonly month: number
+  readonly gainValue: number
+}
+
+export interface InitiativeCalculationSnapshot {
+  readonly initiativeId: InitiativeId
+  readonly year: number
+  readonly results: readonly CalculationResult[]
+  readonly details: readonly import('./CalculationDetail').CalculationDetail[]
   readonly calculatedAt: string
+  readonly issues: readonly string[]
 }
