@@ -8,8 +8,21 @@ import type { InitiativeStage } from '../../../domain/initiatives/entities/Initi
 import type { InitiativeStatus } from '../../../domain/initiatives/entities/InitiativeStatus'
 import { getInitiativeComponents } from '../../../application/use-cases/initiative-components/getInitiativeComponents'
 import { saveInitiativeComponents } from '../../../application/use-cases/initiative-components/saveInitiativeComponents'
+import { getInitiativeValues } from '../../../application/use-cases/initiative-values/getInitiativeValues'
+import { saveComponentValues } from '../../../application/use-cases/initiative-values/saveComponentValues'
+import { saveKpiValues } from '../../../application/use-cases/initiative-values/saveKpiValues'
 import type { InitiativeComponentDraftDto } from '../../../application/mappers/initiatives/initiativeComponentMappers'
 import { getInitiativeComponentDraftErrors } from '../../../application/mappers/initiatives/initiativeComponentMappers'
+import {
+  buildFixedValueGridRows,
+  buildKpiValueGridRows,
+  toFixedValueDraftMap,
+  toKpiValueDraftMap,
+  toSaveComponentValueDtos,
+  toSaveKpiValueDtos,
+  type MonthNumber,
+  type MonthlyInputMap,
+} from '../../../application/mappers/initiatives/initiativeValueMappers'
 import { tokens } from '../../components/ui/tokens'
 import { WizardUi } from './wizard/WizardUi'
 import type { WizardStepOption } from './wizard/wizardOptions'
@@ -18,8 +31,8 @@ import { ComponentsStep } from './wizard/steps/ComponentsStep'
 import { ValuesStep } from './wizard/steps/ValuesStep'
 import { ReviewStep } from './wizard/steps/ReviewStep'
 import { mockCalculationResult } from './mocks/mockCalculation'
-import { mockComponentCatalog, mockConversionCatalog, mockFormulaCatalog, mockKpiCatalog } from './mocks/mockCatalogs'
-import { mockComponentValues, mockKpiValues } from './mocks/mockValues'
+import { mockComponentCatalog, mockConversionCatalog, mockConversionValues, mockFormulaCatalog, mockKpiCatalog } from './mocks/mockCatalogs'
+
 import type { InitiativeWizardMode } from './hooks/useInitiativesPage'
 
 type InitiativeWizardModalProps = {
@@ -45,6 +58,10 @@ const getInitialFormState = (initiative: InitiativeDetailDto | undefined): Initi
   status: initiative?.status ?? 'DRAFT',
 })
 
+
+const DEFAULT_VALUES_YEAR = 2026
+const DEFAULT_VALUES_SCENARIO = 'BASE' as const
+
 const getNewComponentDraft = (): InitiativeComponentDraftDto => ({
   componentCode: '',
   componentType: 'OTHER',
@@ -59,6 +76,10 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
   const [form, setForm] = useState<InitiativeFormState>(getInitialFormState(selectedInitiative))
   const [components, setComponents] = useState<readonly InitiativeComponentDraftDto[]>([])
   const [isLoadingComponents, setIsLoadingComponents] = useState<boolean>(false)
+  const [valuesYear] = useState<number>(DEFAULT_VALUES_YEAR)
+  const [valuesScenario] = useState<typeof DEFAULT_VALUES_SCENARIO>(DEFAULT_VALUES_SCENARIO)
+  const [kpiValuesByRow, setKpiValuesByRow] = useState<Readonly<Record<string, MonthlyInputMap>>>({})
+  const [fixedValuesByRow, setFixedValuesByRow] = useState<Readonly<Record<string, MonthlyInputMap>>>({})
 
   useEffect(() => {
     if (!isOpen) {
@@ -67,6 +88,8 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
 
     setForm(getInitialFormState(mode === 'edit' ? selectedInitiative : undefined))
     setActiveStepIndex(0)
+    setKpiValuesByRow({})
+    setFixedValuesByRow({})
   }, [isOpen, mode, selectedInitiative])
 
   useEffect(() => {
@@ -84,6 +107,21 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
       .then(setComponents)
       .finally(() => setIsLoadingComponents(false))
   }, [isOpen, mode, selectedInitiative])
+
+
+  useEffect(() => {
+    if (!isOpen || mode !== 'edit' || !selectedInitiative || isLoadingComponents || components.length === 0) {
+      return
+    }
+
+    const kpiRows = buildKpiValueGridRows(components, mockComponentCatalog, mockKpiCatalog)
+    const fixedRows = buildFixedValueGridRows(components, mockComponentCatalog)
+
+    void getInitiativeValues(selectedInitiative.id, valuesYear, valuesScenario).then(({ kpiValues, componentValues }) => {
+      setKpiValuesByRow(toKpiValueDraftMap(kpiValues, kpiRows, valuesYear))
+      setFixedValuesByRow(toFixedValueDraftMap(componentValues, fixedRows, valuesYear))
+    })
+  }, [components, isLoadingComponents, isOpen, mode, selectedInitiative, valuesScenario, valuesYear])
 
   const steps = useMemo<WizardStepOption[]>(
     () => [
@@ -161,9 +199,33 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
         label: 'Values',
         render: () => (
           <ValuesStep
-            selectedInitiative={selectedInitiative}
-            kpiValuesCount={mockKpiValues.length}
-            componentValuesCount={mockComponentValues.length}
+            components={components}
+            componentCatalog={mockComponentCatalog}
+            kpiCatalog={mockKpiCatalog}
+            conversionCatalog={mockConversionCatalog}
+            conversionValues={mockConversionValues}
+            year={valuesYear}
+            scenario={valuesScenario}
+            kpiValuesByRow={kpiValuesByRow}
+            fixedValuesByRow={fixedValuesByRow}
+            onKpiValueChange={(rowSignature: string, month: MonthNumber, value: string) =>
+              setKpiValuesByRow((current) => ({
+                ...current,
+                [rowSignature]: {
+                  ...(current[rowSignature] ?? {}),
+                  [month]: value,
+                },
+              }))
+            }
+            onFixedValueChange={(rowSignature: string, month: MonthNumber, value: string) =>
+              setFixedValuesByRow((current) => ({
+                ...current,
+                [rowSignature]: {
+                  ...(current[rowSignature] ?? {}),
+                  [month]: value,
+                },
+              }))
+            }
           />
         ),
       },
@@ -173,7 +235,7 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
         render: () => <ReviewStep selectedInitiative={selectedInitiative} calculation={mockCalculationResult} />,
       },
     ],
-    [components, form, isLoadingComponents, selectedInitiative],
+    [components, fixedValuesByRow, form, isLoadingComponents, kpiValuesByRow, selectedInitiative, valuesScenario, valuesYear],
   )
 
   if (!isOpen) {
@@ -202,6 +264,15 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
 
     const savedInitiative = await onSave(dto)
     await saveInitiativeComponents(savedInitiative.id, components, mockComponentCatalog)
+
+    const persistedComponents = await getInitiativeComponents(savedInitiative.id, mockComponentCatalog)
+    const kpiRows = buildKpiValueGridRows(persistedComponents, mockComponentCatalog, mockKpiCatalog)
+    const fixedRows = buildFixedValueGridRows(persistedComponents, mockComponentCatalog)
+
+    await saveKpiValues(toSaveKpiValueDtos(savedInitiative.id, valuesYear, valuesScenario, kpiRows, kpiValuesByRow))
+    await saveComponentValues(
+      toSaveComponentValueDtos(savedInitiative.id, valuesYear, valuesScenario, fixedRows, fixedValuesByRow),
+    )
   }
 
   const hasInvalidComponent = components.some((component) => getInitiativeComponentDraftErrors(component, mockComponentCatalog).length > 0)
