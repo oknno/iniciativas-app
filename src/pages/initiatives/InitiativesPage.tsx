@@ -330,14 +330,18 @@ export function InitiativesPage({
         </div>
 
         <aside className="initiatives-summary-panel">
-          <h2>Resumo</h2>
+          <div className="summary-panel-header">
+            <h2>Resumo</h2>
+            {selectedInitiative && (
+              <span className={`status-badge ${getStatusTone(selectedInitiative.status)}`}>
+                {selectedInitiative.status}
+              </span>
+            )}
+          </div>
           {selectedInitiative ? (
             <div className="initiatives-summary-content">
               <div className="summary-header">
-                <h3>{selectedInitiative.title}</h3>
-                <span className={`status-badge ${getStatusTone(selectedInitiative.status)}`}>
-                  {selectedInitiative.status}
-                </span>
+                <h3 className="summary-initiative-title">{selectedInitiative.title}</h3>
               </div>
 
               <div className="summary-divider" />
