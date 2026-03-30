@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { CommandBar } from './CommandBar'
 import { styles } from './InitiativesPage.styles'
+import { InitiativeWizardModal } from './InitiativeWizardModal'
 import {
   InitiativesTableSection,
   type InitiativeListItem,
@@ -44,6 +45,7 @@ const MOCK_INITIATIVES: InitiativeListItem[] = [
 
 export function InitiativesPage() {
   const [selectedId, setSelectedId] = useState<string>(MOCK_INITIATIVES[0]?.id ?? '')
+  const [isWizardOpen, setIsWizardOpen] = useState<boolean>(false)
 
   const selectedItem = useMemo(
     () => MOCK_INITIATIVES.find((item) => item.id === selectedId),
@@ -52,7 +54,7 @@ export function InitiativesPage() {
 
   return (
     <div style={styles.page}>
-      <CommandBar totalItems={MOCK_INITIATIVES.length} />
+      <CommandBar totalItems={MOCK_INITIATIVES.length} onOpenWizard={() => setIsWizardOpen(true)} />
       <main style={styles.content}>
         <section style={styles.mainGrid}>
           <InitiativesTableSection
@@ -63,6 +65,7 @@ export function InitiativesPage() {
           <InitiativeSummarySection item={selectedItem} />
         </section>
       </main>
+      <InitiativeWizardModal isOpen={isWizardOpen} onClose={() => setIsWizardOpen(false)} />
     </div>
   )
 }
