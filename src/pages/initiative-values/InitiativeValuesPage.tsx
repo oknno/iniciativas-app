@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { getConversionMasterCatalog } from '../../services/conversionMasterService'
 import { listInitiativeComponents } from '../../services/initiativeComponentService'
 import { getInitiativeById } from '../../services/initiativeService'
@@ -38,6 +38,11 @@ const MONTHS = [
 ]
 
 const YEARS = [2024, 2025, 2026]
+const SCENARIO_BY_YEAR = {
+  2024: 'Histórico (Actual)',
+  2025: 'Histórico (Actual)',
+  2026: `Realizado até ${MONTHS[new Date().getMonth()]?.label ?? 'mês atual'} + Forecast do restante`,
+} as const
 
 export function InitiativeValuesPage({
   initiativeId,
@@ -102,19 +107,11 @@ export function InitiativeValuesPage({
     void refreshValues()
   }, [refreshValues])
 
-  const scenarioByYear = useMemo(() => {
-    const currentMonth = new Date().getMonth() + 1
-    return {
-      2024: 'Histórico (Actual)',
-      2025: 'Histórico (Actual)',
-      2026: `Realizado até ${MONTHS[currentMonth - 1]?.label ?? 'mês atual'} + Forecast do restante`,
-    }
-  }, [])
-
-  const linkedKpis = components.map((component) => component.kpiCode).filter(Boolean)
+  const linkedKpis = Array.from(new Set(components.map((component) => component.kpiCode).filter(Boolean)))
   const linkedConversions = components
     .map((component) => component.conversionCode)
     .filter((code): code is ConversionCode => Boolean(code))
+  const uniqueLinkedConversions = Array.from(new Set(linkedConversions))
 
   return (
     <main>
@@ -180,7 +177,7 @@ export function InitiativeValuesPage({
                 {YEARS.map((year) => (
                   <tr key={year}>
                     <td style={tdStyle}>{year}</td>
-                    <td style={tdStyle}>{scenarioByYear[year as keyof typeof scenarioByYear]}</td>
+                    <td style={tdStyle}>{SCENARIO_BY_YEAR[year as keyof typeof SCENARIO_BY_YEAR]}</td>
                     {MONTHS.map((month) => {
                       const key = `${kpiCode}-${year}-${month.value}`
                       return (
@@ -213,7 +210,7 @@ export function InitiativeValuesPage({
           Conversão
           <select value={conversionCode} onChange={(event) => setConversionCode(event.target.value as ConversionCode)}>
             <option value="">Selecione conversão...</option>
-            {linkedConversions.map((code) => {
+            {uniqueLinkedConversions.map((code) => {
               const item = conversionCatalog.find((conversion) => conversion.code === code)
               return <option key={code} value={code}>{item?.title ?? code}</option>
             })}
@@ -234,7 +231,7 @@ export function InitiativeValuesPage({
                 {YEARS.map((year) => (
                   <tr key={year}>
                     <td style={tdStyle}>{year}</td>
-                    <td style={tdStyle}>{scenarioByYear[year as keyof typeof scenarioByYear]}</td>
+                    <td style={tdStyle}>{SCENARIO_BY_YEAR[year as keyof typeof SCENARIO_BY_YEAR]}</td>
                     {MONTHS.map((month) => {
                       const key = `${conversionCode}-${year}-${month.value}`
                       return (

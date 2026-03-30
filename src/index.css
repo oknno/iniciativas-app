@@ -88,50 +88,6 @@ textarea {
   flex-wrap: wrap;
 }
 
-.capex-header {
-  background: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.capex-header-inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 14px 18px;
-}
-
-.capex-title {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-}
-
-.capex-brand {
-  margin: 0;
-  padding: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #111827;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-}
-
-.capex-badge {
-  font-size: 12px;
-  padding: 3px 8px;
-  border-radius: 999px;
-  background: #eef2ff;
-  border: 1px solid #e0e7ff;
-  color: #374151;
-}
-
-.capex-actions {
-  display: flex;
-  gap: 8px;
-}
-
 .btn {
   appearance: none;
   border: 1px solid #d1d5db;
@@ -143,20 +99,6 @@ textarea {
   font-size: 13px;
   font-weight: 600;
   transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
-}
-
-.btn.compact {
-  padding: 5px 10px;
-  min-height: 30px;
-  border-radius: 10px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.btn.secondary {
-  border-color: #d1d5db;
-  color: #374151;
-  background: #f9fafb;
 }
 
 .btn.primary {
@@ -172,12 +114,6 @@ textarea {
 .btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
-}
-
-.btn.danger {
-  color: #991b1b;
-  border-color: #fecaca;
-  background: #fef2f2;
 }
 
 .flow-stepper {
