@@ -21,7 +21,7 @@ export interface ConversionValueListItem {
 export const listAll = async (): Promise<readonly ConversionValueListItem[]> => {
   try {
     const response = await get<SharePointListResponse<ConversionValueListItem>>(
-      listItemsEndpoint(LIST_TITLE, { orderBy: 'ConversionCode asc,MonthRef asc' }),
+      listItemsEndpoint(LIST_TITLE, { orderBy: 'ConversionCode asc,Year asc,Month asc' }),
     )
 
     return response.value
@@ -36,7 +36,7 @@ export const getByCode = async (conversionCode: string): Promise<readonly Conver
       filteredListItemsEndpoint(
         LIST_TITLE,
         `ConversionCode eq '${conversionCode.replace(/'/g, "''")}'`,
-        { orderBy: 'MonthRef asc' },
+        { orderBy: 'Year asc,Month asc' },
       ),
     )
 

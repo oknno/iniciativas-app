@@ -24,7 +24,7 @@ export interface ComponentMasterListItem {
 export const listAll = async (): Promise<readonly ComponentMasterListItem[]> => {
   try {
     const response = await get<SharePointListResponse<ComponentMasterListItem>>(
-      listItemsEndpoint(LIST_TITLE, { orderBy: 'Code asc' }),
+      listItemsEndpoint(LIST_TITLE, { orderBy: 'Title asc' }),
     )
 
     return response.value
@@ -36,7 +36,7 @@ export const listAll = async (): Promise<readonly ComponentMasterListItem[]> => 
 export const getByCode = async (code: string): Promise<ComponentMasterListItem | undefined> => {
   try {
     const response = await get<SharePointListResponse<ComponentMasterListItem>>(
-      filteredListItemsEndpoint(LIST_TITLE, `Code eq '${code.replace(/'/g, "''")}'`, { top: 1 }),
+      filteredListItemsEndpoint(LIST_TITLE, `ComponentType eq '${code.replace(/'/g, "''")}'`, { top: 1 }),
     )
 
     return response.value[0]
