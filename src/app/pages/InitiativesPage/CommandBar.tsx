@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import type { InitiativeId } from '../../../domain/initiatives/value-objects/InitiativeId'
-import { Button } from '../../components/ui/Button'
-import { uiTokens } from '../../components/ui/tokens'
 
 type CommandBarFilters = {
   searchTitle: string
@@ -38,22 +36,22 @@ const styles: Record<string, CSSProperties> = {
   root: {
     position: 'sticky',
     top: 0,
-    zIndex: uiTokens.zIndex.sticky,
-    background: uiTokens.colors.surface,
-    borderBottom: `1px solid ${uiTokens.colors.borderStrong}`,
+    zIndex: 10,
+    background: '#fff',
+    borderBottom: '1px solid #e5e7eb',
   },
   content: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: uiTokens.spacing.md,
-    padding: '8px 12px',
+    padding: '10px 12px',
   },
   title: {
     margin: 0,
-    ...uiTokens.typography.body,
+    fontSize: 14,
     fontWeight: 700,
-    color: uiTokens.colors.textPrimary,
+    lineHeight: '20px',
+    color: '#111827',
   },
   rightSide: {
     display: 'flex',
@@ -68,17 +66,11 @@ const styles: Record<string, CSSProperties> = {
     alignItems: 'center',
     gap: 8,
   },
-  commandButton: {
-    fontSize: 13,
-    lineHeight: '16px',
-    padding: '6px 10px',
-    borderRadius: 10,
-  },
   divider: {
     width: 1,
-    height: 20,
+    height: 26,
     background: '#e5e7eb',
-    margin: '0 8px',
+    margin: '0 4px',
   },
   filterWrapper: {
     position: 'relative',
@@ -87,43 +79,45 @@ const styles: Record<string, CSSProperties> = {
     position: 'absolute',
     right: 0,
     top: 'calc(100% + 8px)',
-    width: 320,
-    background: uiTokens.colors.surface,
-    border: `1px solid ${uiTokens.colors.borderStrong}`,
-    borderRadius: uiTokens.radius.md,
-    boxShadow: uiTokens.shadow.md,
-    padding: uiTokens.spacing.md,
-    zIndex: uiTokens.zIndex.sticky + 1,
+    width: 420,
+    background: '#fff',
+    border: '1px solid #e5e7eb',
+    borderRadius: 12,
+    boxShadow: '0 10px 30px rgba(0,0,0,.10)',
+    padding: 12,
+    zIndex: 11,
   },
   fieldGroup: {
     display: 'grid',
-    gap: uiTokens.spacing.xs,
-    marginBottom: uiTokens.spacing.sm,
+    gap: 4,
+    marginBottom: 8,
   },
   label: {
-    ...uiTokens.typography.caption,
-    color: uiTokens.colors.textSecondary,
+    fontSize: 12,
+    lineHeight: '16px',
+    color: '#6b7280',
   },
   input: {
     height: 30,
-    borderRadius: uiTokens.radius.sm,
-    border: `1px solid ${uiTokens.colors.borderStrong}`,
-    padding: `0 ${uiTokens.spacing.xs}px`,
-    ...uiTokens.typography.caption,
-    color: uiTokens.colors.textPrimary,
+    borderRadius: 8,
+    border: '1px solid #d1d5db',
+    padding: '0 8px',
+    fontSize: 12,
+    lineHeight: '16px',
+    color: '#111827',
     width: '100%',
     boxSizing: 'border-box',
   },
   fieldRow: {
     display: 'grid',
     gridTemplateColumns: '1fr 1fr',
-    gap: uiTokens.spacing.xs,
+    gap: 4,
   },
   dialogActions: {
     display: 'flex',
     justifyContent: 'flex-end',
-    gap: uiTokens.spacing.xs,
-    marginTop: uiTokens.spacing.sm,
+    gap: 8,
+    marginTop: 8,
   },
 }
 
@@ -207,50 +201,46 @@ export function CommandBar({
     <div style={styles.root}>
       <div className="initiatives-container">
         <div style={styles.content}>
-          <h1 style={styles.title}>Initiatives Engine</h1>
+          <h1 style={styles.title}>Termo de Abertura de Projeto - TAP 2.0</h1>
 
           <div style={styles.rightSide}>
             <div style={styles.buttonGroup}>
-              <Button style={styles.commandButton} onClick={onRefresh}>
+              <button type="button" className="btn" onClick={onRefresh}>
                 Atualizar
-              </Button>
-              <Button tone="primary" style={styles.commandButton} onClick={onNew}>
+              </button>
+              <button type="button" className="btn primary" onClick={onNew}>
                 Novo
-              </Button>
-            </div>
-            <span style={styles.divider} />
-
-            <div style={styles.buttonGroup}>
-              <Button style={styles.commandButton} onClick={onView} disabled={!actionAvailability.canView}>
+              </button>
+              <button type="button" className="btn" onClick={onView} disabled={!actionAvailability.canView}>
                 Visualizar
-              </Button>
-              <Button style={styles.commandButton} onClick={onEdit} disabled={!actionAvailability.canEdit}>
+              </button>
+              <button type="button" className="btn" onClick={onEdit} disabled={!actionAvailability.canEdit}>
                 Editar
-              </Button>
-              <Button style={styles.commandButton} onClick={onDuplicate} disabled={!actionAvailability.canDuplicate}>
+              </button>
+              <button type="button" className="btn" onClick={onDuplicate} disabled={!actionAvailability.canDuplicate}>
                 Duplicar
-              </Button>
-              <Button style={styles.commandButton} onClick={onDelete} disabled={!actionAvailability.canDelete}>
+              </button>
+              <button type="button" className="btn" onClick={onDelete} disabled={!actionAvailability.canDelete}>
                 Excluir
-              </Button>
+              </button>
             </div>
             <span style={styles.divider} />
 
             <div style={styles.buttonGroup}>
-              <Button style={styles.commandButton} onClick={onSendToApproval}>
+              <button type="button" className="btn" onClick={onSendToApproval}>
                 Enviar p/ Aprovação
-              </Button>
-              <Button style={styles.commandButton} onClick={onBackStatus} disabled={!actionAvailability.canBackStatus}>
+              </button>
+              <button type="button" className="btn" onClick={onBackStatus} disabled={!actionAvailability.canBackStatus}>
                 Voltar Status
-              </Button>
+              </button>
             </div>
             <span style={styles.divider} />
 
             <div style={styles.buttonGroup}>
               <div style={styles.filterWrapper} ref={filterRef}>
-                <Button style={styles.commandButton} onClick={() => setIsFilterOpen((current) => !current)}>
+                <button type="button" className="btn" onClick={() => setIsFilterOpen((current) => !current)}>
                   Filtro
-                </Button>
+                </button>
                 {isFilterOpen ? (
                   <div role="dialog" aria-label="Filtros da listagem" style={styles.filterDialog}>
                     <div style={styles.fieldGroup}>
@@ -338,17 +328,19 @@ export function CommandBar({
                     </div>
 
                     <div style={styles.dialogActions}>
-                      <Button onClick={handleClear}>Limpar</Button>
-                      <Button tone="primary" onClick={handleApply}>
+                      <button type="button" className="btn" onClick={handleClear}>
+                        Limpar
+                      </button>
+                      <button type="button" className="btn primary" onClick={handleApply}>
                         Aplicar
-                      </Button>
+                      </button>
                     </div>
                   </div>
                 ) : null}
               </div>
-              <Button style={styles.commandButton} onClick={onExport}>
+              <button type="button" className="btn" onClick={onExport}>
                 Exportar
-              </Button>
+              </button>
             </div>
           </div>
         </div>
