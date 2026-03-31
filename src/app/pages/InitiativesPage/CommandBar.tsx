@@ -38,13 +38,15 @@ const styles: Record<string, CSSProperties> = {
     top: 0,
     zIndex: 10,
     background: '#fff',
-    borderBottom: '1px solid #e5e7eb',
+    border: '1px solid #e5e7eb',
+    borderRadius: 10,
   },
   content: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: '10px 12px',
+    gap: 12,
   },
   title: {
     margin: 0,
@@ -199,8 +201,7 @@ export function CommandBar({
 
   return (
     <div style={styles.root}>
-      <div className="initiatives-container">
-        <div style={styles.content}>
+      <div style={styles.content}>
           <h1 style={styles.title}>Termo de Abertura de Projeto - TAP 2.0</h1>
 
           <div style={styles.rightSide}>
@@ -343,7 +344,6 @@ export function CommandBar({
               </button>
             </div>
           </div>
-        </div>
       </div>
     </div>
   )

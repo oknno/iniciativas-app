@@ -3,7 +3,7 @@
   line-height: 1.5;
   font-weight: 400;
   color: #1f2937;
-  background: #eef2f6;
+  background: #edf1f5;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -22,17 +22,30 @@ body,
 }
 
 body {
-  background: #eef2f6;
+  background: #edf1f5;
 }
 
 .initiatives-app {
   min-height: 100vh;
-  background: #eef2f6;
+  width: 100%;
+  background: #edf1f5;
   color: #111827;
+  padding: 16px 0 20px;
 }
 
 .initiatives-container {
+  width: 100%;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 10px 16px 16px;
+  padding: 0 20px;
+}
+
+@media (max-width: 960px) {
+  .initiatives-app {
+    padding-top: 12px;
+  }
+
+  .initiatives-container {
+    padding: 0 16px;
+  }
 }

@@ -20,42 +20,46 @@ export function InitiativesPage() {
 
   return (
     <div className="initiatives-app">
-      <CommandBar
-        selectedId={selectedId ?? null}
-        selectedStatus={selectedItemDetail?.status ?? ''}
-        totalLoaded={items.length}
-        filters={filters}
-        onChangeFilters={setFilters}
-        onApply={() => {
-          // Reserved for filter integration on table/query.
-        }}
-        onClear={() => {
-          setFilters(initialFilters)
-        }}
-        onRefresh={actions.refresh}
-        onNew={actions.openCreate}
-        onView={() => {
-          // Reserved for view action behavior.
-        }}
-        onEdit={actions.openEdit}
-        onDuplicate={actions.duplicateSelected}
-        onDelete={actions.deleteSelected}
-        onSendToApproval={() => {
-          // Reserved for approval flow integration.
-        }}
-        onBackStatus={() => {
-          // Reserved for status rollback integration.
-        }}
-        onExport={() => {
-          // Reserved for export integration.
-        }}
-      />
       <main className="initiatives-container">
-        <section style={styles.mainGrid}>
-          <InitiativesTableSection items={items} selectedId={selectedId} onSelect={actions.select} />
-          <InitiativeSummarySection item={selectedItemDetail} />
-        </section>
+        <div style={styles.pageFrame}>
+          <CommandBar
+            selectedId={selectedId ?? null}
+            selectedStatus={selectedItemDetail?.status ?? ''}
+            totalLoaded={items.length}
+            filters={filters}
+            onChangeFilters={setFilters}
+            onApply={() => {
+              // Reserved for filter integration on table/query.
+            }}
+            onClear={() => {
+              setFilters(initialFilters)
+            }}
+            onRefresh={actions.refresh}
+            onNew={actions.openCreate}
+            onView={() => {
+              // Reserved for view action behavior.
+            }}
+            onEdit={actions.openEdit}
+            onDuplicate={actions.duplicateSelected}
+            onDelete={actions.deleteSelected}
+            onSendToApproval={() => {
+              // Reserved for approval flow integration.
+            }}
+            onBackStatus={() => {
+              // Reserved for status rollback integration.
+            }}
+            onExport={() => {
+              // Reserved for export integration.
+            }}
+          />
+
+          <section style={styles.mainGrid}>
+            <InitiativesTableSection items={items} selectedId={selectedId} onSelect={actions.select} />
+            <InitiativeSummarySection item={selectedItemDetail} />
+          </section>
+        </div>
       </main>
+
       <InitiativeWizardModal
         isOpen={isWizardOpen}
         mode={wizardMode}
