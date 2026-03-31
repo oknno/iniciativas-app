@@ -4,15 +4,17 @@ type InitiativeStatusBadgeProps = {
   status: string
 }
 
-const toLabel = (status: string): string =>
-  status
-    .replace(/_/g, ' ')
-    .toLowerCase()
-    .replace(/(^|\s)\S/g, (match) => match.toUpperCase())
+const statusLabelMap: Record<string, string> = {
+  DRAFT: 'Ativa',
+  IN_REVIEW: 'Em Aprovação',
+  APPROVED: 'Aprovada',
+  REJECTED: 'Reprovado',
+}
+
+const toLabel = (status: string): string => statusLabelMap[status] ?? status
 
 export function InitiativeStatusBadge({ status }: InitiativeStatusBadgeProps) {
-  const tone =
-    status === 'APPROVED' ? 'success' : status === 'REJECTED' ? 'danger' : status === 'IN_REVIEW' ? 'warning' : 'info'
+  const tone = status === 'APPROVED' ? 'success' : status === 'REJECTED' ? 'danger' : status === 'IN_REVIEW' ? 'warning' : 'neutral'
 
   return <Badge tone={tone}>{toLabel(status)}</Badge>
 }

@@ -33,7 +33,7 @@ export function CommandBar({
         position: 'sticky',
         top: 0,
         zIndex: tokens.zIndex.sticky,
-        padding: `${tokens.spacing.sm}px ${tokens.spacing.md}px 0`,
+        padding: `${tokens.spacing.sm}px ${tokens.spacing.lg}px 0`,
         background: tokens.colors.background,
       }}
     >
@@ -44,33 +44,45 @@ export function CommandBar({
           justifyContent: 'space-between',
           gap: tokens.spacing.md,
           flexWrap: 'wrap',
-          padding: `${tokens.spacing.sm}px ${tokens.spacing.md}px`,
+          padding: `${tokens.spacing.md}px ${tokens.spacing.lg}px`,
         }}
       >
         <div>
-          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>CAPEX Initiatives Core System</h1>
-          <p style={{ margin: '2px 0 0', fontSize: 13, color: tokens.colors.textSecondary }}>
+          <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: tokens.colors.textPrimary }}>
+            CAPEX Initiatives Core System
+          </h1>
+          <p style={{ margin: '2px 0 0', fontSize: 12, fontWeight: 500, color: tokens.colors.textMuted }}>
             Portfolio overview ({totalItems} initiatives)
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacing.sm, flexWrap: 'wrap' }}>
-          <Button variant="secondary" onClick={onRefresh} disabled={isLoading}>
-            {isLoading ? 'Refreshing...' : 'Refresh'}
-          </Button>
-          <span style={{ height: 22, width: 1, background: tokens.colors.borderStrong }} />
-          <Button variant="primary" onClick={onNew}>
-            Novo
-          </Button>
-          <span style={{ height: 22, width: 1, background: tokens.colors.borderStrong }} />
-          <Button onClick={onEdit} disabled={!canEdit}>
-            Edit
-          </Button>
-          <Button onClick={onDuplicate} disabled={!canDuplicate}>
-            Duplicate
-          </Button>
-          <Button onClick={onDelete} disabled={!canDelete}>
-            Delete
-          </Button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacing.xs }}>
+            <Button variant="secondary" onClick={onRefresh} disabled={isLoading}>
+              {isLoading ? 'Refreshing...' : 'Refresh'}
+            </Button>
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: tokens.spacing.xs,
+              borderLeft: `1px solid ${tokens.colors.borderStrong}`,
+              paddingLeft: tokens.spacing.sm,
+            }}
+          >
+            <Button variant="primary" onClick={onNew}>
+              Novo
+            </Button>
+            <Button onClick={onEdit} disabled={!canEdit}>
+              Edit
+            </Button>
+            <Button onClick={onDuplicate} disabled={!canDuplicate}>
+              Duplicate
+            </Button>
+            <Button onClick={onDelete} disabled={!canDelete}>
+              Delete
+            </Button>
+          </div>
         </div>
       </Card>
     </div>

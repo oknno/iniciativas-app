@@ -20,11 +20,12 @@ export function Badge({ tone = 'neutral', children }: BadgeProps) {
   return (
     <span
       style={{
-        borderRadius: 999,
-        padding: '2px 10px',
-        fontSize: 12,
+        borderRadius: tokens.radius.sm,
+        padding: '1px 8px',
+        fontSize: 11,
         fontWeight: 600,
-        letterSpacing: 0.2,
+        lineHeight: 1.45,
+        border: `1px solid ${tokens.colors.border}`,
         whiteSpace: 'nowrap',
         ...toneStyles[tone],
       }}

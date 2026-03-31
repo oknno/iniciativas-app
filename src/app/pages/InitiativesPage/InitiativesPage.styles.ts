@@ -10,13 +10,13 @@ export const styles: Record<string, CSSProperties> = {
   content: {
     maxWidth: 1400,
     margin: '0 auto',
-    padding: `${tokens.spacing.md}px ${tokens.spacing.md}px ${tokens.spacing.lg}px`,
+    padding: `${tokens.spacing.md}px ${tokens.spacing.lg}px ${tokens.spacing.lg}px`,
   },
   mainGrid: {
-    marginTop: tokens.spacing.sm,
+    marginTop: tokens.spacing.lg,
     display: 'grid',
     gridTemplateColumns: '1.65fr 1fr',
-    gap: tokens.spacing.md,
+    gap: tokens.spacing.lg,
     alignItems: 'start',
   },
 }
