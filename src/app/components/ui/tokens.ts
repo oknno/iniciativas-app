@@ -1,4 +1,4 @@
-export const tokens = {
+export const uiTokens = {
   colors: {
     background: '#eef2f6',
     surface: '#ffffff',
@@ -30,6 +30,13 @@ export const tokens = {
     md: 4,
     lg: 6,
   },
+  typography: {
+    title: { fontSize: 18, fontWeight: 700 as const, lineHeight: 1.3 },
+    subtitle: { fontSize: 16, fontWeight: 700 as const, lineHeight: 1.35 },
+    body: { fontSize: 14, fontWeight: 500 as const, lineHeight: 1.5 },
+    caption: { fontSize: 12, fontWeight: 600 as const, lineHeight: 1.4 },
+    overline: { fontSize: 11, fontWeight: 700 as const, lineHeight: 1.4, letterSpacing: 0.3 },
+  },
   shadow: {
     sm: '0 1px 2px rgba(0, 0, 0, 0.05)',
     md: '0 4px 16px rgba(15, 23, 42, 0.08)',
@@ -40,4 +47,6 @@ export const tokens = {
   },
 } as const
 
-export type TokenScale = typeof tokens
+export const tokens = uiTokens
+
+export type TokenScale = typeof uiTokens

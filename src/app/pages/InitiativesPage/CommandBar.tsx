@@ -1,6 +1,7 @@
+import type { CSSProperties } from 'react'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
-import { tokens } from '../../components/ui/tokens'
+import { uiTokens } from '../../components/ui/tokens'
 
 type CommandBarProps = {
   totalItems: number
@@ -13,6 +14,35 @@ type CommandBarProps = {
   onEdit: () => void
   onDuplicate: () => void
   onDelete: () => void
+}
+
+const styles: Record<string, CSSProperties> = {
+  root: {
+    position: 'sticky',
+    top: 0,
+    zIndex: uiTokens.zIndex.sticky,
+    paddingTop: uiTokens.spacing.sm,
+    background: uiTokens.colors.background,
+  },
+  card: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: uiTokens.spacing.md,
+    flexWrap: 'wrap',
+    padding: `${uiTokens.spacing.md}px ${uiTokens.spacing.lg}px`,
+  },
+  title: { margin: 0, ...uiTokens.typography.title, color: uiTokens.colors.textPrimary },
+  subtitle: { margin: '2px 0 0', ...uiTokens.typography.caption, color: uiTokens.colors.textMuted },
+  actionsRow: { display: 'flex', alignItems: 'center', gap: uiTokens.spacing.sm, flexWrap: 'wrap' },
+  actionGroup: { display: 'flex', alignItems: 'center', gap: uiTokens.spacing.xs },
+  actionGroupSecondary: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: uiTokens.spacing.xs,
+    borderLeft: `1px solid ${uiTokens.colors.borderStrong}`,
+    paddingLeft: uiTokens.spacing.sm,
+  },
 }
 
 export function CommandBar({
@@ -28,63 +58,36 @@ export function CommandBar({
   onDelete,
 }: CommandBarProps) {
   return (
-    <div
-      style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: tokens.zIndex.sticky,
-        padding: `${tokens.spacing.sm}px ${tokens.spacing.lg}px 0`,
-        background: tokens.colors.background,
-      }}
-    >
-      <Card
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: tokens.spacing.md,
-          flexWrap: 'wrap',
-          padding: `${tokens.spacing.md}px ${tokens.spacing.lg}px`,
-        }}
-      >
-        <div>
-          <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: tokens.colors.textPrimary }}>
-            CAPEX Initiatives Core System
-          </h1>
-          <p style={{ margin: '2px 0 0', fontSize: 12, fontWeight: 500, color: tokens.colors.textMuted }}>
-            Portfolio overview ({totalItems} initiatives)
-          </p>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacing.sm, flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacing.xs }}>
-            <Button variant="secondary" onClick={onRefresh} disabled={isLoading}>
-              {isLoading ? 'Refreshing...' : 'Refresh'}
-            </Button>
+    <div style={styles.root}>
+      <div className="initiatives-container" style={{ paddingTop: 0, paddingBottom: 0 }}>
+        <Card style={styles.card}>
+          <div>
+            <h1 style={styles.title}>CAPEX Initiatives Core System</h1>
+            <p style={styles.subtitle}>Portfolio overview ({totalItems} initiatives)</p>
           </div>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: tokens.spacing.xs,
-              borderLeft: `1px solid ${tokens.colors.borderStrong}`,
-              paddingLeft: tokens.spacing.sm,
-            }}
-          >
-            <Button variant="primary" onClick={onNew}>
-              Novo
-            </Button>
-            <Button onClick={onEdit} disabled={!canEdit}>
-              Edit
-            </Button>
-            <Button onClick={onDuplicate} disabled={!canDuplicate}>
-              Duplicate
-            </Button>
-            <Button onClick={onDelete} disabled={!canDelete}>
-              Delete
-            </Button>
+          <div style={styles.actionsRow}>
+            <div style={styles.actionGroup}>
+              <Button onClick={onRefresh} disabled={isLoading}>
+                {isLoading ? 'Refreshing...' : 'Refresh'}
+              </Button>
+            </div>
+            <div style={styles.actionGroupSecondary}>
+              <Button tone="primary" onClick={onNew}>
+                Novo
+              </Button>
+              <Button onClick={onEdit} disabled={!canEdit}>
+                Edit
+              </Button>
+              <Button onClick={onDuplicate} disabled={!canDuplicate}>
+                Duplicate
+              </Button>
+              <Button onClick={onDelete} disabled={!canDelete}>
+                Delete
+              </Button>
+            </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+      </div>
     </div>
   )
 }

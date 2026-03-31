@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Card } from '../../../components/ui/Card'
+import { Field } from '../../../components/ui/Field'
+import { Section } from '../../../components/ui/Section'
 import { StateMessage } from '../../../components/ui/StateMessage'
-import { tokens } from '../../../components/ui/tokens'
+import { uiTokens } from '../../../components/ui/tokens'
 import type { InitiativeDetailDto } from '../../../../application/dto/initiatives/InitiativeDetailDto'
 import { InitiativeMetricsPanel } from './InitiativeMetricsPanel'
 import { InitiativeStatusBadge } from './InitiativeStatusBadge'
@@ -40,47 +42,26 @@ export function InitiativeSummarySection({ item }: InitiativeSummarySectionProps
   }
 
   return (
-    <div style={{ display: 'grid', gap: tokens.spacing.lg }}>
+    <div style={{ display: 'grid', gap: uiTokens.spacing.lg }}>
       <Card>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: tokens.spacing.sm, alignItems: 'center' }}>
-          <div>
-            <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: tokens.colors.textPrimary }}>{item.title}</h2>
+        <Section title={item.title}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: uiTokens.spacing.sm }}>
+            <span style={{ ...uiTokens.typography.caption, color: uiTokens.colors.textSecondary }}>Initiative status</span>
+            <InitiativeStatusBadge status={item.status} />
           </div>
-          <InitiativeStatusBadge status={item.status} />
-        </div>
-        <div style={{ marginTop: tokens.spacing.md, borderTop: `1px solid ${tokens.colors.border}` }}>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr auto',
-              rowGap: tokens.spacing.sm,
-              columnGap: tokens.spacing.md,
-              paddingTop: tokens.spacing.md,
-              paddingBottom: tokens.spacing.md,
-            }}
-          >
-            {[
-              ['Unidade', item.unidade],
-              ['Responsável', item.responsavel],
-              ['Stage', item.stage],
-            ].map(([label, value]) => (
-              <div
-                key={label}
-                style={{ display: 'grid', gridColumn: '1 / -1', gridTemplateColumns: '1fr auto', alignItems: 'center' }}
-              >
-                <span style={{ fontSize: 12, fontWeight: 600, color: tokens.colors.textMuted }}>{label}</span>
-                <span style={{ fontSize: 14, fontWeight: 500, color: tokens.colors.textSecondary, textAlign: 'right' }}>{value}</span>
-              </div>
-            ))}
+
+          <div style={{ borderTop: `1px solid ${uiTokens.colors.border}`, paddingTop: uiTokens.spacing.md, display: 'grid', gap: uiTokens.spacing.sm }}>
+            <Field label="Unidade" value={item.unidade} layout="inline" />
+            <Field label="Responsável" value={item.responsavel} layout="inline" />
+            <Field label="Stage" value={item.stage} layout="inline" />
           </div>
-          <div style={{ borderTop: `1px solid ${tokens.colors.border}`, paddingTop: tokens.spacing.md }}>
-            <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: tokens.colors.textSecondary }}>Dados complementares</p>
-            <div style={{ marginTop: tokens.spacing.sm, display: 'grid', gridTemplateColumns: '1fr auto', rowGap: tokens.spacing.sm }}>
-              <span style={{ fontSize: 12, fontWeight: 600, color: tokens.colors.textMuted }}>ID</span>
-              <span style={{ fontSize: 13, color: tokens.colors.textSecondary, textAlign: 'right' }}>{item.id}</span>
-            </div>
+
+          <div style={{ borderTop: `1px solid ${uiTokens.colors.border}`, paddingTop: uiTokens.spacing.md }}>
+            <Section title="Dados complementares">
+              <Field label="ID" value={item.id} layout="inline" />
+            </Section>
           </div>
-        </div>
+        </Section>
       </Card>
 
       <InitiativeMetricsPanel

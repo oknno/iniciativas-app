@@ -1,5 +1,6 @@
 import { Button } from '../../../components/ui/Button'
-import { tokens } from '../../../components/ui/tokens'
+import { Card } from '../../../components/ui/Card'
+import { uiTokens } from '../../../components/ui/tokens'
 import type { WizardStepOption } from './wizardOptions'
 
 type WizardUiProps = {
@@ -32,99 +33,87 @@ export function WizardUi({
   const activeStep = steps[activeStepIndex]
 
   return (
-    <div
+    <Card
       style={{
-        background: tokens.colors.surface,
-        borderRadius: tokens.radius.lg,
-        border: `1px solid ${tokens.colors.borderStrong}`,
-        boxShadow: tokens.shadow.md,
+        borderRadius: uiTokens.radius.lg,
+        border: `1px solid ${uiTokens.colors.borderStrong}`,
+        boxShadow: uiTokens.shadow.md,
         width: 'min(1100px, 100%)',
         maxHeight: '92vh',
         display: 'grid',
         gridTemplateRows: 'auto auto minmax(0, 1fr) auto',
         overflow: 'hidden',
+        padding: 0,
       }}
     >
       <header
         style={{
-          padding: `${tokens.spacing.md}px ${tokens.spacing.lg}px`,
-          borderBottom: `1px solid ${tokens.colors.borderStrong}`,
-          background: tokens.colors.surfaceMuted,
+          padding: `${uiTokens.spacing.md}px ${uiTokens.spacing.lg}px`,
+          borderBottom: `1px solid ${uiTokens.colors.borderStrong}`,
+          background: uiTokens.colors.surfaceMuted,
         }}
       >
-        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700 }}>{title}</h2>
-        <p style={{ margin: `${tokens.spacing.xs}px 0 0`, color: tokens.colors.textSecondary, fontSize: 13 }}>
-          {subtitle}
-        </p>
+        <h2 style={{ margin: 0, ...uiTokens.typography.title }}>{title}</h2>
+        <p style={{ margin: `${uiTokens.spacing.xs}px 0 0`, color: uiTokens.colors.textSecondary, ...uiTokens.typography.caption }}>{subtitle}</p>
       </header>
 
       <nav
         style={{
-          padding: `${tokens.spacing.sm}px ${tokens.spacing.lg}`,
-          borderBottom: `1px solid ${tokens.colors.borderStrong}`,
+          padding: `${uiTokens.spacing.sm}px ${uiTokens.spacing.lg}px`,
+          borderBottom: `1px solid ${uiTokens.colors.borderStrong}`,
           display: 'flex',
-          gap: tokens.spacing.xs,
+          gap: uiTokens.spacing.xs,
           overflowX: 'auto',
-          background: '#edf2f7',
+          background: uiTokens.colors.surfaceMuted,
         }}
       >
         {steps.map((step, index) => {
           const isActive = index === activeStepIndex
 
           return (
-            <button
+            <Button
               key={step.id}
-              type="button"
               onClick={() => onSelectStep(index)}
-              style={{
-                whiteSpace: 'nowrap',
-                padding: `${tokens.spacing.xs}px ${tokens.spacing.sm}px`,
-                borderRadius: tokens.radius.sm,
-                border: `1px solid ${isActive ? '#335f96' : tokens.colors.borderStrong}`,
-                background: isActive ? '#dbe7f5' : tokens.colors.surface,
-                color: isActive ? '#183a63' : tokens.colors.textMuted,
-                fontWeight: 600,
-                fontSize: 12,
-                cursor: 'pointer',
-              }}
+              tone={isActive ? 'primary' : 'secondary'}
               aria-current={isActive ? 'step' : undefined}
+              style={{ whiteSpace: 'nowrap' }}
             >
               {index + 1}. {step.label}
-            </button>
+            </Button>
           )
         })}
       </nav>
 
-      <section style={{ padding: `${tokens.spacing.md}px ${tokens.spacing.lg}px`, overflowY: 'auto', background: '#fbfcfe' }}>
+      <section style={{ padding: `${uiTokens.spacing.md}px ${uiTokens.spacing.lg}px`, overflowY: 'auto', background: uiTokens.colors.surfaceMuted }}>
         {activeStep?.render()}
       </section>
 
       <footer
         style={{
-          padding: `${tokens.spacing.md}px ${tokens.spacing.lg}px`,
-          borderTop: `1px solid ${tokens.colors.borderStrong}`,
+          padding: `${uiTokens.spacing.md}px ${uiTokens.spacing.lg}px`,
+          borderTop: `1px solid ${uiTokens.colors.borderStrong}`,
           display: 'flex',
           justifyContent: 'space-between',
-          gap: tokens.spacing.sm,
+          gap: uiTokens.spacing.sm,
           alignItems: 'center',
         }}
       >
-        <Button onClick={onClose} variant="ghost">
+        <Button onClick={onClose} tone="ghost">
           Close
         </Button>
 
-        <div style={{ display: 'flex', gap: tokens.spacing.sm }}>
+        <div style={{ display: 'flex', gap: uiTokens.spacing.sm }}>
           <Button onClick={onBack} disabled={activeStepIndex === 0}>
             Back
           </Button>
-          <Button onClick={onNext} variant="secondary" disabled={activeStepIndex === steps.length - 1}>
+          <Button onClick={onNext} disabled={activeStepIndex === steps.length - 1}>
             Next
           </Button>
-          <Button onClick={onSave} variant="primary" disabled={disableSave}>
+          <Button onClick={onSave} tone="primary" disabled={disableSave}>
             {saveLabel}
           </Button>
         </div>
       </footer>
-    </div>
+    </Card>
   )
 }

@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { tokens } from './tokens'
+import { uiTokens } from './tokens'
 
 type BadgeTone = 'neutral' | 'info' | 'success' | 'warning' | 'danger'
 
@@ -9,23 +9,21 @@ type BadgeProps = {
 }
 
 const toneStyles: Record<BadgeTone, CSSProperties> = {
-  neutral: { background: '#e5e7eb', color: '#374151' },
-  info: { background: tokens.colors.accentSoft, color: '#1e3a8a' },
-  success: { background: tokens.colors.successSoft, color: tokens.colors.successText },
-  warning: { background: tokens.colors.warningSoft, color: tokens.colors.warningText },
-  danger: { background: tokens.colors.dangerSoft, color: tokens.colors.dangerText },
+  neutral: { background: uiTokens.colors.surfaceMuted, color: uiTokens.colors.textSecondary },
+  info: { background: uiTokens.colors.accentSoft, color: uiTokens.colors.accent },
+  success: { background: uiTokens.colors.successSoft, color: uiTokens.colors.successText },
+  warning: { background: uiTokens.colors.warningSoft, color: uiTokens.colors.warningText },
+  danger: { background: uiTokens.colors.dangerSoft, color: uiTokens.colors.dangerText },
 }
 
 export function Badge({ tone = 'neutral', children }: BadgeProps) {
   return (
     <span
       style={{
-        borderRadius: tokens.radius.sm,
-        padding: '1px 8px',
-        fontSize: 11,
-        fontWeight: 600,
-        lineHeight: 1.45,
-        border: `1px solid ${tokens.colors.border}`,
+        borderRadius: uiTokens.radius.sm,
+        padding: `1px ${uiTokens.spacing.xs}px`,
+        ...uiTokens.typography.overline,
+        border: `1px solid ${uiTokens.colors.border}`,
         whiteSpace: 'nowrap',
         ...toneStyles[tone],
       }}

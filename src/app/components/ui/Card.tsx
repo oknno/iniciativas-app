@@ -1,18 +1,18 @@
 import type { HTMLAttributes, ReactNode } from 'react'
-import { tokens } from './tokens'
+import { uiTokens } from './tokens'
 
 type CardProps = {
   children: ReactNode
   padding?: number
 } & HTMLAttributes<HTMLDivElement>
 
-export function Card({ children, padding = tokens.spacing.lg, style, ...rest }: CardProps) {
+export function Card({ children, padding = uiTokens.spacing.lg, style, ...rest }: CardProps) {
   return (
     <div
       style={{
-        background: tokens.colors.surface,
-        border: `1px solid ${tokens.colors.border}`,
-        borderRadius: tokens.radius.md,
+        background: uiTokens.colors.surface,
+        border: `1px solid ${uiTokens.colors.border}`,
+        borderRadius: uiTokens.radius.md,
         boxShadow: 'none',
         padding,
         ...style,

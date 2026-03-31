@@ -10,7 +10,7 @@ export function InitiativesPage() {
     useInitiativesPage()
 
   return (
-    <div style={styles.page}>
+    <div className="initiatives-app">
       <CommandBar
         totalItems={items.length}
         isLoading={isLoading}
@@ -23,7 +23,7 @@ export function InitiativesPage() {
         onDuplicate={actions.duplicateSelected}
         onDelete={actions.deleteSelected}
       />
-      <main style={styles.content}>
+      <main className="initiatives-container">
         <section style={styles.mainGrid}>
           <InitiativesTableSection items={items} selectedId={selectedId} onSelect={actions.select} />
           <InitiativeSummarySection item={selectedItemDetail} />

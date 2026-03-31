@@ -1,6 +1,8 @@
 import type { CSSProperties } from 'react'
 import { Card } from '../../../components/ui/Card'
-import { tokens } from '../../../components/ui/tokens'
+import { Field } from '../../../components/ui/Field'
+import { Section } from '../../../components/ui/Section'
+import { uiTokens } from '../../../components/ui/tokens'
 
 type InitiativeMetricsPanelProps = {
   annualCalculatedGain: number
@@ -17,6 +19,11 @@ const currency = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 0,
 })
 
+const rowStyle: CSSProperties = {
+  padding: `${uiTokens.spacing.sm}px ${uiTokens.spacing.md}px`,
+  borderTop: `1px solid ${uiTokens.colors.border}`,
+}
+
 export function InitiativeMetricsPanel({
   annualCalculatedGain,
   componentsCount,
@@ -25,38 +32,26 @@ export function InitiativeMetricsPanel({
   stage,
   status,
 }: InitiativeMetricsPanelProps) {
-  const metricStyle: CSSProperties = { margin: 0, fontSize: 14, fontWeight: 700, color: tokens.colors.textPrimary }
+  const metrics = [
+    ['Annual Calculated Gain', currency.format(annualCalculatedGain)],
+    ['Components', String(componentsCount)],
+    ['KPI Rows', String(kpiRowsCount)],
+    ['Fixed Rows', String(fixedRowsCount)],
+    ['Stage', stage],
+    ['Status', status],
+  ]
 
   return (
     <Card>
-      <h3 style={{ margin: `0 0 ${tokens.spacing.sm}px`, fontSize: 14, fontWeight: 600, color: tokens.colors.textSecondary }}>
-        Key Metrics
-      </h3>
-      <div style={{ border: `1px solid ${tokens.colors.border}`, overflow: 'hidden' }}>
-        {[
-          ['Annual Calculated Gain', currency.format(annualCalculatedGain)],
-          ['Components', String(componentsCount)],
-          ['KPI Rows', String(kpiRowsCount)],
-          ['Fixed Rows', String(fixedRowsCount)],
-          ['Stage', stage],
-          ['Status', status],
-        ].map(([label, value], index) => (
-          <div
-            key={label}
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: `${tokens.spacing.sm}px ${tokens.spacing.md}px`,
-              borderTop: index === 0 ? 'none' : `1px solid ${tokens.colors.border}`,
-              background: tokens.colors.surface,
-            }}
-          >
-            <span style={{ fontSize: 12, fontWeight: 600, color: tokens.colors.textMuted }}>{label}</span>
-            <span style={{ ...metricStyle, textAlign: 'right' }}>{value}</span>
-          </div>
-        ))}
-      </div>
+      <Section title="Key Metrics">
+        <div style={{ border: `1px solid ${uiTokens.colors.border}`, overflow: 'hidden' }}>
+          {metrics.map(([label, value], index) => (
+            <div key={label} style={{ ...rowStyle, borderTop: index === 0 ? 'none' : rowStyle.borderTop }}>
+              <Field label={label} value={value} layout="inline" />
+            </div>
+          ))}
+        </div>
+      </Section>
     </Card>
   )
 }
