@@ -49,24 +49,24 @@ export function ValuesStep({
 
   return (
     <div style={{ display: 'grid', gap: tokens.spacing.md }}>
-      <Card>
-        <h3 style={{ margin: 0, fontSize: 17, color: tokens.colors.textPrimary }}>Monthly KPI values</h3>
+      <Card style={{ borderColor: tokens.colors.borderStrong }}>
+        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: tokens.colors.textPrimary }}>4. KPI Monthly Inputs</h3>
         <p style={{ margin: `${tokens.spacing.xs}px 0 ${tokens.spacing.md}px`, fontSize: 13, color: tokens.colors.textSecondary }}>
           Scenario: <strong>{scenario}</strong> · Year: <strong>{year}</strong>
         </p>
         <KpiValuesGrid rows={kpiRows} valuesByRow={kpiValuesByRow} onValueChange={onKpiValueChange} />
       </Card>
 
-      <Card>
-        <h3 style={{ margin: 0, fontSize: 17, color: tokens.colors.textPrimary }}>Monthly fixed component values</h3>
+      <Card style={{ borderColor: tokens.colors.borderStrong }}>
+        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: tokens.colors.textPrimary }}>5. Fixed Component Inputs</h3>
         <p style={{ margin: `${tokens.spacing.xs}px 0 ${tokens.spacing.md}px`, fontSize: 13, color: tokens.colors.textSecondary }}>
           Enter base values for FIXED components. These are stored as independent inputs.
         </p>
         <FixedValuesGrid rows={fixedRows} valuesByRow={fixedValuesByRow} onValueChange={onFixedValueChange} />
       </Card>
 
-      <Card>
-        <h3 style={{ margin: 0, fontSize: 17, color: tokens.colors.textPrimary }}>Conversion preview (read-only)</h3>
+      <Card style={{ borderColor: tokens.colors.borderStrong }}>
+        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: tokens.colors.textPrimary }}>6. Conversion Preview (read-only)</h3>
         <p style={{ margin: `${tokens.spacing.xs}px 0 ${tokens.spacing.md}px`, fontSize: 13, color: tokens.colors.textSecondary }}>
           Conversion values used by KPI-based components grouped by conversion type.
         </p>

@@ -36,9 +36,9 @@ export function ComponentsStep({
   )
 
   return (
-    <Card>
-      <h3 style={{ margin: 0, fontSize: 17, color: tokens.colors.textPrimary }}>Component configuration</h3>
-      <p style={{ margin: `${tokens.spacing.xs}px 0 ${tokens.spacing.md}px`, fontSize: 14, color: tokens.colors.textSecondary }}>
+    <Card style={{ borderColor: tokens.colors.borderStrong }}>
+      <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: tokens.colors.textPrimary }}>3. Informação Operacional</h3>
+      <p style={{ margin: `${tokens.spacing.xs}px 0 ${tokens.spacing.sm}px`, fontSize: 13, color: tokens.colors.textSecondary }}>
         Configure the value components for this initiative. Direction and calculation type are automatically inferred from
         the selected component type.
       </p>
@@ -46,17 +46,19 @@ export function ComponentsStep({
       {isLoading ? (
         <p style={{ margin: 0, fontSize: 13, color: tokens.colors.textMuted }}>Loading initiative components...</p>
       ) : (
-        <ComponentConfigGrid
-          components={components}
-          componentCatalog={componentCatalog}
-          kpiCatalog={kpiCatalog}
-          conversionCatalog={conversionCatalog}
-          formulaCatalog={formulaCatalog}
-          validationByRow={validationByRow}
-          onAddComponent={onAddComponent}
-          onRemoveComponent={onRemoveComponent}
-          onUpdateComponent={onUpdateComponent}
-        />
+        <div style={{ border: `1px solid ${tokens.colors.border}`, borderRadius: tokens.radius.sm, padding: tokens.spacing.sm }}>
+          <ComponentConfigGrid
+            components={components}
+            componentCatalog={componentCatalog}
+            kpiCatalog={kpiCatalog}
+            conversionCatalog={conversionCatalog}
+            formulaCatalog={formulaCatalog}
+            validationByRow={validationByRow}
+            onAddComponent={onAddComponent}
+            onRemoveComponent={onRemoveComponent}
+            onUpdateComponent={onUpdateComponent}
+          />
+        </div>
       )}
     </Card>
   )

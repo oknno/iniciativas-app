@@ -13,7 +13,7 @@ export function Card({ children, padding = tokens.spacing.lg, style, ...rest }: 
         background: tokens.colors.surface,
         border: `1px solid ${tokens.colors.border}`,
         borderRadius: tokens.radius.md,
-        boxShadow: tokens.shadow.sm,
+        boxShadow: '0 1px 1px rgba(16, 24, 40, 0.04)',
         padding,
         ...style,
       }}

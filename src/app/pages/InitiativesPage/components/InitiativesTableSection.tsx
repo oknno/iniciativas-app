@@ -31,15 +31,14 @@ export function InitiativesTableSection({ items, selectedId, onSelect }: Initiat
         style={{
           display: 'grid',
           gridTemplateColumns: '2fr 1fr 1fr 1fr',
-          gap: tokens.spacing.sm,
+          gap: tokens.spacing.xs,
           fontSize: 12,
           color: tokens.colors.textMuted,
           padding: `${tokens.spacing.sm}px ${tokens.spacing.md}px`,
-          borderBottom: `1px solid ${tokens.colors.border}`,
-          background: '#f8fafc',
-          fontWeight: 600,
-          textTransform: 'uppercase',
-          letterSpacing: 0.3,
+          borderBottom: `1px solid ${tokens.colors.borderStrong}`,
+          background: tokens.colors.surfaceMuted,
+          fontWeight: 700,
+          textTransform: 'uppercase'
         }}
       >
         <span>Initiative</span>
@@ -58,13 +57,13 @@ export function InitiativesTableSection({ items, selectedId, onSelect }: Initiat
             style={{
               display: 'grid',
               gridTemplateColumns: '2fr 1fr 1fr 1fr',
-              gap: tokens.spacing.sm,
+              gap: tokens.spacing.xs,
               width: '100%',
               border: 'none',
               borderBottom: `1px solid ${tokens.colors.border}`,
-              padding: `${tokens.spacing.md}px`,
+              padding: `${tokens.spacing.sm}px ${tokens.spacing.md}px`,
               textAlign: 'left',
-              background: isSelected ? tokens.colors.accentSoft : '#ffffff',
+              background: isSelected ? tokens.colors.accentSoft : tokens.colors.surface,
               cursor: 'pointer',
             }}
           >

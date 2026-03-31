@@ -25,41 +25,34 @@ export function InitiativeMetricsPanel({
   stage,
   status,
 }: InitiativeMetricsPanelProps) {
-  const metricStyle: CSSProperties = {
-    margin: 0,
-    fontSize: 22,
-    fontWeight: 700,
-    color: tokens.colors.textPrimary,
-  }
+  const metricStyle: CSSProperties = { margin: 0, fontSize: 18, fontWeight: 700, color: tokens.colors.textPrimary }
 
   return (
     <Card>
-      <h3 style={{ margin: '0 0 12px', fontSize: 16 }}>Key Metrics</h3>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: tokens.spacing.md }}>
-        <div>
-          <p style={{ margin: 0, fontSize: 12, color: tokens.colors.textMuted }}>Annual Calculated Gain</p>
-          <p style={metricStyle}>{currency.format(annualCalculatedGain)}</p>
-        </div>
-        <div>
-          <p style={{ margin: 0, fontSize: 12, color: tokens.colors.textMuted }}>Components</p>
-          <p style={metricStyle}>{componentsCount}</p>
-        </div>
-        <div>
-          <p style={{ margin: 0, fontSize: 12, color: tokens.colors.textMuted }}>KPI Rows</p>
-          <p style={metricStyle}>{kpiRowsCount}</p>
-        </div>
-        <div>
-          <p style={{ margin: 0, fontSize: 12, color: tokens.colors.textMuted }}>Fixed Rows</p>
-          <p style={metricStyle}>{fixedRowsCount}</p>
-        </div>
-        <div>
-          <p style={{ margin: 0, fontSize: 12, color: tokens.colors.textMuted }}>Stage</p>
-          <p style={{ ...metricStyle, fontSize: 16 }}>{stage}</p>
-        </div>
-        <div>
-          <p style={{ margin: 0, fontSize: 12, color: tokens.colors.textMuted }}>Status</p>
-          <p style={{ ...metricStyle, fontSize: 16 }}>{status}</p>
-        </div>
+      <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700 }}>Key Metrics</h3>
+      <div style={{ border: `1px solid ${tokens.colors.border}`, borderRadius: tokens.radius.sm, overflow: 'hidden' }}>
+        {[
+          ['Annual Calculated Gain', currency.format(annualCalculatedGain)],
+          ['Components', String(componentsCount)],
+          ['KPI Rows', String(kpiRowsCount)],
+          ['Fixed Rows', String(fixedRowsCount)],
+          ['Stage', stage],
+          ['Status', status],
+        ].map(([label, value], index) => (
+          <div
+            key={label}
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              padding: `${tokens.spacing.xs}px ${tokens.spacing.sm}px`,
+              borderTop: index === 0 ? 'none' : `1px solid ${tokens.colors.border}`,
+              background: index % 2 === 0 ? tokens.colors.surfaceMuted : tokens.colors.surface,
+            }}
+          >
+            <span style={{ fontSize: 12, fontWeight: 600, color: tokens.colors.textSecondary }}>{label}</span>
+            <span style={{ ...metricStyle, fontSize: 14 }}>{value}</span>
+          </div>
+        ))}
       </div>
     </Card>
   )

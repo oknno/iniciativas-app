@@ -42,18 +42,27 @@ export function InitiativeSummarySection({ item }: InitiativeSummarySectionProps
   return (
     <div style={{ display: 'grid', gap: tokens.spacing.md }}>
       <Card>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: tokens.spacing.sm }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: tokens.spacing.sm, alignItems: 'center' }}>
           <div>
-            <h2 style={{ margin: 0, fontSize: 20 }}>{item.title}</h2>
-            <p style={{ margin: '6px 0 0', color: tokens.colors.textSecondary, fontSize: 14 }}>
-              Unidade: {item.unidade} • Responsible: {item.responsavel}
-            </p>
+            <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>{item.title}</h2>
           </div>
           <InitiativeStatusBadge status={item.status} />
         </div>
-        <p style={{ margin: '12px 0 0', fontSize: 14, color: tokens.colors.textSecondary }}>
-          Stage: <strong style={{ color: tokens.colors.textPrimary }}>{item.stage}</strong>
-        </p>
+        <div style={{ marginTop: tokens.spacing.sm, borderTop: `1px solid ${tokens.colors.border}`, paddingTop: tokens.spacing.sm }}>
+          {[
+            ['Unidade', item.unidade],
+            ['Responsible', item.responsavel],
+            ['Stage', item.stage],
+          ].map(([label, value]) => (
+            <div
+              key={label}
+              style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, padding: `${tokens.spacing.xs}px 0` }}
+            >
+              <span style={{ fontWeight: 600, color: tokens.colors.textSecondary }}>{label}</span>
+              <span style={{ color: tokens.colors.textPrimary }}>{value}</span>
+            </div>
+          ))}
+        </div>
       </Card>
 
       <InitiativeMetricsPanel

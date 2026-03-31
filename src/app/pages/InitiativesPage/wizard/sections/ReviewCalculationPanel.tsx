@@ -1,4 +1,5 @@
 import { Card } from '../../../../components/ui/Card'
+import { tokens } from '../../../../components/ui/tokens'
 import type { CalculateInitiativeResultDto } from '../../../../../application/dto/calculation/CalculateInitiativeResultDto'
 
 type ReviewCalculationPanelProps = {
@@ -11,11 +12,14 @@ export function ReviewCalculationPanel({ calculation }: ReviewCalculationPanelPr
   const annualGain = calculation.results.reduce((sum, item) => sum + item.gainValue, 0)
 
   return (
-    <Card>
-      <h4 style={{ marginTop: 0, fontSize: 15 }}>Monthly result</h4>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+    <Card style={{ borderColor: tokens.colors.borderStrong }}>
+      <h4 style={{ marginTop: 0, marginBottom: tokens.spacing.sm, fontSize: 14, fontWeight: 700 }}>Monthly result</h4>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, border: `1px solid ${tokens.colors.border}` }}>
         <thead>
-          <tr><th align="left">Month</th><th align="right">Gain</th></tr>
+          <tr style={{ background: tokens.colors.surfaceMuted }}>
+            <th align="left">Month</th>
+            <th align="right">Gain</th>
+          </tr>
         </thead>
         <tbody>
           {calculation.results.map((item) => (
@@ -23,12 +27,14 @@ export function ReviewCalculationPanel({ calculation }: ReviewCalculationPanelPr
           ))}
         </tbody>
       </table>
-      <p style={{ marginBottom: 0 }}><strong>Total annual gain: {currency.format(annualGain)}</strong></p>
+      <p style={{ marginBottom: 0, fontSize: 13 }}>
+        <strong>Total annual gain: {currency.format(annualGain)}</strong>
+      </p>
 
-      <h4 style={{ marginTop: 20, fontSize: 15 }}>Calculation detail</h4>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+      <h4 style={{ marginTop: 20, marginBottom: tokens.spacing.sm, fontSize: 14, fontWeight: 700 }}>Calculation detail</h4>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, border: `1px solid ${tokens.colors.border}` }}>
         <thead>
-          <tr>
+          <tr style={{ background: tokens.colors.surfaceMuted }}>
             <th align="left">Month</th><th align="left">Component</th><th align="left">Formula</th><th align="right">Raw</th><th align="right">Signed</th><th align="left">Explanation</th>
           </tr>
         </thead>
