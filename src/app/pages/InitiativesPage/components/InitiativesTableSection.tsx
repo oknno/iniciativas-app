@@ -4,7 +4,6 @@ import { StateMessage } from '../../../components/ui/StateMessage'
 import { uiTokens } from '../../../components/ui/tokens'
 import type { InitiativeListItemDto } from '../../../../application/dto/initiatives/InitiativeListItemDto'
 import type { InitiativeId } from '../../../../domain/initiatives/value-objects/InitiativeId'
-import { InitiativeStatusBadge } from './InitiativeStatusBadge'
 
 type InitiativesTableSectionProps = {
   items: readonly InitiativeListItemDto[]
@@ -12,37 +11,46 @@ type InitiativesTableSectionProps = {
   onSelect: (id: InitiativeId) => void
 }
 
-const compactCurrency = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  notation: 'compact',
-  maximumFractionDigits: 1,
-})
-
-const toStageLabel = (stage: string): string => stage.replace(/_/g, ' ')
-
 const styles: Record<string, CSSProperties> = {
   header: {
     display: 'grid',
-    gridTemplateColumns: '2fr 1fr 1fr 1fr',
+    gridTemplateColumns: '100px 1.8fr 1fr 1fr',
     gap: uiTokens.spacing.xs,
     ...uiTokens.typography.overline,
     color: uiTokens.colors.textSecondary,
-    padding: `${uiTokens.spacing.sm}px ${uiTokens.spacing.lg}px`,
+    padding: `${uiTokens.spacing.sm}px ${uiTokens.spacing.md}px`,
     borderBottom: `1px solid ${uiTokens.colors.borderStrong}`,
     background: uiTokens.colors.surfaceMuted,
     textTransform: 'uppercase',
   },
   row: {
     display: 'grid',
-    gridTemplateColumns: '2fr 1fr 1fr 1fr',
+    gridTemplateColumns: '100px 1.8fr 1fr 1fr',
     gap: uiTokens.spacing.xs,
     width: '100%',
     border: 'none',
     borderBottom: `1px solid ${uiTokens.colors.border}`,
-    padding: `${uiTokens.spacing.sm}px ${uiTokens.spacing.lg}px`,
+    padding: `${uiTokens.spacing.sm}px ${uiTokens.spacing.md}px`,
     textAlign: 'left',
     cursor: 'pointer',
+    background: uiTokens.colors.surface,
+  },
+  cell: {
+    ...uiTokens.typography.body,
+    color: uiTokens.colors.textSecondary,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  footer: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: `${uiTokens.spacing.sm}px ${uiTokens.spacing.md}px`,
+    background: uiTokens.colors.surfaceMuted,
+    borderTop: `1px solid ${uiTokens.colors.borderStrong}`,
+    ...uiTokens.typography.caption,
+    color: uiTokens.colors.textMuted,
   },
 }
 
@@ -54,10 +62,10 @@ export function InitiativesTableSection({ items, selectedId, onSelect }: Initiat
   return (
     <Card style={{ padding: 0, overflow: 'hidden' }}>
       <div style={styles.header}>
-        <span>Initiative</span>
-        <span>Responsible</span>
+        <span>ID</span>
+        <span>Title</span>
+        <span>Unidade</span>
         <span>Status</span>
-        <span style={{ textAlign: 'right' }}>Annual Gain</span>
       </div>
 
       {items.map((item) => {
@@ -69,32 +77,18 @@ export function InitiativesTableSection({ items, selectedId, onSelect }: Initiat
             onClick={() => onSelect(item.id)}
             style={{ ...styles.row, background: isSelected ? uiTokens.colors.accentSoft : uiTokens.colors.surface }}
           >
-            <div>
-              <p
-                style={{
-                  margin: 0,
-                  ...uiTokens.typography.body,
-                  color: uiTokens.colors.textPrimary,
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                }}
-              >
-                {item.title}
-              </p>
-              <p style={{ margin: '2px 0 0', ...uiTokens.typography.caption, color: uiTokens.colors.textMuted }}>{toStageLabel(item.stage)}</p>
-            </div>
-            <span style={{ ...uiTokens.typography.body, color: uiTokens.colors.textSecondary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {item.responsavel}
-            </span>
-            <InitiativeStatusBadge status={item.status} />
-            <span style={{ ...uiTokens.typography.body, color: uiTokens.colors.textSecondary, textAlign: 'right' }}>
-              {compactCurrency.format(item.annualGain)}
-            </span>
+            <span style={styles.cell}>{item.id}</span>
+            <span style={styles.cell}>{item.title}</span>
+            <span style={styles.cell}>{item.unidade || '-'}</span>
+            <span style={styles.cell}>{item.status || '-'}</span>
           </button>
         )
       })}
+
+      <div style={styles.footer}>
+        <span>Total</span>
+        <span>{items.length}</span>
+      </div>
     </Card>
   )
 }

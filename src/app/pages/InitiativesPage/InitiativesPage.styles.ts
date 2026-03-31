@@ -3,10 +3,10 @@ import { uiTokens } from '../../components/ui/tokens'
 
 export const styles: Record<string, CSSProperties> = {
   mainGrid: {
-    marginTop: uiTokens.spacing.lg,
+    marginTop: uiTokens.spacing.md,
     display: 'grid',
-    gridTemplateColumns: '1.65fr 1fr',
-    gap: uiTokens.spacing.lg,
+    gridTemplateColumns: '2fr 1fr',
+    gap: uiTokens.spacing.md,
     alignItems: 'start',
   },
 }

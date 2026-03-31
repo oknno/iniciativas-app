@@ -21,7 +21,6 @@ const styles: Record<string, CSSProperties> = {
     position: 'sticky',
     top: 0,
     zIndex: uiTokens.zIndex.sticky,
-    paddingTop: uiTokens.spacing.sm,
     background: uiTokens.colors.background,
   },
   card: {
@@ -29,19 +28,15 @@ const styles: Record<string, CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: uiTokens.spacing.md,
-    flexWrap: 'wrap',
-    padding: `${uiTokens.spacing.md}px ${uiTokens.spacing.lg}px`,
+    padding: `${uiTokens.spacing.sm}px ${uiTokens.spacing.md}px`,
   },
   title: { margin: 0, ...uiTokens.typography.title, color: uiTokens.colors.textPrimary },
-  subtitle: { margin: '2px 0 0', ...uiTokens.typography.caption, color: uiTokens.colors.textMuted },
-  actionsRow: { display: 'flex', alignItems: 'center', gap: uiTokens.spacing.sm, flexWrap: 'wrap' },
-  actionGroup: { display: 'flex', alignItems: 'center', gap: uiTokens.spacing.xs },
-  actionGroupSecondary: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: uiTokens.spacing.xs,
-    borderLeft: `1px solid ${uiTokens.colors.borderStrong}`,
-    paddingLeft: uiTokens.spacing.sm,
+  actionsRow: { display: 'flex', alignItems: 'center', gap: uiTokens.spacing.xs },
+  divider: {
+    height: 20,
+    width: 1,
+    background: uiTokens.colors.borderStrong,
+    margin: `0 ${uiTokens.spacing.xs}px`,
   },
 }
 
@@ -59,32 +54,27 @@ export function CommandBar({
 }: CommandBarProps) {
   return (
     <div style={styles.root}>
-      <div className="initiatives-container" style={{ paddingTop: 0, paddingBottom: 0 }}>
+      <div className="initiatives-container" style={{ paddingTop: uiTokens.spacing.sm, paddingBottom: 0 }}>
         <Card style={styles.card}>
-          <div>
-            <h1 style={styles.title}>CAPEX Initiatives Core System</h1>
-            <p style={styles.subtitle}>Portfolio overview ({totalItems} initiatives)</p>
-          </div>
+          <h1 style={styles.title}>CAPEX Initiatives ({totalItems})</h1>
+
           <div style={styles.actionsRow}>
-            <div style={styles.actionGroup}>
-              <Button onClick={onRefresh} disabled={isLoading}>
-                {isLoading ? 'Refreshing...' : 'Refresh'}
-              </Button>
-            </div>
-            <div style={styles.actionGroupSecondary}>
-              <Button tone="primary" onClick={onNew}>
-                Novo
-              </Button>
-              <Button onClick={onEdit} disabled={!canEdit}>
-                Edit
-              </Button>
-              <Button onClick={onDuplicate} disabled={!canDuplicate}>
-                Duplicate
-              </Button>
-              <Button onClick={onDelete} disabled={!canDelete}>
-                Delete
-              </Button>
-            </div>
+            <Button onClick={onRefresh} disabled={isLoading}>
+              {isLoading ? 'Refreshing...' : 'Refresh'}
+            </Button>
+            <span style={styles.divider} />
+            <Button tone="primary" onClick={onNew}>
+              Novo
+            </Button>
+            <Button onClick={onEdit} disabled={!canEdit}>
+              Edit
+            </Button>
+            <Button onClick={onDuplicate} disabled={!canDuplicate}>
+              Duplicate
+            </Button>
+            <Button onClick={onDelete} disabled={!canDelete}>
+              Delete
+            </Button>
           </div>
         </Card>
       </div>
