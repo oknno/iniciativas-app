@@ -33,18 +33,19 @@ export function InitiativesTableSection({ items, selectedId, onSelect }: Initiat
           gridTemplateColumns: '2fr 1fr 1fr 1fr',
           gap: tokens.spacing.xs,
           fontSize: 12,
-          color: tokens.colors.textMuted,
-          padding: `${tokens.spacing.sm}px ${tokens.spacing.md}px`,
+          color: tokens.colors.textSecondary,
+          padding: `${tokens.spacing.sm}px ${tokens.spacing.lg}px`,
           borderBottom: `1px solid ${tokens.colors.borderStrong}`,
           background: tokens.colors.surfaceMuted,
           fontWeight: 700,
-          textTransform: 'uppercase'
+          textTransform: 'uppercase',
+          letterSpacing: 0.3,
         }}
       >
         <span>Initiative</span>
         <span>Responsible</span>
         <span>Status</span>
-        <span>Annual Gain</span>
+        <span style={{ textAlign: 'right' }}>Annual Gain</span>
       </div>
 
       {items.map((item) => {
@@ -61,19 +62,37 @@ export function InitiativesTableSection({ items, selectedId, onSelect }: Initiat
               width: '100%',
               border: 'none',
               borderBottom: `1px solid ${tokens.colors.border}`,
-              padding: `${tokens.spacing.sm}px ${tokens.spacing.md}px`,
+              padding: `${tokens.spacing.sm}px ${tokens.spacing.lg}px`,
               textAlign: 'left',
-              background: isSelected ? tokens.colors.accentSoft : tokens.colors.surface,
+              background: isSelected ? '#dbeafe' : tokens.colors.surface,
               cursor: 'pointer',
             }}
           >
             <div>
-              <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: tokens.colors.textPrimary }}>{item.title}</p>
-              <p style={{ margin: '2px 0 0', fontSize: 12, color: tokens.colors.textMuted }}>{toStageLabel(item.stage)}</p>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: tokens.colors.textPrimary,
+                  lineHeight: 1.3,
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                }}
+              >
+                {item.title}
+              </p>
+              <p style={{ margin: '2px 0 0', fontSize: 12, fontWeight: 500, color: tokens.colors.textMuted }}>{toStageLabel(item.stage)}</p>
             </div>
-            <span style={{ fontSize: 13, color: tokens.colors.textSecondary }}>{item.responsavel}</span>
+            <span style={{ fontSize: 13, color: tokens.colors.textSecondary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {item.responsavel}
+            </span>
             <InitiativeStatusBadge status={item.status} />
-            <span style={{ fontSize: 13, color: tokens.colors.textSecondary }}>{compactCurrency.format(item.annualGain)}</span>
+            <span style={{ fontSize: 13, color: tokens.colors.textSecondary, textAlign: 'right' }}>
+              {compactCurrency.format(item.annualGain)}
+            </span>
           </button>
         )
       })}

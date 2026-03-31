@@ -10,9 +10,9 @@ type ButtonProps = {
 
 const variantStyles: Record<ButtonVariant, CSSProperties> = {
   primary: {
-    background: '#183a63',
+    background: '#1f2937',
     color: '#ffffff',
-    border: '1px solid #183a63',
+    border: '1px solid #1f2937',
   },
   secondary: {
     background: '#f9fbfd',
@@ -32,12 +32,12 @@ export function Button({ children, variant = 'secondary', style, ...rest }: Butt
       type="button"
       style={{
         borderRadius: tokens.radius.sm,
-        padding: `${tokens.spacing.xs}px ${tokens.spacing.sm}px`,
-        fontSize: 13,
+        padding: `${tokens.spacing.xs - 2}px ${tokens.spacing.sm}px`,
+        fontSize: 12,
         fontWeight: 600,
         cursor: 'pointer',
         transition: 'all 0.15s ease',
-        minHeight: 32,
+        minHeight: 30,
         ...variantStyles[variant],
         ...style,
       }}

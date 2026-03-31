@@ -25,12 +25,14 @@ export function InitiativeMetricsPanel({
   stage,
   status,
 }: InitiativeMetricsPanelProps) {
-  const metricStyle: CSSProperties = { margin: 0, fontSize: 18, fontWeight: 700, color: tokens.colors.textPrimary }
+  const metricStyle: CSSProperties = { margin: 0, fontSize: 14, fontWeight: 700, color: tokens.colors.textPrimary }
 
   return (
     <Card>
-      <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700 }}>Key Metrics</h3>
-      <div style={{ border: `1px solid ${tokens.colors.border}`, borderRadius: tokens.radius.sm, overflow: 'hidden' }}>
+      <h3 style={{ margin: `0 0 ${tokens.spacing.sm}px`, fontSize: 14, fontWeight: 600, color: tokens.colors.textSecondary }}>
+        Key Metrics
+      </h3>
+      <div style={{ border: `1px solid ${tokens.colors.border}`, overflow: 'hidden' }}>
         {[
           ['Annual Calculated Gain', currency.format(annualCalculatedGain)],
           ['Components', String(componentsCount)],
@@ -44,13 +46,14 @@ export function InitiativeMetricsPanel({
             style={{
               display: 'flex',
               justifyContent: 'space-between',
-              padding: `${tokens.spacing.xs}px ${tokens.spacing.sm}px`,
+              alignItems: 'center',
+              padding: `${tokens.spacing.sm}px ${tokens.spacing.md}px`,
               borderTop: index === 0 ? 'none' : `1px solid ${tokens.colors.border}`,
-              background: index % 2 === 0 ? tokens.colors.surfaceMuted : tokens.colors.surface,
+              background: tokens.colors.surface,
             }}
           >
-            <span style={{ fontSize: 12, fontWeight: 600, color: tokens.colors.textSecondary }}>{label}</span>
-            <span style={{ ...metricStyle, fontSize: 14 }}>{value}</span>
+            <span style={{ fontSize: 12, fontWeight: 600, color: tokens.colors.textMuted }}>{label}</span>
+            <span style={{ ...metricStyle, textAlign: 'right' }}>{value}</span>
           </div>
         ))}
       </div>
