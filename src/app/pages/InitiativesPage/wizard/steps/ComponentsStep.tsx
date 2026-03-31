@@ -1,5 +1,6 @@
 import { Card } from '../../../../components/ui/Card'
-import { tokens } from '../../../../components/ui/tokens'
+import { Section } from '../../../../components/ui/Section'
+import { uiTokens } from '../../../../components/ui/tokens'
 import type { ComponentMasterDto } from '../../../../../application/dto/catalogs/ComponentMasterDto'
 import type { ConversionMasterDto } from '../../../../../application/dto/catalogs/ConversionMasterDto'
 import type { FormulaMasterDto } from '../../../../../application/dto/catalogs/FormulaMasterDto'
@@ -36,30 +37,29 @@ export function ComponentsStep({
   )
 
   return (
-    <Card style={{ borderColor: tokens.colors.borderStrong }}>
-      <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: tokens.colors.textPrimary }}>3. Informação Operacional</h3>
-      <p style={{ margin: `${tokens.spacing.xs}px 0 ${tokens.spacing.sm}px`, fontSize: 13, color: tokens.colors.textSecondary }}>
-        Configure the value components for this initiative. Direction and calculation type are automatically inferred from
-        the selected component type.
-      </p>
-
-      {isLoading ? (
-        <p style={{ margin: 0, fontSize: 13, color: tokens.colors.textMuted }}>Loading initiative components...</p>
-      ) : (
-        <div style={{ border: `1px solid ${tokens.colors.border}`, borderRadius: tokens.radius.sm, padding: tokens.spacing.sm }}>
-          <ComponentConfigGrid
-            components={components}
-            componentCatalog={componentCatalog}
-            kpiCatalog={kpiCatalog}
-            conversionCatalog={conversionCatalog}
-            formulaCatalog={formulaCatalog}
-            validationByRow={validationByRow}
-            onAddComponent={onAddComponent}
-            onRemoveComponent={onRemoveComponent}
-            onUpdateComponent={onUpdateComponent}
-          />
-        </div>
-      )}
+    <Card style={{ borderColor: uiTokens.colors.borderStrong }}>
+      <Section
+        title="3. Informação Operacional"
+        subtitle="Configure the value components for this initiative. Direction and calculation type are automatically inferred from the selected component type."
+      >
+        {isLoading ? (
+          <p style={{ margin: 0, ...uiTokens.typography.body, color: uiTokens.colors.textMuted }}>Loading initiative components...</p>
+        ) : (
+          <div style={{ border: `1px solid ${uiTokens.colors.border}`, borderRadius: uiTokens.radius.sm, padding: uiTokens.spacing.sm }}>
+            <ComponentConfigGrid
+              components={components}
+              componentCatalog={componentCatalog}
+              kpiCatalog={kpiCatalog}
+              conversionCatalog={conversionCatalog}
+              formulaCatalog={formulaCatalog}
+              validationByRow={validationByRow}
+              onAddComponent={onAddComponent}
+              onRemoveComponent={onRemoveComponent}
+              onUpdateComponent={onUpdateComponent}
+            />
+          </div>
+        )}
+      </Section>
     </Card>
   )
 }

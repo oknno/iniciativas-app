@@ -1,44 +1,46 @@
 import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from 'react'
-import { tokens } from './tokens'
+import { uiTokens } from './tokens'
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost'
+type ButtonTone = 'primary' | 'secondary' | 'ghost'
 
 type ButtonProps = {
   children: ReactNode
-  variant?: ButtonVariant
+  tone?: ButtonTone
+  variant?: ButtonTone
 } & ButtonHTMLAttributes<HTMLButtonElement>
 
-const variantStyles: Record<ButtonVariant, CSSProperties> = {
+const toneStyles: Record<ButtonTone, CSSProperties> = {
   primary: {
-    background: '#1f2937',
-    color: '#ffffff',
-    border: '1px solid #1f2937',
+    background: uiTokens.colors.accent,
+    color: uiTokens.colors.surface,
+    border: `1px solid ${uiTokens.colors.accent}`,
   },
   secondary: {
-    background: '#f9fbfd',
-    color: tokens.colors.textPrimary,
-    border: `1px solid ${tokens.colors.borderStrong}`,
+    background: uiTokens.colors.surfaceMuted,
+    color: uiTokens.colors.textPrimary,
+    border: `1px solid ${uiTokens.colors.borderStrong}`,
   },
   ghost: {
-    background: '#f9fbfd',
-    color: tokens.colors.textSecondary,
-    border: `1px solid ${tokens.colors.border}`,
+    background: uiTokens.colors.surface,
+    color: uiTokens.colors.textSecondary,
+    border: `1px solid ${uiTokens.colors.border}`,
   },
 }
 
-export function Button({ children, variant = 'secondary', style, ...rest }: ButtonProps) {
+export function Button({ children, tone, variant, style, ...rest }: ButtonProps) {
+  const resolvedTone = tone ?? variant ?? 'secondary'
+
   return (
     <button
       type="button"
       style={{
-        borderRadius: tokens.radius.sm,
-        padding: `${tokens.spacing.xs - 2}px ${tokens.spacing.sm}px`,
-        fontSize: 12,
-        fontWeight: 600,
+        borderRadius: uiTokens.radius.sm,
+        padding: `${uiTokens.spacing.xs - 2}px ${uiTokens.spacing.sm}px`,
+        ...uiTokens.typography.caption,
         cursor: 'pointer',
         transition: 'all 0.15s ease',
         minHeight: 30,
-        ...variantStyles[variant],
+        ...toneStyles[resolvedTone],
         ...style,
       }}
       {...rest}

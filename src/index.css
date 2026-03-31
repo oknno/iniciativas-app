@@ -25,3 +25,15 @@ body {
   min-width: 1024px;
   background: #eef2f6;
 }
+
+.initiatives-app {
+  min-height: 100vh;
+  background: #eef2f6;
+  color: #111827;
+}
+
+.initiatives-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 12px 16px 16px;
+}

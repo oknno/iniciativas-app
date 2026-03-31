@@ -1,4 +1,5 @@
-import { tokens } from '../../../../components/ui/tokens'
+import { Section } from '../../../../components/ui/Section'
+import { uiTokens } from '../../../../components/ui/tokens'
 import type { CalculateInitiativeResultDto } from '../../../../../application/dto/calculation/CalculateInitiativeResultDto'
 import type { InitiativeDetailDto } from '../../../../../application/dto/initiatives/InitiativeDetailDto'
 import { ReviewCalculationPanel } from '../sections/ReviewCalculationPanel'
@@ -14,13 +15,10 @@ type ReviewStepProps = {
 
 export function ReviewStep({ selectedInitiative, calculation, componentsCount, kpiRowsCount, fixedRowsCount }: ReviewStepProps) {
   return (
-    <div style={{ display: 'grid', gap: tokens.spacing.md }}>
-      <div>
-        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>7. Review and Confirm</h3>
-        <p style={{ margin: `${tokens.spacing.xs}px 0 0`, fontSize: 13, color: tokens.colors.textSecondary }}>
-          Initiative: {selectedInitiative?.unidade ?? 'New initiative'}
-        </p>
-      </div>
+    <div style={{ display: 'grid', gap: uiTokens.spacing.md }}>
+      <Section title="7. Review and Confirm" subtitle={`Initiative: ${selectedInitiative?.unidade ?? 'New initiative'}`}>
+        <></>
+      </Section>
       <ReviewConfigurationPanel componentsCount={componentsCount} kpiRowsCount={kpiRowsCount} fixedRowsCount={fixedRowsCount} />
       <ReviewCalculationPanel calculation={calculation} />
     </div>

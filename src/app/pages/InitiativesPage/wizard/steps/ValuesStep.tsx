@@ -11,7 +11,8 @@ import {
 } from '../../../../../application/mappers/initiatives/initiativeValueMappers'
 import type { Scenario } from '../../../../../domain/initiatives/value-objects/Scenario'
 import { Card } from '../../../../components/ui/Card'
-import { tokens } from '../../../../components/ui/tokens'
+import { Section } from '../../../../components/ui/Section'
+import { uiTokens } from '../../../../components/ui/tokens'
 import { ConversionPreviewPanel } from '../sections/ConversionPreviewPanel'
 import { FixedValuesGrid } from '../sections/FixedValuesGrid'
 import { KpiValuesGrid } from '../sections/KpiValuesGrid'
@@ -48,29 +49,23 @@ export function ValuesStep({
   const conversionGroups = buildConversionPreviewGroups(components, conversionCatalog, conversionValues, year, scenario)
 
   return (
-    <div style={{ display: 'grid', gap: tokens.spacing.md }}>
-      <Card style={{ borderColor: tokens.colors.borderStrong }}>
-        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: tokens.colors.textPrimary }}>4. KPI Monthly Inputs</h3>
-        <p style={{ margin: `${tokens.spacing.xs}px 0 ${tokens.spacing.md}px`, fontSize: 13, color: tokens.colors.textSecondary }}>
-          Scenario: <strong>{scenario}</strong> · Year: <strong>{year}</strong>
-        </p>
-        <KpiValuesGrid rows={kpiRows} valuesByRow={kpiValuesByRow} onValueChange={onKpiValueChange} />
+    <div style={{ display: 'grid', gap: uiTokens.spacing.md }}>
+      <Card style={{ borderColor: uiTokens.colors.borderStrong }}>
+        <Section title="4. KPI Monthly Inputs" subtitle={`Scenario: ${scenario} · Year: ${year}`}>
+          <KpiValuesGrid rows={kpiRows} valuesByRow={kpiValuesByRow} onValueChange={onKpiValueChange} />
+        </Section>
       </Card>
 
-      <Card style={{ borderColor: tokens.colors.borderStrong }}>
-        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: tokens.colors.textPrimary }}>5. Fixed Component Inputs</h3>
-        <p style={{ margin: `${tokens.spacing.xs}px 0 ${tokens.spacing.md}px`, fontSize: 13, color: tokens.colors.textSecondary }}>
-          Enter base values for FIXED components. These are stored as independent inputs.
-        </p>
-        <FixedValuesGrid rows={fixedRows} valuesByRow={fixedValuesByRow} onValueChange={onFixedValueChange} />
+      <Card style={{ borderColor: uiTokens.colors.borderStrong }}>
+        <Section title="5. Fixed Component Inputs" subtitle="Enter base values for FIXED components. These are stored as independent inputs.">
+          <FixedValuesGrid rows={fixedRows} valuesByRow={fixedValuesByRow} onValueChange={onFixedValueChange} />
+        </Section>
       </Card>
 
-      <Card style={{ borderColor: tokens.colors.borderStrong }}>
-        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: tokens.colors.textPrimary }}>6. Conversion Preview (read-only)</h3>
-        <p style={{ margin: `${tokens.spacing.xs}px 0 ${tokens.spacing.md}px`, fontSize: 13, color: tokens.colors.textSecondary }}>
-          Conversion values used by KPI-based components grouped by conversion type.
-        </p>
-        <ConversionPreviewPanel groups={conversionGroups} />
+      <Card style={{ borderColor: uiTokens.colors.borderStrong }}>
+        <Section title="6. Conversion Preview (read-only)" subtitle="Conversion values used by KPI-based components grouped by conversion type.">
+          <ConversionPreviewPanel groups={conversionGroups} />
+        </Section>
       </Card>
     </div>
   )
