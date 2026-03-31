@@ -47,7 +47,7 @@ const styles: Record<string, CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: uiTokens.spacing.md,
-    padding: `${uiTokens.spacing.xs}px 0`,
+    padding: '8px 12px',
   },
   title: {
     margin: 0,
@@ -59,15 +59,26 @@ const styles: Record<string, CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    gap: uiTokens.spacing.xs,
+    gap: 0,
     flexWrap: 'wrap',
     position: 'relative',
   },
+  buttonGroup: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+  },
+  commandButton: {
+    fontSize: 13,
+    lineHeight: '16px',
+    padding: '6px 10px',
+    borderRadius: 10,
+  },
   divider: {
     width: 1,
-    height: 22,
-    background: uiTokens.colors.borderStrong,
-    margin: `0 ${uiTokens.spacing.xxs}px`,
+    height: 20,
+    background: '#e5e7eb',
+    margin: '0 8px',
   },
   filterWrapper: {
     position: 'relative',
@@ -136,6 +147,8 @@ export function CommandBar({
   onBackStatus,
   onExport,
 }: CommandBarProps) {
+  void totalLoaded
+
   const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false)
   const filterRef = useRef<HTMLDivElement | null>(null)
 
@@ -194,134 +207,149 @@ export function CommandBar({
     <div style={styles.root}>
       <div className="initiatives-container">
         <div style={styles.content}>
-          <h1 style={styles.title}>Termo de Abertura de Projeto - TAP 2.0 ({totalLoaded})</h1>
+          <h1 style={styles.title}>Initiatives Engine</h1>
 
           <div style={styles.rightSide}>
-            <Button onClick={onRefresh}>Atualizar</Button>
-            <Button tone="primary" onClick={onNew}>
-              Novo
-            </Button>
-            <span style={styles.divider} />
-
-            <Button onClick={onView} disabled={!actionAvailability.canView}>
-              Visualizar
-            </Button>
-            <Button onClick={onEdit} disabled={!actionAvailability.canEdit}>
-              Editar
-            </Button>
-            <Button onClick={onDuplicate} disabled={!actionAvailability.canDuplicate}>
-              Duplicar
-            </Button>
-            <Button onClick={onDelete} disabled={!actionAvailability.canDelete}>
-              Excluir
-            </Button>
-            <span style={styles.divider} />
-
-            <Button onClick={onSendToApproval}>Enviar p/ Aprovação</Button>
-            <Button onClick={onBackStatus} disabled={!actionAvailability.canBackStatus}>
-              Voltar Status
-            </Button>
-            <span style={styles.divider} />
-
-            <div style={styles.filterWrapper} ref={filterRef}>
-              <Button onClick={() => setIsFilterOpen((current) => !current)}>Filtro</Button>
-              {isFilterOpen ? (
-                <div role="dialog" aria-label="Filtros da listagem" style={styles.filterDialog}>
-                  <div style={styles.fieldGroup}>
-                    <label htmlFor="filter-search-title" style={styles.label}>
-                      Nome do projeto
-                    </label>
-                    <input
-                      id="filter-search-title"
-                      type="text"
-                      value={filters.searchTitle}
-                      onChange={(event) => handleFilterField('searchTitle', event.target.value)}
-                      placeholder="contém..."
-                      style={styles.input}
-                    />
-                  </div>
-
-                  <div style={styles.fieldGroup}>
-                    <label htmlFor="filter-status" style={styles.label}>
-                      Status
-                    </label>
-                    <select
-                      id="filter-status"
-                      value={filters.status}
-                      onChange={(event) => handleFilterField('status', event.target.value)}
-                      style={styles.input}
-                    >
-                      <option value="">Todos</option>
-                      {statusOptions.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div style={styles.fieldGroup}>
-                    <label htmlFor="filter-unit" style={styles.label}>
-                      Unidade
-                    </label>
-                    <input
-                      id="filter-unit"
-                      type="text"
-                      value={filters.unit}
-                      onChange={(event) => handleFilterField('unit', event.target.value)}
-                      style={styles.input}
-                    />
-                  </div>
-
-                  <div style={styles.fieldRow}>
-                    <div style={styles.fieldGroup}>
-                      <label htmlFor="filter-sort-by" style={styles.label}>
-                        Ordenar por
-                      </label>
-                      <select
-                        id="filter-sort-by"
-                        value={filters.sortBy}
-                        onChange={(event) => handleFilterField('sortBy', event.target.value as CommandBarFilters['sortBy'])}
-                        style={styles.input}
-                      >
-                        {sortByOptions.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div style={styles.fieldGroup}>
-                      <label htmlFor="filter-sort-dir" style={styles.label}>
-                        Direção
-                      </label>
-                      <select
-                        id="filter-sort-dir"
-                        value={filters.sortDir}
-                        onChange={(event) => handleFilterField('sortDir', event.target.value as CommandBarFilters['sortDir'])}
-                        style={styles.input}
-                      >
-                        {sortDirOptions.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div style={styles.dialogActions}>
-                    <Button onClick={handleClear}>Limpar</Button>
-                    <Button tone="primary" onClick={handleApply}>
-                      Aplicar
-                    </Button>
-                  </div>
-                </div>
-              ) : null}
+            <div style={styles.buttonGroup}>
+              <Button style={styles.commandButton} onClick={onRefresh}>
+                Atualizar
+              </Button>
+              <Button tone="primary" style={styles.commandButton} onClick={onNew}>
+                Novo
+              </Button>
             </div>
+            <span style={styles.divider} />
 
-            <Button onClick={onExport}>Exportar</Button>
+            <div style={styles.buttonGroup}>
+              <Button style={styles.commandButton} onClick={onView} disabled={!actionAvailability.canView}>
+                Visualizar
+              </Button>
+              <Button style={styles.commandButton} onClick={onEdit} disabled={!actionAvailability.canEdit}>
+                Editar
+              </Button>
+              <Button style={styles.commandButton} onClick={onDuplicate} disabled={!actionAvailability.canDuplicate}>
+                Duplicar
+              </Button>
+              <Button style={styles.commandButton} onClick={onDelete} disabled={!actionAvailability.canDelete}>
+                Excluir
+              </Button>
+            </div>
+            <span style={styles.divider} />
+
+            <div style={styles.buttonGroup}>
+              <Button style={styles.commandButton} onClick={onSendToApproval}>
+                Enviar p/ Aprovação
+              </Button>
+              <Button style={styles.commandButton} onClick={onBackStatus} disabled={!actionAvailability.canBackStatus}>
+                Voltar Status
+              </Button>
+            </div>
+            <span style={styles.divider} />
+
+            <div style={styles.buttonGroup}>
+              <div style={styles.filterWrapper} ref={filterRef}>
+                <Button style={styles.commandButton} onClick={() => setIsFilterOpen((current) => !current)}>
+                  Filtro
+                </Button>
+                {isFilterOpen ? (
+                  <div role="dialog" aria-label="Filtros da listagem" style={styles.filterDialog}>
+                    <div style={styles.fieldGroup}>
+                      <label htmlFor="filter-search-title" style={styles.label}>
+                        Nome do projeto
+                      </label>
+                      <input
+                        id="filter-search-title"
+                        type="text"
+                        value={filters.searchTitle}
+                        onChange={(event) => handleFilterField('searchTitle', event.target.value)}
+                        placeholder="contém..."
+                        style={styles.input}
+                      />
+                    </div>
+
+                    <div style={styles.fieldGroup}>
+                      <label htmlFor="filter-status" style={styles.label}>
+                        Status
+                      </label>
+                      <select
+                        id="filter-status"
+                        value={filters.status}
+                        onChange={(event) => handleFilterField('status', event.target.value)}
+                        style={styles.input}
+                      >
+                        <option value="">Todos</option>
+                        {statusOptions.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div style={styles.fieldGroup}>
+                      <label htmlFor="filter-unit" style={styles.label}>
+                        Unidade
+                      </label>
+                      <input
+                        id="filter-unit"
+                        type="text"
+                        value={filters.unit}
+                        onChange={(event) => handleFilterField('unit', event.target.value)}
+                        style={styles.input}
+                      />
+                    </div>
+
+                    <div style={styles.fieldRow}>
+                      <div style={styles.fieldGroup}>
+                        <label htmlFor="filter-sort-by" style={styles.label}>
+                          Ordenar por
+                        </label>
+                        <select
+                          id="filter-sort-by"
+                          value={filters.sortBy}
+                          onChange={(event) => handleFilterField('sortBy', event.target.value as CommandBarFilters['sortBy'])}
+                          style={styles.input}
+                        >
+                          {sortByOptions.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div style={styles.fieldGroup}>
+                        <label htmlFor="filter-sort-dir" style={styles.label}>
+                          Direção
+                        </label>
+                        <select
+                          id="filter-sort-dir"
+                          value={filters.sortDir}
+                          onChange={(event) => handleFilterField('sortDir', event.target.value as CommandBarFilters['sortDir'])}
+                          style={styles.input}
+                        >
+                          {sortDirOptions.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div style={styles.dialogActions}>
+                      <Button onClick={handleClear}>Limpar</Button>
+                      <Button tone="primary" onClick={handleApply}>
+                        Aplicar
+                      </Button>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+              <Button style={styles.commandButton} onClick={onExport}>
+                Exportar
+              </Button>
+            </div>
           </div>
         </div>
       </div>
