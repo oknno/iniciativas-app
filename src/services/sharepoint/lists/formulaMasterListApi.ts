@@ -5,19 +5,15 @@ import { filteredListItemsEndpoint, listItemsEndpoint } from '../spUrls'
 const LIST_TITLE = 'Formula_Master'
 const CONTEXT_SITE_URL = sharePointContext.siteUrl
 
-
 interface SharePointListResponse<TItem> {
   readonly value: readonly TItem[]
 }
 
 export interface FormulaMasterListItem {
   readonly Id: number
-  readonly Code: string
   readonly Title: string
+  readonly FormulaCode: string
   readonly FormulaType: string
-  readonly Expression: string
-  readonly Description?: string
-  readonly Active: boolean
 }
 
 export const listAll = async (): Promise<readonly FormulaMasterListItem[]> => {

@@ -5,19 +5,15 @@ import { filteredListItemsEndpoint, listItemsEndpoint } from '../spUrls'
 const LIST_TITLE = 'Conversion_Master'
 const CONTEXT_SITE_URL = sharePointContext.siteUrl
 
-
 interface SharePointListResponse<TItem> {
   readonly value: readonly TItem[]
 }
 
 export interface ConversionMasterListItem {
   readonly Id: number
-  readonly Code: string
   readonly Title: string
-  readonly SourceUnit: string
-  readonly TargetUnit: string
-  readonly Description?: string
-  readonly Active: boolean
+  readonly ConversionCode: string
+  readonly Unit: string
 }
 
 export const listAll = async (): Promise<readonly ConversionMasterListItem[]> => {

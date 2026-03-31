@@ -8,27 +8,27 @@ import { asInitiativeId } from '../../../../domain/initiatives/value-objects/Ini
 export const mockInitiativeList: readonly InitiativeListItemDto[] = [
   {
     id: asInitiativeId('INIT-001'),
-    code: 'CAP-001',
+    unidade: 'CAP-001',
     title: 'Plant Energy Optimization',
-    owner: 'Maria Gomez',
+    responsavel: 'Maria Gomez',
     stage: 'ASSESSMENT',
     status: 'IN_REVIEW',
     annualGain: 780000,
   },
   {
     id: asInitiativeId('INIT-002'),
-    code: 'CAP-002',
+    unidade: 'CAP-002',
     title: 'Supplier Rebate Redesign',
-    owner: 'David Singh',
+    responsavel: 'David Singh',
     stage: 'VALIDATION',
     status: 'APPROVED',
     annualGain: 520000,
   },
   {
     id: asInitiativeId('INIT-003'),
-    code: 'CAP-003',
+    unidade: 'CAP-003',
     title: 'Packaging Material Right-sizing',
-    owner: 'Nina Patel',
+    responsavel: 'Nina Patel',
     stage: 'DRAFTING',
     status: 'DRAFT',
     annualGain: 245000,
@@ -38,15 +38,12 @@ export const mockInitiativeList: readonly InitiativeListItemDto[] = [
 export const mockInitiativeDetails: readonly InitiativeDetailDto[] = [
   {
     id: asInitiativeId('INIT-001'),
-    code: 'CAP-001',
+    unidade: 'CAP-001',
     title: 'Plant Energy Optimization',
-    description: 'Reduce utility spend in packaging line by optimizing compressor profile.',
-    owner: 'Maria Gomez',
+    responsavel: 'Maria Gomez',
     stage: 'ASSESSMENT',
     status: 'IN_REVIEW',
-    scenario: 'BASE',
     annualGain: 780000,
-    implementationCost: 265000,
     components: [
       {
         id: 'COMP-001',

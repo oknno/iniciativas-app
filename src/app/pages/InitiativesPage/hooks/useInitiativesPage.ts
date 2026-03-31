@@ -15,9 +15,9 @@ export type InitiativeWizardMode = 'create' | 'edit'
 
 const toListItem = (detail: InitiativeDetailDto): InitiativeListItemDto => ({
   id: detail.id,
-  code: detail.code,
+  unidade: detail.unidade,
   title: detail.title,
-  owner: detail.owner,
+  responsavel: detail.responsavel,
   stage: detail.stage,
   status: detail.status,
   annualGain: detail.annualGain,

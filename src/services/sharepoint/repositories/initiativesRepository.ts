@@ -21,8 +21,6 @@ import { calculationRepository } from './calculationRepository'
 
 const toDuplicatedTitle = (title: string): string => `${title} (Copy)`
 
-const toDuplicatedCode = (code: string): string => `${code}-COPY`
-
 const sumAnnualGain = (items: readonly { readonly gainValue: number }[]): number =>
   items.reduce((total, item) => total + item.gainValue, 0)
 
@@ -98,16 +96,11 @@ export const initiativesRepository = {
 
     const duplicated = await createInitiative(
       toCreateInitiativePayload({
-        code: toDuplicatedCode(source.code),
         title: toDuplicatedTitle(source.title),
-        description: source.description,
-        owner: source.owner,
-        stage: 'DRAFTING',
-        status: 'DRAFT',
-        scenario: source.scenario,
-        implementationCost: source.implementationCost,
-        startMonthRef: source.startMonthRef,
-        endMonthRef: source.endMonthRef,
+        unidade: source.unidade,
+        responsavel: source.responsavel,
+        stage: source.stage,
+        status: source.status,
       }),
     )
 

@@ -34,7 +34,7 @@ export const initiativeComponentsRepository = {
     const payload = components
       .slice()
       .sort((left, right) => left.sortOrder - right.sortOrder)
-      .map((component, index) => toCreateInitiativeComponentPayload(component, index + 1))
+      .map((component) => toCreateInitiativeComponentPayload(component))
 
     const created = await createManyForInitiative(sharePointInitiativeId, payload)
     return created.map(fromSharePointInitiativeComponent)

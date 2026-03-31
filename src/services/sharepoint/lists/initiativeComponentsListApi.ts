@@ -10,31 +10,23 @@ interface SharePointListResponse<TItem> {
 
 export interface InitiativeComponentListItem {
   readonly Id: number
-  readonly InitiativeId: number
-  readonly ComponentId?: string
-  readonly Title: string
+  readonly InitiativeId: number | string
   readonly ComponentType: string
-  readonly Direction: number
-  readonly CalculationType: string
-  readonly KpiCode?: string
+  readonly KPICode?: string
   readonly ConversionCode?: string
   readonly FormulaCode?: string
-  readonly FixedValue?: number
-  readonly SortOrder: number
+  readonly Title?: string
+  readonly ComponentId?: string
 }
 
 export interface CreateInitiativeComponentPayload {
   readonly InitiativeId: number
-  readonly ComponentId?: string
-  readonly Title: string
   readonly ComponentType: string
-  readonly Direction: number
-  readonly CalculationType: string
-  readonly KpiCode?: string
+  readonly KPICode?: string
   readonly ConversionCode?: string
   readonly FormulaCode?: string
-  readonly FixedValue?: number
-  readonly SortOrder: number
+  readonly Title?: string
+  readonly ComponentId?: string
 }
 
 const withEntityType = <TPayload extends object>(payload: TPayload): TPayload | (TPayload & { __metadata: { type: string } }) => {

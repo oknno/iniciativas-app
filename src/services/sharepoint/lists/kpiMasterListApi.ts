@@ -5,18 +5,16 @@ import { filteredListItemsEndpoint, listItemsEndpoint } from '../spUrls'
 const LIST_TITLE = 'KPI_Master'
 const CONTEXT_SITE_URL = sharePointContext.siteUrl
 
-
 interface SharePointListResponse<TItem> {
   readonly value: readonly TItem[]
 }
 
 export interface KpiMasterListItem {
   readonly Id: number
-  readonly Code: string
   readonly Title: string
+  readonly KPICode: string
   readonly Unit: string
-  readonly Description?: string
-  readonly Active: boolean
+  readonly KPIType?: string
 }
 
 export const listAll = async (): Promise<readonly KpiMasterListItem[]> => {

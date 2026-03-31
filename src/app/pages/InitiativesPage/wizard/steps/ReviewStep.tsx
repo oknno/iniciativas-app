@@ -18,7 +18,7 @@ export function ReviewStep({ selectedInitiative, calculation, componentsCount, k
       <div>
         <h3 style={{ margin: 0, fontSize: 17 }}>Review and confirm</h3>
         <p style={{ margin: `${tokens.spacing.xs}px 0 0`, fontSize: 14, color: tokens.colors.textSecondary }}>
-          Initiative: {selectedInitiative?.code ?? 'New initiative'}
+          Initiative: {selectedInitiative?.unidade ?? 'New initiative'}
         </p>
       </div>
       <ReviewConfigurationPanel componentsCount={componentsCount} kpiRowsCount={kpiRowsCount} fixedRowsCount={fixedRowsCount} />
