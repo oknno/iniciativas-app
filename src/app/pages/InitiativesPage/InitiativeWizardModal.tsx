@@ -432,7 +432,13 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
         padding: tokens.spacing.lg,
       }}
     >
-      <div role="dialog" aria-modal="true" aria-label="Initiative Wizard" onClick={(event) => event.stopPropagation()}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Initiative Wizard"
+        onClick={(event) => event.stopPropagation()}
+        style={{ width: '100%', display: 'grid', placeItems: 'center' }}
+      >
         <WizardUi
           title={mode === 'create' ? 'Create Initiative' : 'Edit Initiative'}
           subtitle="Use the wizard to maintain initiative setup data."
