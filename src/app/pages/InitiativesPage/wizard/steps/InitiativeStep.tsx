@@ -37,57 +37,55 @@ const labelStyle: CSSProperties = {
   color: uiTokens.colors.textSecondary,
 }
 
-const boxStyle: CSSProperties = {
-  marginTop: uiTokens.spacing.sm,
+const sectionBlockStyle: CSSProperties = {
   border: `1px solid ${uiTokens.colors.border}`,
-  borderRadius: uiTokens.radius.sm,
-  padding: uiTokens.spacing.sm,
+  borderRadius: uiTokens.radius.md,
+  padding: uiTokens.spacing.md,
   background: uiTokens.colors.surface,
+}
+
+const fieldsGridStyle: CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+  gap: uiTokens.spacing.sm,
 }
 
 export function InitiativeStep({ form, onTitleChange, onUnidadeChange, onResponsavelChange, onStageChange, onStatusChange }: InitiativeStepProps) {
   return (
-    <div style={{ display: 'grid', gap: uiTokens.spacing.md }}>
-      <Card style={{ borderColor: uiTokens.colors.borderStrong }}>
-        <Section title="1. Sobre o Projeto">
-          <div style={boxStyle}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: uiTokens.spacing.sm }}>
-              <label style={{ ...labelStyle, gridColumn: '1 / -1' }}>
-                Título da Iniciativa
-                <input style={inputStyle} value={form.title} onChange={(event) => onTitleChange(event.target.value)} placeholder="Initiative title" />
-              </label>
+    <Card style={{ borderColor: uiTokens.colors.borderStrong, padding: uiTokens.spacing.md }}>
+      <Section
+        title="1. Sobre a Iniciativa"
+        subtitle="Preencha os dados base da iniciativa para seguir com a configuração operacional."
+      >
+        <div style={sectionBlockStyle}>
+          <div style={fieldsGridStyle}>
+            <label style={{ ...labelStyle, gridColumn: '1 / -1' }}>
+              Título da Iniciativa
+              <input style={inputStyle} value={form.title} onChange={(event) => onTitleChange(event.target.value)} placeholder="Nome da iniciativa" />
+            </label>
 
-              <label style={labelStyle}>
-                Unidade
-                <input style={inputStyle} value={form.unidade} onChange={(event) => onUnidadeChange(event.target.value)} placeholder="Plant/Unit" />
-              </label>
+            <label style={labelStyle}>
+              Unidade
+              <input style={inputStyle} value={form.unidade} onChange={(event) => onUnidadeChange(event.target.value)} placeholder="Planta / unidade" />
+            </label>
 
-              <label style={labelStyle}>
-                Responsável
-                <input style={inputStyle} value={form.responsavel} onChange={(event) => onResponsavelChange(event.target.value)} placeholder="Responsible name" />
-              </label>
-            </div>
+            <label style={labelStyle}>
+              Responsável
+              <input style={inputStyle} value={form.responsavel} onChange={(event) => onResponsavelChange(event.target.value)} placeholder="Nome do responsável" />
+            </label>
+
+            <label style={labelStyle}>
+              Stage
+              <input style={inputStyle} value={form.stage} onChange={(event) => onStageChange(event.target.value)} placeholder="Stage" />
+            </label>
+
+            <label style={labelStyle}>
+              Status
+              <input style={inputStyle} value={form.status} onChange={(event) => onStatusChange(event.target.value)} placeholder="Status" />
+            </label>
           </div>
-        </Section>
-      </Card>
-
-      <Card style={{ borderColor: uiTokens.colors.borderStrong }}>
-        <Section title="2. Origem e Programa">
-          <div style={boxStyle}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: uiTokens.spacing.sm }}>
-              <label style={labelStyle}>
-                Stage
-                <input style={inputStyle} value={form.stage} onChange={(event) => onStageChange(event.target.value)} placeholder="Stage" />
-              </label>
-
-              <label style={labelStyle}>
-                Status
-                <input style={inputStyle} value={form.status} onChange={(event) => onStatusChange(event.target.value)} placeholder="Status" />
-              </label>
-            </div>
-          </div>
-        </Section>
-      </Card>
-    </div>
+        </div>
+      </Section>
+    </Card>
   )
 }

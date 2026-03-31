@@ -30,6 +30,17 @@ const cellInputStyle = {
   background: '#ffffff',
 } as const
 
+const actionButtonStyle = {
+  border: `1px solid ${tokens.colors.borderStrong}`,
+  borderRadius: tokens.radius.sm,
+  background: '#ffffff',
+  padding: `${tokens.spacing.xs}px ${tokens.spacing.md}px`,
+  fontSize: 13,
+  fontWeight: 600,
+  cursor: 'pointer',
+  color: tokens.colors.textPrimary,
+} as const
+
 export function ComponentConfigGrid({
   components,
   componentCatalog,
@@ -48,29 +59,16 @@ export function ComponentConfigGrid({
           style={{
             border: `1px dashed ${tokens.colors.borderStrong}`,
             borderRadius: tokens.radius.md,
-            padding: tokens.spacing.lg,
+            padding: tokens.spacing.md,
             color: tokens.colors.textSecondary,
-            fontSize: 14,
+            fontSize: 13,
             background: '#f8fafc',
           }}
         >
           No components configured yet. Add at least one component to start the value engine setup.
         </div>
         <div>
-          <button
-            type="button"
-            onClick={onAddComponent}
-            style={{
-              border: `1px solid ${tokens.colors.borderStrong}`,
-              borderRadius: tokens.radius.sm,
-              background: '#ffffff',
-              padding: `${tokens.spacing.xs}px ${tokens.spacing.md}px`,
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: 'pointer',
-              color: tokens.colors.textPrimary,
-            }}
-          >
+          <button type="button" onClick={onAddComponent} style={actionButtonStyle}>
             Add component
           </button>
         </div>
@@ -88,10 +86,10 @@ export function ComponentConfigGrid({
             gap: tokens.spacing.sm,
             fontSize: 12,
             color: tokens.colors.textMuted,
-            padding: `${tokens.spacing.sm}px ${tokens.spacing.md}px`,
+            padding: `${tokens.spacing.xs}px ${tokens.spacing.md}px`,
             borderBottom: `1px solid ${tokens.colors.border}`,
             background: tokens.colors.surfaceMuted,
-            fontWeight: 600,
+            fontWeight: 700,
             textTransform: 'uppercase',
             letterSpacing: 0.3,
           }}
@@ -118,7 +116,7 @@ export function ComponentConfigGrid({
                 display: 'grid',
                 gridTemplateColumns: '1.3fr .7fr .8fr 1fr 1fr 1fr auto',
                 gap: tokens.spacing.sm,
-                padding: `${tokens.spacing.sm}px ${tokens.spacing.md}px`,
+                padding: `${tokens.spacing.xs}px ${tokens.spacing.md}px`,
                 borderBottom: `1px solid ${tokens.colors.border}`,
                 alignItems: 'start',
                 background: index % 2 === 0 ? '#ffffff' : '#fbfcfe',
@@ -211,21 +209,8 @@ export function ComponentConfigGrid({
         })}
       </div>
 
-      <div>
-        <button
-          type="button"
-          onClick={onAddComponent}
-          style={{
-            border: `1px solid ${tokens.colors.borderStrong}`,
-            borderRadius: tokens.radius.sm,
-            background: '#ffffff',
-            padding: `${tokens.spacing.xs}px ${tokens.spacing.md}px`,
-            fontSize: 13,
-            fontWeight: 600,
-            cursor: 'pointer',
-            color: tokens.colors.textPrimary,
-          }}
-        >
+      <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+        <button type="button" onClick={onAddComponent} style={actionButtonStyle}>
           Add component
         </button>
       </div>

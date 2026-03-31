@@ -50,21 +50,27 @@ export function ValuesStep({
 
   return (
     <div style={{ display: 'grid', gap: uiTokens.spacing.md }}>
-      <Card style={{ borderColor: uiTokens.colors.borderStrong }}>
-        <Section title="4. KPI Monthly Inputs" subtitle={`Scenario: ${scenario} · Year: ${year}`}>
-          <KpiValuesGrid rows={kpiRows} valuesByRow={kpiValuesByRow} onValueChange={onKpiValueChange} />
+      <Card style={{ borderColor: uiTokens.colors.borderStrong, padding: uiTokens.spacing.md }}>
+        <Section title="3.1 KPI Values" subtitle={`Scenario: ${scenario} · Year: ${year}`}>
+          <div style={{ border: `1px solid ${uiTokens.colors.border}`, borderRadius: uiTokens.radius.md, padding: uiTokens.spacing.sm }}>
+            <KpiValuesGrid rows={kpiRows} valuesByRow={kpiValuesByRow} onValueChange={onKpiValueChange} />
+          </div>
         </Section>
       </Card>
 
-      <Card style={{ borderColor: uiTokens.colors.borderStrong }}>
-        <Section title="5. Fixed Component Inputs" subtitle="Enter base values for FIXED components. These are stored as independent inputs.">
-          <FixedValuesGrid rows={fixedRows} valuesByRow={fixedValuesByRow} onValueChange={onFixedValueChange} />
+      <Card style={{ borderColor: uiTokens.colors.borderStrong, padding: uiTokens.spacing.md }}>
+        <Section title="3.2 Fixed Values" subtitle="Valores base para componentes FIXED.">
+          <div style={{ border: `1px solid ${uiTokens.colors.border}`, borderRadius: uiTokens.radius.md, padding: uiTokens.spacing.sm }}>
+            <FixedValuesGrid rows={fixedRows} valuesByRow={fixedValuesByRow} onValueChange={onFixedValueChange} />
+          </div>
         </Section>
       </Card>
 
-      <Card style={{ borderColor: uiTokens.colors.borderStrong }}>
-        <Section title="6. Conversion Preview (read-only)" subtitle="Conversion values used by KPI-based components grouped by conversion type.">
-          <ConversionPreviewPanel groups={conversionGroups} />
+      <Card style={{ borderColor: uiTokens.colors.borderStrong, padding: uiTokens.spacing.md }}>
+        <Section title="3.3 Conversion Preview" subtitle="Pré-visualização somente leitura dos fatores de conversão.">
+          <div style={{ border: `1px solid ${uiTokens.colors.border}`, borderRadius: uiTokens.radius.md, padding: uiTokens.spacing.sm }}>
+            <ConversionPreviewPanel groups={conversionGroups} />
+          </div>
         </Section>
       </Card>
     </div>

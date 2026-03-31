@@ -11,9 +11,7 @@ type KpiValuesGridProps = {
 
 export function KpiValuesGrid({ rows, valuesByRow, onValueChange }: KpiValuesGridProps) {
   if (rows.length === 0) {
-    return (
-      <div style={{ fontSize: 14, color: tokens.colors.textSecondary }}>No KPI-based components configured for this initiative.</div>
-    )
+    return <div style={{ fontSize: 13, color: tokens.colors.textSecondary }}>No KPI-based components configured for this initiative.</div>
   }
 
   return (
@@ -30,8 +28,8 @@ export function KpiValuesGrid({ rows, valuesByRow, onValueChange }: KpiValuesGri
           </tr>
         </thead>
         <tbody>
-          {rows.map((row) => (
-            <tr key={row.signature}>
+          {rows.map((row, index) => (
+            <tr key={row.signature} style={{ background: index % 2 === 0 ? '#ffffff' : '#fbfcfe' }}>
               <td style={{ ...cellStyle, minWidth: 240 }}>
                 <div style={{ fontWeight: 600, fontSize: 13 }}>{row.componentName}</div>
                 <div style={{ fontSize: 12, color: tokens.colors.textSecondary }}>
@@ -62,7 +60,7 @@ const headerStyle: CSSProperties = {
   borderRight: `1px solid ${tokens.colors.border}`,
   padding: `${tokens.spacing.xs}px ${tokens.spacing.sm}px`,
   textAlign: 'left',
-  fontSize: 12,
+  fontSize: 11,
   textTransform: 'uppercase',
   color: tokens.colors.textMuted,
   fontWeight: 700,
