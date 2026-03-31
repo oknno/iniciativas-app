@@ -25,6 +25,10 @@ type ValuesStepProps = {
   conversionValues: readonly ConversionValueDto[]
   year: number
   scenario: Scenario
+  isLoadingValues: boolean
+  valuesLoadErrorMessage?: string | null
+  isPreviewCalculating: boolean
+  previewErrorMessage?: string | null
   kpiValuesByRow: Readonly<Record<string, MonthlyInputMap>>
   fixedValuesByRow: Readonly<Record<string, MonthlyInputMap>>
   onKpiValueChange: (rowSignature: string, month: MonthNumber, value: string) => void
@@ -39,6 +43,10 @@ export function ValuesStep({
   conversionValues,
   year,
   scenario,
+  isLoadingValues,
+  valuesLoadErrorMessage,
+  isPreviewCalculating,
+  previewErrorMessage,
   kpiValuesByRow,
   fixedValuesByRow,
   onKpiValueChange,
@@ -51,7 +59,17 @@ export function ValuesStep({
   return (
     <div style={{ display: 'grid', gap: uiTokens.spacing.md }}>
       <Card style={{ borderColor: uiTokens.colors.borderStrong, padding: uiTokens.spacing.md }}>
-        <Section title="3.1 KPI Values" subtitle={`Scenario: ${scenario} · Year: ${year}`}>
+        <Section title="3.1 Valores de KPI" subtitle={`Cenário: ${scenario} · Ano: ${year}`}>
+          {isLoadingValues ? (
+            <p style={{ margin: `0 0 ${uiTokens.spacing.sm}px`, ...uiTokens.typography.caption, color: uiTokens.colors.textMuted }}>
+              Buscando valores mensais...
+            </p>
+          ) : null}
+          {valuesLoadErrorMessage ? (
+            <p style={{ margin: `0 0 ${uiTokens.spacing.sm}px`, ...uiTokens.typography.caption, color: uiTokens.colors.dangerText }}>
+              {valuesLoadErrorMessage}
+            </p>
+          ) : null}
           <div style={{ border: `1px solid ${uiTokens.colors.border}`, borderRadius: uiTokens.radius.md, padding: uiTokens.spacing.sm }}>
             <KpiValuesGrid rows={kpiRows} valuesByRow={kpiValuesByRow} onValueChange={onKpiValueChange} />
           </div>
@@ -59,7 +77,7 @@ export function ValuesStep({
       </Card>
 
       <Card style={{ borderColor: uiTokens.colors.borderStrong, padding: uiTokens.spacing.md }}>
-        <Section title="3.2 Fixed Values" subtitle="Valores base para componentes FIXED.">
+        <Section title="3.2 Valores Fixos" subtitle="Valores base para componentes fixos.">
           <div style={{ border: `1px solid ${uiTokens.colors.border}`, borderRadius: uiTokens.radius.md, padding: uiTokens.spacing.sm }}>
             <FixedValuesGrid rows={fixedRows} valuesByRow={fixedValuesByRow} onValueChange={onFixedValueChange} />
           </div>
@@ -67,7 +85,17 @@ export function ValuesStep({
       </Card>
 
       <Card style={{ borderColor: uiTokens.colors.borderStrong, padding: uiTokens.spacing.md }}>
-        <Section title="3.3 Conversion Preview" subtitle="Pré-visualização somente leitura dos fatores de conversão.">
+        <Section title="3.3 Preview de Conversão" subtitle="Pré-visualização somente leitura dos fatores de conversão.">
+          {isPreviewCalculating ? (
+            <p style={{ margin: `0 0 ${uiTokens.spacing.sm}px`, ...uiTokens.typography.caption, color: uiTokens.colors.textMuted }}>
+              Calculando preview...
+            </p>
+          ) : null}
+          {previewErrorMessage ? (
+            <p style={{ margin: `0 0 ${uiTokens.spacing.sm}px`, ...uiTokens.typography.caption, color: uiTokens.colors.dangerText }}>
+              {previewErrorMessage}
+            </p>
+          ) : null}
           <div style={{ border: `1px solid ${uiTokens.colors.border}`, borderRadius: uiTokens.radius.md, padding: uiTokens.spacing.sm }}>
             <ConversionPreviewPanel groups={conversionGroups} />
           </div>

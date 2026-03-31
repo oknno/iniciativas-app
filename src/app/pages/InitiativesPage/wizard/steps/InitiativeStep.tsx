@@ -54,27 +54,49 @@ const fieldsGridStyle: CSSProperties = {
 }
 
 export function InitiativeStep({ form, onTitleChange, onUnidadeChange, onResponsavelChange, onStageChange, onStatusChange }: InitiativeStepProps) {
+  const isTitleMissing = form.title.trim().length === 0
+  const isUnidadeMissing = form.unidade.trim().length === 0
+  const isResponsavelMissing = form.responsavel.trim().length === 0
+  const hasRequiredMissing = isTitleMissing || isUnidadeMissing || isResponsavelMissing
+
   return (
     <Card style={{ borderColor: uiTokens.colors.borderStrong, padding: uiTokens.spacing.md }}>
       <Section
         title="1. Sobre a Iniciativa"
         subtitle="Preencha os dados base da iniciativa para seguir com a configuração operacional."
       >
+        {hasRequiredMissing ? (
+          <div
+            style={{
+              marginBottom: uiTokens.spacing.sm,
+              border: `1px solid ${uiTokens.colors.warningText}`,
+              borderRadius: uiTokens.radius.sm,
+              padding: `${uiTokens.spacing.xs}px ${uiTokens.spacing.sm}px`,
+              color: uiTokens.colors.warningText,
+              ...uiTokens.typography.caption,
+            }}
+          >
+            Faltam informações obrigatórias para continuar.
+          </div>
+        ) : null}
         <div style={sectionBlockStyle}>
           <div style={fieldsGridStyle}>
             <label style={{ ...labelStyle, gridColumn: '1 / -1' }}>
               Título da Iniciativa
               <input style={inputStyle} value={form.title} onChange={(event) => onTitleChange(event.target.value)} placeholder="Nome da iniciativa" />
+              {isTitleMissing ? <span style={fieldErrorStyle}>Informe o título da iniciativa.</span> : null}
             </label>
 
             <label style={labelStyle}>
               Unidade
               <input style={inputStyle} value={form.unidade} onChange={(event) => onUnidadeChange(event.target.value)} placeholder="Planta / unidade" />
+              {isUnidadeMissing ? <span style={fieldErrorStyle}>Informe a unidade responsável.</span> : null}
             </label>
 
             <label style={labelStyle}>
               Responsável
               <input style={inputStyle} value={form.responsavel} onChange={(event) => onResponsavelChange(event.target.value)} placeholder="Nome do responsável" />
+              {isResponsavelMissing ? <span style={fieldErrorStyle}>Informe o responsável da iniciativa.</span> : null}
             </label>
 
             <label style={labelStyle}>
@@ -91,4 +113,9 @@ export function InitiativeStep({ form, onTitleChange, onUnidadeChange, onRespons
       </Section>
     </Card>
   )
+}
+
+const fieldErrorStyle: CSSProperties = {
+  color: uiTokens.colors.dangerText,
+  ...uiTokens.typography.caption,
 }

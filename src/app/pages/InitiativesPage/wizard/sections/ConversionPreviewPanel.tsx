@@ -8,7 +8,11 @@ type ConversionPreviewPanelProps = {
 
 export function ConversionPreviewPanel({ groups }: ConversionPreviewPanelProps) {
   if (groups.length === 0) {
-    return <div style={{ fontSize: 13, color: tokens.colors.textSecondary }}>No conversion values are used by configured components.</div>
+    return (
+      <div style={{ fontSize: 13, color: tokens.colors.textSecondary }}>
+        Nenhum valor de conversão aplicável no momento. Configure componentes com conversão para visualizar o preview.
+      </div>
+    )
   }
 
   return (

@@ -11,7 +11,11 @@ type FixedValuesGridProps = {
 
 export function FixedValuesGrid({ rows, valuesByRow, onValueChange }: FixedValuesGridProps) {
   if (rows.length === 0) {
-    return <div style={{ fontSize: 13, color: tokens.colors.textSecondary }}>No FIXED components configured for this initiative.</div>
+    return (
+      <div style={{ fontSize: 13, color: tokens.colors.textSecondary }}>
+        Nenhum componente fixo configurado. Adicione um componente do tipo fixo para informar valores mensais.
+      </div>
+    )
   }
 
   return (
@@ -19,7 +23,7 @@ export function FixedValuesGrid({ rows, valuesByRow, onValueChange }: FixedValue
       <table style={{ borderCollapse: 'collapse', minWidth: 1020, width: '100%' }}>
         <thead>
           <tr style={{ background: tokens.colors.surfaceMuted }}>
-            <th style={headerStyle}>Fixed Component</th>
+            <th style={headerStyle}>Componente Fixo</th>
             {MONTHS.map(({ month, label }) => (
               <th key={month} style={{ ...headerStyle, textAlign: 'right' }}>
                 {label}
@@ -32,7 +36,7 @@ export function FixedValuesGrid({ rows, valuesByRow, onValueChange }: FixedValue
             <tr key={row.signature} style={{ background: index % 2 === 0 ? '#ffffff' : '#fbfcfe' }}>
               <td style={{ ...cellStyle, ...rowLabelStyle }}>
                 <div style={{ fontWeight: 600, fontSize: 13 }}>{row.componentName}</div>
-                <div style={{ fontSize: 12, color: tokens.colors.textSecondary }}>Direction: {row.direction === 1 ? 'Positive' : 'Negative'}</div>
+                <div style={{ fontSize: 12, color: tokens.colors.textSecondary }}>Direção: {row.direction === 1 ? 'Positiva' : 'Negativa'}</div>
               </td>
               {MONTHS.map(({ month }) => (
                 <td key={month} style={cellStyle}>

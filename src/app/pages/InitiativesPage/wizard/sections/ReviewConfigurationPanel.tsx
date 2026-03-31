@@ -7,8 +7,29 @@ type ReviewConfigurationPanelProps = {
 }
 
 export function ReviewConfigurationPanel({ componentsCount, kpiRowsCount, fixedRowsCount }: ReviewConfigurationPanelProps) {
+  const hasNoComponents = componentsCount === 0
+  const hasNoValueRows = kpiRowsCount === 0 && fixedRowsCount === 0
+
   return (
-    <div style={{ border: `1px solid ${tokens.colors.border}`, borderRadius: tokens.radius.md, overflow: 'hidden' }}>
+    <div style={{ display: 'grid', gap: tokens.spacing.sm }}>
+      <div
+        style={{
+          border: `1px solid ${hasNoComponents || hasNoValueRows ? tokens.colors.warningText : tokens.colors.successText}`,
+          borderRadius: tokens.radius.sm,
+          padding: `${tokens.spacing.xs}px ${tokens.spacing.sm}px`,
+          color: hasNoComponents || hasNoValueRows ? tokens.colors.warningText : tokens.colors.successText,
+          fontSize: 12,
+          fontWeight: 600,
+          background: hasNoComponents || hasNoValueRows ? tokens.colors.warningSoft : tokens.colors.successSoft,
+        }}
+      >
+        {hasNoComponents
+          ? 'Nenhum componente configurado.'
+          : hasNoValueRows
+            ? 'Sem linhas de valores para cálculo.'
+            : 'Configuração mínima concluída.'}
+      </div>
+      <div style={{ border: `1px solid ${tokens.colors.border}`, borderRadius: tokens.radius.md, overflow: 'hidden' }}>
       <div
         style={{
           display: 'grid',
@@ -24,12 +45,12 @@ export function ReviewConfigurationPanel({ componentsCount, kpiRowsCount, fixedR
         }}
       >
         <span>Item</span>
-        <span>Count</span>
+        <span>Quantidade</span>
       </div>
       {[
-        ['Components', componentsCount],
-        ['KPI rows', kpiRowsCount],
-        ['Fixed rows', fixedRowsCount],
+        ['Componentes', componentsCount],
+        ['Linhas KPI', kpiRowsCount],
+        ['Linhas fixas', fixedRowsCount],
       ].map(([label, value], index) => (
         <div
           key={String(label)}
@@ -46,6 +67,7 @@ export function ReviewConfigurationPanel({ componentsCount, kpiRowsCount, fixedR
           <strong style={{ fontSize: 13, textAlign: 'right' }}>{value}</strong>
         </div>
       ))}
+      </div>
     </div>
   )
 }
