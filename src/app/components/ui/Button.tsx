@@ -1,5 +1,4 @@
 import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from 'react'
-import { uiTokens } from './tokens'
 
 type ButtonTone = 'primary' | 'secondary' | 'ghost'
 
@@ -11,20 +10,28 @@ type ButtonProps = {
 
 const toneStyles: Record<ButtonTone, CSSProperties> = {
   primary: {
-    background: uiTokens.colors.accent,
-    color: uiTokens.colors.surface,
-    border: `1px solid ${uiTokens.colors.accent}`,
+    background: '#111827',
+    color: '#ffffff',
+    border: '1px solid #111827',
   },
   secondary: {
-    background: uiTokens.colors.surfaceMuted,
-    color: uiTokens.colors.textPrimary,
-    border: `1px solid ${uiTokens.colors.borderStrong}`,
+    background: '#ffffff',
+    color: '#111827',
+    border: '1px solid #d1d5db',
   },
   ghost: {
-    background: uiTokens.colors.surface,
-    color: uiTokens.colors.textSecondary,
-    border: `1px solid ${uiTokens.colors.border}`,
+    background: '#ffffff',
+    color: '#111827',
+    border: '1px solid #d1d5db',
   },
+}
+
+const disabledStyles: CSSProperties = {
+  opacity: 1,
+  color: '#9ca3af',
+  borderColor: '#e5e7eb',
+  background: '#ffffff',
+  cursor: 'not-allowed',
 }
 
 export function Button({ children, tone, variant, style, ...rest }: ButtonProps) {
@@ -34,13 +41,15 @@ export function Button({ children, tone, variant, style, ...rest }: ButtonProps)
     <button
       type="button"
       style={{
-        borderRadius: uiTokens.radius.sm,
-        padding: `${uiTokens.spacing.xs - 2}px ${uiTokens.spacing.sm}px`,
-        ...uiTokens.typography.caption,
+        height: 34,
+        padding: '0 14px',
+        borderRadius: 10,
+        fontSize: 13,
+        fontWeight: 500,
         cursor: 'pointer',
         transition: 'all 0.15s ease',
-        minHeight: 30,
         ...toneStyles[resolvedTone],
+        ...(rest.disabled ? disabledStyles : {}),
         ...style,
       }}
       {...rest}
