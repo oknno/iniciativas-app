@@ -22,11 +22,14 @@ const styles: Record<string, CSSProperties> = {
     display: 'flex',
     flexDirection: 'column',
     background: uiTokens.colors.surface,
+    flex: 1,
+    minHeight: 0,
   },
   tableWrap: {
     display: 'flex',
     flexDirection: 'column',
     minHeight: 0,
+    flex: 1,
   },
   headerRow: {
     display: 'grid',
@@ -46,7 +49,9 @@ const styles: Record<string, CSSProperties> = {
   body: {
     display: 'flex',
     flexDirection: 'column',
-    overflow: 'auto',
+    overflowY: 'auto',
+    flex: 1,
+    minHeight: 0,
   },
   row: {
     display: 'grid',
@@ -69,6 +74,21 @@ const styles: Record<string, CSSProperties> = {
   stateRow: {
     borderBottom: `1px solid ${uiTokens.colors.border}`,
     padding: uiTokens.spacing.sm,
+  },
+  footer: {
+    borderTop: `1px solid ${uiTokens.colors.borderStrong}`,
+    padding: `${uiTokens.spacing.sm}px ${uiTokens.spacing.md}px`,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: uiTokens.spacing.sm,
+    background: uiTokens.colors.surface,
+    flexShrink: 0,
+  },
+  loadedText: {
+    margin: 0,
+    ...uiTokens.typography.caption,
+    color: uiTokens.colors.textSecondary,
   },
 }
 
@@ -125,6 +145,13 @@ export function InitiativesTableSection({ items, selectedId, onSelect, isLoading
             : null}
         </div>
       </div>
+
+      <footer style={styles.footer}>
+        <p style={styles.loadedText}>Itens carregados: {items.length}</p>
+        <button type="button" className="btn">
+          Carregar mais
+        </button>
+      </footer>
     </div>
   )
 }
