@@ -90,7 +90,7 @@ export function ComponentConfigGrid({
             color: tokens.colors.textMuted,
             padding: `${tokens.spacing.sm}px ${tokens.spacing.md}px`,
             borderBottom: `1px solid ${tokens.colors.border}`,
-            background: '#f8fafc',
+            background: tokens.colors.surfaceMuted,
             fontWeight: 600,
             textTransform: 'uppercase',
             letterSpacing: 0.3,
@@ -121,6 +121,7 @@ export function ComponentConfigGrid({
                 padding: `${tokens.spacing.sm}px ${tokens.spacing.md}px`,
                 borderBottom: `1px solid ${tokens.colors.border}`,
                 alignItems: 'start',
+                background: index % 2 === 0 ? '#ffffff' : '#fbfcfe',
               }}
             >
               <div style={{ display: 'grid', gap: 6 }}>

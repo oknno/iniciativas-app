@@ -36,7 +36,7 @@ export function WizardUi({
       style={{
         background: tokens.colors.surface,
         borderRadius: tokens.radius.lg,
-        border: `1px solid ${tokens.colors.border}`,
+        border: `1px solid ${tokens.colors.borderStrong}`,
         boxShadow: tokens.shadow.md,
         width: 'min(1100px, 100%)',
         maxHeight: '92vh',
@@ -47,12 +47,13 @@ export function WizardUi({
     >
       <header
         style={{
-          padding: tokens.spacing.lg,
-          borderBottom: `1px solid ${tokens.colors.border}`,
+          padding: `${tokens.spacing.md}px ${tokens.spacing.lg}px`,
+          borderBottom: `1px solid ${tokens.colors.borderStrong}`,
+          background: tokens.colors.surfaceMuted,
         }}
       >
-        <h2 style={{ margin: 0, fontSize: 22 }}>{title}</h2>
-        <p style={{ margin: `${tokens.spacing.xs}px 0 0`, color: tokens.colors.textSecondary, fontSize: 14 }}>
+        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700 }}>{title}</h2>
+        <p style={{ margin: `${tokens.spacing.xs}px 0 0`, color: tokens.colors.textSecondary, fontSize: 13 }}>
           {subtitle}
         </p>
       </header>
@@ -60,10 +61,11 @@ export function WizardUi({
       <nav
         style={{
           padding: `${tokens.spacing.sm}px ${tokens.spacing.lg}`,
-          borderBottom: `1px solid ${tokens.colors.border}`,
+          borderBottom: `1px solid ${tokens.colors.borderStrong}`,
           display: 'flex',
           gap: tokens.spacing.xs,
           overflowX: 'auto',
+          background: '#edf2f7',
         }}
       >
         {steps.map((step, index) => {
@@ -78,11 +80,11 @@ export function WizardUi({
                 whiteSpace: 'nowrap',
                 padding: `${tokens.spacing.xs}px ${tokens.spacing.sm}px`,
                 borderRadius: tokens.radius.sm,
-                border: `1px solid ${isActive ? tokens.colors.accent : tokens.colors.borderStrong}`,
-                background: isActive ? tokens.colors.accentSoft : tokens.colors.surface,
-                color: isActive ? tokens.colors.accent : tokens.colors.textSecondary,
+                border: `1px solid ${isActive ? '#335f96' : tokens.colors.borderStrong}`,
+                background: isActive ? '#dbe7f5' : tokens.colors.surface,
+                color: isActive ? '#183a63' : tokens.colors.textMuted,
                 fontWeight: 600,
-                fontSize: 13,
+                fontSize: 12,
                 cursor: 'pointer',
               }}
               aria-current={isActive ? 'step' : undefined}
@@ -93,12 +95,14 @@ export function WizardUi({
         })}
       </nav>
 
-      <section style={{ padding: tokens.spacing.lg, overflowY: 'auto' }}>{activeStep?.render()}</section>
+      <section style={{ padding: `${tokens.spacing.md}px ${tokens.spacing.lg}px`, overflowY: 'auto', background: '#fbfcfe' }}>
+        {activeStep?.render()}
+      </section>
 
       <footer
         style={{
-          padding: tokens.spacing.lg,
-          borderTop: `1px solid ${tokens.colors.border}`,
+          padding: `${tokens.spacing.md}px ${tokens.spacing.lg}px`,
+          borderTop: `1px solid ${tokens.colors.borderStrong}`,
           display: 'flex',
           justifyContent: 'space-between',
           gap: tokens.spacing.sm,

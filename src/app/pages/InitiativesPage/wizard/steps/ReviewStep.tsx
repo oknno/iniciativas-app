@@ -16,8 +16,8 @@ export function ReviewStep({ selectedInitiative, calculation, componentsCount, k
   return (
     <div style={{ display: 'grid', gap: tokens.spacing.md }}>
       <div>
-        <h3 style={{ margin: 0, fontSize: 17 }}>Review and confirm</h3>
-        <p style={{ margin: `${tokens.spacing.xs}px 0 0`, fontSize: 14, color: tokens.colors.textSecondary }}>
+        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>7. Review and Confirm</h3>
+        <p style={{ margin: `${tokens.spacing.xs}px 0 0`, fontSize: 13, color: tokens.colors.textSecondary }}>
           Initiative: {selectedInitiative?.unidade ?? 'New initiative'}
         </p>
       </div>

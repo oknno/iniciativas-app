@@ -28,37 +28,55 @@ const inputStyle = {
   background: '#ffffff',
 } as const
 
+const labelStyle = {
+  display: 'grid',
+  gap: 4,
+  fontSize: 13,
+  fontWeight: 600,
+  color: tokens.colors.textSecondary,
+} as const
+
 export function InitiativeStep({ form, onTitleChange, onUnidadeChange, onResponsavelChange, onStageChange, onStatusChange }: InitiativeStepProps) {
   return (
-    <Card>
-      <h3 style={{ margin: 0, fontSize: 17, color: tokens.colors.textPrimary }}>Initiative details</h3>
+    <div style={{ display: 'grid', gap: tokens.spacing.md }}>
+      <Card style={{ background: '#f7f9fc', borderColor: tokens.colors.borderStrong }}>
+        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: tokens.colors.textPrimary }}>1. Sobre o Projeto</h3>
+        <div style={{ marginTop: tokens.spacing.sm, border: `1px solid ${tokens.colors.border}`, borderRadius: tokens.radius.sm, padding: tokens.spacing.sm, background: tokens.colors.surface }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: tokens.spacing.sm }}>
+            <label style={{ ...labelStyle, gridColumn: '1 / -1' }}>
+              Título da Iniciativa
+              <input style={inputStyle} value={form.title} onChange={(event) => onTitleChange(event.target.value)} placeholder="Initiative title" />
+            </label>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: tokens.spacing.md }}>
-        <label style={{ display: 'grid', gap: 6, fontSize: 13, color: tokens.colors.textSecondary }}>
-          Title
-          <input style={inputStyle} value={form.title} onChange={(event) => onTitleChange(event.target.value)} placeholder="Initiative title" />
-        </label>
+            <label style={labelStyle}>
+              Unidade
+              <input style={inputStyle} value={form.unidade} onChange={(event) => onUnidadeChange(event.target.value)} placeholder="Plant/Unit" />
+            </label>
 
-        <label style={{ display: 'grid', gap: 6, fontSize: 13, color: tokens.colors.textSecondary }}>
-          Unidade
-          <input style={inputStyle} value={form.unidade} onChange={(event) => onUnidadeChange(event.target.value)} placeholder="Plant/Unit" />
-        </label>
+            <label style={labelStyle}>
+              Responsável
+              <input style={inputStyle} value={form.responsavel} onChange={(event) => onResponsavelChange(event.target.value)} placeholder="Responsible name" />
+            </label>
+          </div>
+        </div>
+      </Card>
 
-        <label style={{ display: 'grid', gap: 6, fontSize: 13, color: tokens.colors.textSecondary }}>
-          Responsible
-          <input style={inputStyle} value={form.responsavel} onChange={(event) => onResponsavelChange(event.target.value)} placeholder="Responsible name" />
-        </label>
+      <Card style={{ background: '#f7f9fc', borderColor: tokens.colors.borderStrong }}>
+        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: tokens.colors.textPrimary }}>2. Origem e Programa</h3>
+        <div style={{ marginTop: tokens.spacing.sm, border: `1px solid ${tokens.colors.border}`, borderRadius: tokens.radius.sm, padding: tokens.spacing.sm, background: tokens.colors.surface }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: tokens.spacing.sm }}>
+            <label style={labelStyle}>
+              Stage
+              <input style={inputStyle} value={form.stage} onChange={(event) => onStageChange(event.target.value)} placeholder="Stage" />
+            </label>
 
-        <label style={{ display: 'grid', gap: 6, fontSize: 13, color: tokens.colors.textSecondary }}>
-          Stage
-          <input style={inputStyle} value={form.stage} onChange={(event) => onStageChange(event.target.value)} placeholder="Stage" />
-        </label>
-
-        <label style={{ display: 'grid', gap: 6, fontSize: 13, color: tokens.colors.textSecondary }}>
-          Status
-          <input style={inputStyle} value={form.status} onChange={(event) => onStatusChange(event.target.value)} placeholder="Status" />
-        </label>
-      </div>
-    </Card>
+            <label style={labelStyle}>
+              Status
+              <input style={inputStyle} value={form.status} onChange={(event) => onStatusChange(event.target.value)} placeholder="Status" />
+            </label>
+          </div>
+        </div>
+      </Card>
+    </div>
   )
 }

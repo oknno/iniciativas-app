@@ -18,7 +18,7 @@ export function FixedValuesGrid({ rows, valuesByRow, onValueChange }: FixedValue
     <div style={{ overflowX: 'auto', border: `1px solid ${tokens.colors.border}`, borderRadius: tokens.radius.md }}>
       <table style={{ borderCollapse: 'collapse', minWidth: 1020, width: '100%' }}>
         <thead>
-          <tr style={{ background: '#f8fafc' }}>
+          <tr style={{ background: tokens.colors.surfaceMuted }}>
             <th style={headerStyle}>Fixed Component</th>
             {MONTHS.map(({ month, label }) => (
               <th key={month} style={headerStyle}>
@@ -61,6 +61,7 @@ const headerStyle: CSSProperties = {
   fontSize: 12,
   textTransform: 'uppercase',
   color: tokens.colors.textMuted,
+  fontWeight: 700,
 }
 
 const cellStyle: CSSProperties = {
