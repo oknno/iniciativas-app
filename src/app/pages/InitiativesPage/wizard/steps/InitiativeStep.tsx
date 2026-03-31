@@ -26,15 +26,16 @@ const inputStyle: CSSProperties = {
   borderRadius: uiTokens.radius.sm,
   ...uiTokens.typography.body,
   color: uiTokens.colors.textPrimary,
-  padding: `${uiTokens.spacing.xs}px ${uiTokens.spacing.sm}px`,
+  height: 36,
+  padding: `0 ${uiTokens.spacing.sm}px`,
   background: uiTokens.colors.surface,
 }
 
 const labelStyle: CSSProperties = {
   display: 'grid',
-  gap: uiTokens.spacing.xxs,
+  gap: 6,
   ...uiTokens.typography.caption,
-  color: uiTokens.colors.textSecondary,
+  color: uiTokens.colors.textMuted,
 }
 
 const sectionBlockStyle: CSSProperties = {
@@ -47,7 +48,9 @@ const sectionBlockStyle: CSSProperties = {
 const fieldsGridStyle: CSSProperties = {
   display: 'grid',
   gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-  gap: uiTokens.spacing.sm,
+  columnGap: uiTokens.spacing.md,
+  rowGap: uiTokens.spacing.md,
+  alignItems: 'start',
 }
 
 export function InitiativeStep({ form, onTitleChange, onUnidadeChange, onResponsavelChange, onStageChange, onStatusChange }: InitiativeStepProps) {
