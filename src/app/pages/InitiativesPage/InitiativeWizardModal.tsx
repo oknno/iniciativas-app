@@ -4,8 +4,6 @@ import type { FormulaCode } from '../../../domain/catalogs/value-objects/Formula
 import type { KpiCode } from '../../../domain/catalogs/value-objects/KpiCode'
 import type { SaveInitiativeDto } from '../../../application/dto/initiatives/SaveInitiativeDto'
 import type { InitiativeDetailDto } from '../../../application/dto/initiatives/InitiativeDetailDto'
-import type { InitiativeStage } from '../../../domain/initiatives/entities/InitiativeStage'
-import type { InitiativeStatus } from '../../../domain/initiatives/entities/InitiativeStatus'
 import { getInitiativeComponents } from '../../../application/use-cases/initiative-components/getInitiativeComponents'
 import { saveInitiativeComponents } from '../../../application/use-cases/initiative-components/saveInitiativeComponents'
 import { getInitiativeValues } from '../../../application/use-cases/initiative-values/getInitiativeValues'
@@ -52,16 +50,18 @@ type InitiativeWizardModalProps = {
 
 type InitiativeFormState = {
   title: string
-  owner: string
-  stage: InitiativeStage
-  status: InitiativeStatus
+  unidade: string
+  responsavel: string
+  stage: string
+  status: string
 }
 
 const getInitialFormState = (initiative: InitiativeDetailDto | undefined): InitiativeFormState => ({
   title: initiative?.title ?? '',
-  owner: initiative?.owner ?? '',
-  stage: initiative?.stage ?? 'DRAFTING',
-  status: initiative?.status ?? 'DRAFT',
+  unidade: initiative?.unidade ?? '',
+  responsavel: initiative?.responsavel ?? '',
+  stage: initiative?.stage ?? '',
+  status: initiative?.status ?? '',
 })
 
 
@@ -199,7 +199,8 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
           <InitiativeStep
             form={form}
             onTitleChange={(value) => setForm((current) => ({ ...current, title: value }))}
-            onOwnerChange={(value) => setForm((current) => ({ ...current, owner: value }))}
+            onUnidadeChange={(value) => setForm((current) => ({ ...current, unidade: value }))}
+            onResponsavelChange={(value) => setForm((current) => ({ ...current, responsavel: value }))}
             onStageChange={(value) => setForm((current) => ({ ...current, stage: value }))}
             onStatusChange={(value) => setForm((current) => ({ ...current, status: value }))}
           />
@@ -386,16 +387,11 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
   const handleSave = async () => {
     const dto: SaveInitiativeDto = {
       id: mode === 'edit' ? selectedInitiative?.id : undefined,
-      code: mode === 'edit' ? (selectedInitiative?.code ?? '') : '',
       title: form.title.trim(),
-      description: mode === 'edit' ? selectedInitiative?.description : undefined,
-      owner: form.owner.trim(),
-      stage: form.stage,
-      status: form.status,
-      scenario: mode === 'edit' ? (selectedInitiative?.scenario ?? 'BASE') : 'BASE',
-      implementationCost: mode === 'edit' ? (selectedInitiative?.implementationCost ?? 50000) : 50000,
-      startMonthRef: '2026-01',
-      endMonthRef: '2026-12',
+      unidade: form.unidade.trim(),
+      responsavel: form.responsavel.trim(),
+      stage: form.stage.trim(),
+      status: form.status.trim(),
     }
 
     const savedInitiative = await onSave(dto)
@@ -419,7 +415,8 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
   const hasInvalidComponent = components.some(
     (component) => getInitiativeComponentDraftErrors(component, catalogs.componentCatalog).length > 0,
   )
-  const isSaveDisabled = form.title.trim().length === 0 || form.owner.trim().length === 0 || isSaving || hasInvalidComponent
+  const isSaveDisabled =
+    form.title.trim().length === 0 || form.unidade.trim().length === 0 || form.responsavel.trim().length === 0 || isSaving || hasInvalidComponent
 
   return (
     <div

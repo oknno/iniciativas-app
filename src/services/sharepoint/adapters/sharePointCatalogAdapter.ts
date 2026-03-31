@@ -12,45 +12,44 @@ import type { ConversionValueListItem } from '../lists/conversionValuesListApi'
 import type { FormulaMasterListItem } from '../lists/formulaMasterListApi'
 import type { KpiMasterListItem } from '../lists/kpiMasterListApi'
 
+const toMonthRef = (year: number, month: number): ConversionValueDto['monthRef'] =>
+  `${year}-${String(month).padStart(2, '0')}` as ConversionValueDto['monthRef']
+
 export const fromSharePointComponentCatalog = (item: ComponentMasterListItem): ComponentMasterDto => ({
-  code: item.Code,
+  code: item.ComponentType,
   name: item.Title,
-  description: item.Description,
   componentType: item.ComponentType as ComponentMasterDto['componentType'],
-  defaultDirection: item.DefaultDirection as ComponentMasterDto['defaultDirection'],
-  defaultCalculationType: item.DefaultCalculationType as ComponentMasterDto['defaultCalculationType'],
-  active: Boolean(item.Active),
+  defaultDirection: item.Direction as ComponentMasterDto['defaultDirection'],
+  defaultCalculationType: item.CalculationType as ComponentMasterDto['defaultCalculationType'],
+  active: true,
 })
 
 export const fromSharePointKpiCatalog = (item: KpiMasterListItem): KpiMasterDto => ({
-  code: asKpiCode(item.Code),
+  code: asKpiCode(item.KPICode),
   name: item.Title,
   unit: item.Unit,
-  description: item.Description,
-  active: Boolean(item.Active),
+  active: true,
 })
 
 export const fromSharePointConversionCatalog = (item: ConversionMasterListItem): ConversionMasterDto => ({
-  code: asConversionCode(item.Code),
+  code: asConversionCode(item.ConversionCode),
   name: item.Title,
-  sourceUnit: item.SourceUnit,
-  targetUnit: item.TargetUnit,
-  description: item.Description,
-  active: Boolean(item.Active),
+  sourceUnit: item.Unit,
+  targetUnit: item.Unit,
+  active: true,
 })
 
 export const fromSharePointFormulaCatalog = (item: FormulaMasterListItem): FormulaMasterDto => ({
-  code: asFormulaCode(item.Code),
+  code: asFormulaCode(item.FormulaCode),
   name: item.Title,
   formulaType: item.FormulaType as FormulaMasterDto['formulaType'],
-  expression: item.Expression,
-  description: item.Description,
-  active: Boolean(item.Active),
+  expression: item.Title,
+  active: true,
 })
 
 export const fromSharePointConversionValue = (item: ConversionValueListItem): ConversionValueDto => ({
   conversionCode: asConversionCode(item.ConversionCode),
-  monthRef: item.MonthRef as ConversionValueDto['monthRef'],
-  scenario: item.Scenario as ConversionValueDto['scenario'],
+  monthRef: toMonthRef(item.Year, item.Month),
+  scenario: (item.Scenario ?? 'BASE') as ConversionValueDto['scenario'],
   value: Number(item.Value),
 })

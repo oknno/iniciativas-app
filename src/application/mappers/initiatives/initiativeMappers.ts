@@ -8,9 +8,9 @@ export type InitiativeWithAnnualGain = InitiativeDto & {
 
 export const toInitiativeListItemDto = (initiative: InitiativeWithAnnualGain): InitiativeListItemDto => ({
   id: initiative.id,
-  code: initiative.code,
   title: initiative.title,
-  owner: initiative.owner,
+  unidade: initiative.unidade,
+  responsavel: initiative.responsavel,
   stage: initiative.stage,
   status: initiative.status,
   annualGain: initiative.annualGain,
@@ -18,14 +18,11 @@ export const toInitiativeListItemDto = (initiative: InitiativeWithAnnualGain): I
 
 export const toInitiativeDetailDto = (initiative: InitiativeWithAnnualGain): InitiativeDetailDto => ({
   id: initiative.id,
-  code: initiative.code,
   title: initiative.title,
-  description: initiative.description,
-  owner: initiative.owner,
+  unidade: initiative.unidade,
+  responsavel: initiative.responsavel,
   stage: initiative.stage,
   status: initiative.status,
-  scenario: initiative.scenario,
   annualGain: initiative.annualGain,
-  implementationCost: initiative.implementationCost,
   components: initiative.components,
 })

@@ -10,21 +10,19 @@ interface SharePointListResponse<TItem> {
 
 export interface ComponentValueListItem {
   readonly Id: number
-  readonly InitiativeId: number
-  readonly ComponentId: string
-  readonly MonthRef: string
-  readonly Scenario: string
-  readonly BaseValue: number
-  readonly Direction: number
+  readonly InitiativeId: number | string
+  readonly ComponentType: string
+  readonly Year: number
+  readonly Month: number
+  readonly Value: number
 }
 
 export interface CreateComponentValuePayload {
   readonly InitiativeId: number
-  readonly ComponentId: string
-  readonly MonthRef: string
-  readonly Scenario: string
-  readonly BaseValue: number
-  readonly Direction: number
+  readonly ComponentType: string
+  readonly Year: number
+  readonly Month: number
+  readonly Value: number
 }
 
 const withEntityType = <TPayload extends object>(payload: TPayload): TPayload | (TPayload & { __metadata: { type: string } }) => {

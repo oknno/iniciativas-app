@@ -8,7 +8,7 @@ import { asFormulaCode } from '../../../domain/catalogs/value-objects/FormulaCod
 import { asKpiCode } from '../../../domain/catalogs/value-objects/KpiCode'
 import { asInitiativeId, type InitiativeId } from '../../../domain/initiatives/value-objects/InitiativeId'
 
-export const initiativeIdFromSharePointCalculation = (id: number): InitiativeId => asInitiativeId(String(id))
+export const initiativeIdFromSharePointCalculation = (id: number | string): InitiativeId => asInitiativeId(String(id))
 
 export const initiativeIdToSharePointCalculation = (initiativeId: InitiativeId): number => {
   const parsed = Number(initiativeId)

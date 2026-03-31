@@ -11,35 +11,25 @@ interface SharePointListResponse<TItem> {
 export interface InitiativeListItem {
   readonly Id: number
   readonly Title: string
-  readonly Code: string
-  readonly Description?: string
-  readonly Owner: string
+  readonly Unidade: string
+  readonly Responsavel: string
   readonly Stage: string
   readonly Status: string
-  readonly Scenario: string
-  readonly ImplementationCost: number
-  readonly StartMonthRef: string
-  readonly EndMonthRef: string
   readonly Created?: string
   readonly Modified?: string
 }
 
 export interface CreateInitiativePayload {
   readonly Title: string
-  readonly Code: string
-  readonly Description?: string
-  readonly Owner: string
+  readonly Unidade: string
+  readonly Responsavel: string
   readonly Stage: string
   readonly Status: string
-  readonly Scenario: string
-  readonly ImplementationCost: number
-  readonly StartMonthRef: string
-  readonly EndMonthRef: string
 }
 
 export type UpdateInitiativePayload = Partial<CreateInitiativePayload>
 
-const select = 'Id,Title,Unidade,Responsavel,Stage,Status'
+const select = 'Id,Title,Unidade,Responsavel,Stage,Status,Created,Modified'
 
 const withEntityType = <TPayload extends object>(payload: TPayload): TPayload | (TPayload & { __metadata: { type: string } }) => {
   const entityType = sharePointContext.listItemEntityTypeNames[LIST_TITLE]

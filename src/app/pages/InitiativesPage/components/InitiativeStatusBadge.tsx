@@ -1,20 +1,18 @@
 import { Badge } from '../../../components/ui/Badge'
-import type { InitiativeStatus } from '../../../../domain/initiatives/entities/InitiativeStatus'
 
 type InitiativeStatusBadgeProps = {
-  status: InitiativeStatus
+  status: string
 }
 
-const statusLabel: Record<InitiativeStatus, string> = {
-  DRAFT: 'Draft',
-  IN_REVIEW: 'In Review',
-  APPROVED: 'Approved',
-  REJECTED: 'Rejected',
-}
+const toLabel = (status: string): string =>
+  status
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/(^|\s)\S/g, (match) => match.toUpperCase())
 
 export function InitiativeStatusBadge({ status }: InitiativeStatusBadgeProps) {
   const tone =
     status === 'APPROVED' ? 'success' : status === 'REJECTED' ? 'danger' : status === 'IN_REVIEW' ? 'warning' : 'info'
 
-  return <Badge tone={tone}>{statusLabel[status]}</Badge>
+  return <Badge tone={tone}>{toLabel(status)}</Badge>
 }

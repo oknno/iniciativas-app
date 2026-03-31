@@ -18,21 +18,11 @@ const compactCurrency = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 1,
 })
 
-const stageLabel: Record<InitiativeListItemDto['stage'], string> = {
-  DRAFTING: 'Drafting',
-  ASSESSMENT: 'Assessment',
-  VALIDATION: 'Validation',
-  GOVERNANCE_GATE: 'Governance Gate',
-}
+const toStageLabel = (stage: string): string => stage.replace(/_/g, ' ')
 
 export function InitiativesTableSection({ items, selectedId, onSelect }: InitiativesTableSectionProps) {
   if (items.length === 0) {
-    return (
-      <StateMessage
-        title="No initiatives available"
-        description="Use New Initiative to create your first CAPEX initiative."
-      />
-    )
+    return <StateMessage title="No initiatives available" description="Use New Initiative to create your first CAPEX initiative." />
   }
 
   return (
@@ -80,9 +70,9 @@ export function InitiativesTableSection({ items, selectedId, onSelect }: Initiat
           >
             <div>
               <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: tokens.colors.textPrimary }}>{item.title}</p>
-              <p style={{ margin: '2px 0 0', fontSize: 12, color: tokens.colors.textMuted }}>{stageLabel[item.stage]}</p>
+              <p style={{ margin: '2px 0 0', fontSize: 12, color: tokens.colors.textMuted }}>{toStageLabel(item.stage)}</p>
             </div>
-            <span style={{ fontSize: 13, color: tokens.colors.textSecondary }}>{item.owner}</span>
+            <span style={{ fontSize: 13, color: tokens.colors.textSecondary }}>{item.responsavel}</span>
             <InitiativeStatusBadge status={item.status} />
             <span style={{ fontSize: 13, color: tokens.colors.textSecondary }}>{compactCurrency.format(item.annualGain)}</span>
           </button>

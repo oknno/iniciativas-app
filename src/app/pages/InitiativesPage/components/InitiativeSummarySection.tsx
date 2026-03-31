@@ -12,19 +12,6 @@ type InitiativeSummarySectionProps = {
   item: InitiativeDetailDto | undefined
 }
 
-const stageLabel: Record<InitiativeDetailDto['stage'], string> = {
-  DRAFTING: 'Drafting',
-  ASSESSMENT: 'Assessment',
-  VALIDATION: 'Validation',
-  GOVERNANCE_GATE: 'Governance Gate',
-}
-
-const scenarioLabel: Record<InitiativeDetailDto['scenario'], string> = {
-  BASE: 'Base',
-  BEST: 'Best',
-  WORST: 'Worst',
-}
-
 export function InitiativeSummarySection({ item }: InitiativeSummarySectionProps) {
   const [annualCalculatedGain, setAnnualCalculatedGain] = useState<number>(0)
   const [kpiRowsCount, setKpiRowsCount] = useState<number>(0)
@@ -42,7 +29,7 @@ export function InitiativeSummarySection({ item }: InitiativeSummarySectionProps
       setAnnualCalculatedGain(results.reduce((sum, result) => sum + result.gainValue, 0))
     })
 
-    void getInitiativeValues(item.id, 2026, item.scenario).then(({ kpiValues, componentValues }) => {
+    void getInitiativeValues(item.id, 2026, 'BASE').then(({ kpiValues, componentValues }) => {
       setKpiRowsCount(kpiValues.length)
       setFixedRowsCount(componentValues.length)
     })
@@ -59,20 +46,14 @@ export function InitiativeSummarySection({ item }: InitiativeSummarySectionProps
           <div>
             <h2 style={{ margin: 0, fontSize: 20 }}>{item.title}</h2>
             <p style={{ margin: '6px 0 0', color: tokens.colors.textSecondary, fontSize: 14 }}>
-              Code: {item.code} • Responsible: {item.owner}
+              Unidade: {item.unidade} • Responsible: {item.responsavel}
             </p>
           </div>
           <InitiativeStatusBadge status={item.status} />
         </div>
         <p style={{ margin: '12px 0 0', fontSize: 14, color: tokens.colors.textSecondary }}>
-          Stage: <strong style={{ color: tokens.colors.textPrimary }}>{stageLabel[item.stage]}</strong>
+          Stage: <strong style={{ color: tokens.colors.textPrimary }}>{item.stage}</strong>
         </p>
-        <p style={{ margin: '6px 0 0', fontSize: 14, color: tokens.colors.textSecondary }}>
-          Scenario: <strong style={{ color: tokens.colors.textPrimary }}>{scenarioLabel[item.scenario]}</strong>
-        </p>
-        {item.description ? (
-          <p style={{ margin: '8px 0 0', fontSize: 14, color: tokens.colors.textSecondary }}>{item.description}</p>
-        ) : null}
       </Card>
 
       <InitiativeMetricsPanel
