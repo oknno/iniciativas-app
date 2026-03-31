@@ -16,4 +16,17 @@ export const styles: Record<string, CSSProperties> = {
     gap: uiTokens.spacing.md,
     alignItems: 'start',
   },
+  leftColumn: {
+    minWidth: 0,
+  },
+  rightColumn: {
+    minWidth: 0,
+    alignSelf: 'start',
+  },
+  summaryPanel: {
+    border: `1px solid ${uiTokens.colors.border}`,
+    borderRadius: 10,
+    background: uiTokens.colors.surface,
+    padding: uiTokens.spacing.md,
+  },
 }
