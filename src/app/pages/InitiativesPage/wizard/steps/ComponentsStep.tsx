@@ -37,15 +37,15 @@ export function ComponentsStep({
   )
 
   return (
-    <Card style={{ borderColor: uiTokens.colors.borderStrong }}>
+    <Card style={{ borderColor: uiTokens.colors.borderStrong, padding: uiTokens.spacing.md }}>
       <Section
-        title="3. Informação Operacional"
-        subtitle="Configure the value components for this initiative. Direction and calculation type are automatically inferred from the selected component type."
+        title="2. Configuração dos Componentes"
+        subtitle="Defina os componentes de valor utilizados na iniciativa. Direção e tipo de cálculo são inferidos do componente selecionado."
       >
-        {isLoading ? (
-          <p style={{ margin: 0, ...uiTokens.typography.body, color: uiTokens.colors.textMuted }}>Loading initiative components...</p>
-        ) : (
-          <div style={{ border: `1px solid ${uiTokens.colors.border}`, borderRadius: uiTokens.radius.sm, padding: uiTokens.spacing.sm }}>
+        <div style={{ border: `1px solid ${uiTokens.colors.border}`, borderRadius: uiTokens.radius.md, padding: uiTokens.spacing.md }}>
+          {isLoading ? (
+            <p style={{ margin: 0, ...uiTokens.typography.body, color: uiTokens.colors.textMuted }}>Loading initiative components...</p>
+          ) : (
             <ComponentConfigGrid
               components={components}
               componentCatalog={componentCatalog}
@@ -57,8 +57,8 @@ export function ComponentsStep({
               onRemoveComponent={onRemoveComponent}
               onUpdateComponent={onUpdateComponent}
             />
-          </div>
-        )}
+          )}
+        </div>
       </Section>
     </Card>
   )
