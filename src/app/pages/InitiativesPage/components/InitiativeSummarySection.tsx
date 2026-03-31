@@ -1,4 +1,3 @@
-import { Card } from '../../../components/ui/Card'
 import { Field } from '../../../components/ui/Field'
 import { StateMessage } from '../../../components/ui/StateMessage'
 import { uiTokens } from '../../../components/ui/tokens'
@@ -6,48 +5,125 @@ import type { InitiativeDetailDto } from '../../../../application/dto/initiative
 import { InitiativeStatusBadge } from './InitiativeStatusBadge'
 
 type InitiativeSummarySectionProps = {
-  item: InitiativeDetailDto | undefined
+  selectedId: string | null
+  selectedFull: InitiativeDetailDto | undefined
+  selectedFullState: 'idle' | 'loading' | 'error' | 'loaded'
 }
 
 const sectionDivider = {
   borderTop: `1px solid ${uiTokens.colors.border}`,
-  paddingTop: uiTokens.spacing.md,
+  paddingTop: 10,
 }
 
-export function InitiativeSummarySection({ item }: InitiativeSummarySectionProps) {
-  if (!item) {
+const styles = {
+  summaryHeader: {
+    marginBottom: 10,
+  },
+  summaryTitle: {
+    margin: 0,
+    ...uiTokens.typography.subtitle,
+    fontWeight: 700,
+    color: uiTokens.colors.textPrimary,
+  },
+  summaryContent: {
+    display: 'grid',
+    gap: uiTokens.spacing.md,
+  },
+  summaryTitleRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: uiTokens.spacing.sm,
+  },
+  initiativeTitle: {
+    margin: 0,
+    ...uiTokens.typography.body,
+    fontWeight: 700,
+    color: uiTokens.colors.textPrimary,
+    whiteSpace: 'nowrap' as const,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  sapCodeText: {
+    margin: 0,
+    ...uiTokens.typography.caption,
+    color: uiTokens.colors.textSecondary,
+  },
+  fieldGrid: {
+    ...sectionDivider,
+    display: 'grid',
+    gap: 8,
+  },
+  longTextWrap: {
+    ...sectionDivider,
+    display: 'grid',
+    gap: uiTokens.spacing.xs,
+  },
+  sectionTitle: {
+    margin: 0,
+    ...uiTokens.typography.caption,
+    color: uiTokens.colors.textMuted,
+  },
+  longText: {
+    margin: 0,
+    ...uiTokens.typography.body,
+    color: uiTokens.colors.textSecondary,
+    whiteSpace: 'pre-wrap' as const,
+  },
+}
+
+export function InitiativeSummarySection({ selectedId, selectedFull, selectedFullState }: InitiativeSummarySectionProps) {
+  if (!selectedId || selectedFullState === 'idle') {
+    return <StateMessage title="No initiative selected" description="Select one item to view its summary." />
+  }
+
+  if (selectedFullState === 'loading') {
+    return <StateMessage title="Loading initiative" description="Please wait while initiative data is fetched." />
+  }
+
+  if (selectedFullState === 'error') {
+    return <StateMessage title="Unable to load initiative" description="Try selecting the initiative again." />
+  }
+
+  if (!selectedFull) {
     return <StateMessage title="No initiative selected" description="Select one item to view its summary." />
   }
 
   return (
-    <Card>
-      <div style={{ display: 'grid', gap: uiTokens.spacing.md }}>
-        <h3 style={{ margin: 0, ...uiTokens.typography.subtitle, color: uiTokens.colors.textPrimary }}>Resumo</h3>
+    <>
+      <header style={styles.summaryHeader}>
+        <h3 style={styles.summaryTitle}>Resumo</h3>
+      </header>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: uiTokens.spacing.sm }}>
-          <h4 style={{ margin: 0, ...uiTokens.typography.body, color: uiTokens.colors.textPrimary }}>{item.title}</h4>
-          <InitiativeStatusBadge status={item.status} />
+      <div style={styles.summaryContent}>
+        <div style={styles.summaryTitleRow}>
+          <h4 style={styles.initiativeTitle} title={selectedFull.title}>
+            {selectedFull.title}
+          </h4>
+          <InitiativeStatusBadge status={selectedFull.status} />
         </div>
 
-        <p style={{ margin: 0, ...uiTokens.typography.caption, color: uiTokens.colors.textSecondary }}>
-          codigoSAP: Pendente
-        </p>
+        <p style={styles.sapCodeText}>codigoSAP: Pendente</p>
 
-        <div style={{ ...sectionDivider, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: uiTokens.spacing.sm }}>
-          <Field label="ID" value={item.id} />
-          <Field label="Unidade" value={item.unidade || '-'} />
-          <Field label="Responsável" value={item.responsavel || '-'} />
-          <Field label="Stage" value={item.stage || '-'} />
+        <div style={styles.fieldGrid}>
+          <Field layout="inline" label="Unidade" value={selectedFull.unidade || '-'} />
+          <Field layout="inline" label="Responsável" value={selectedFull.responsavel || '-'} />
+          <Field layout="inline" label="Stage" value={selectedFull.stage || '-'} />
+          <Field layout="inline" label="Status" value={selectedFull.status || '-'} />
+          <Field layout="inline" label="ID" value={selectedFull.id || '-'} />
+          <Field layout="inline" label="Ganho anual" value={selectedFull.annualGain ?? '-'} />
         </div>
 
-        <div style={sectionDivider}>
-          <Field label="Business Need" value="-" />
+        <div style={styles.longTextWrap}>
+          <p style={styles.sectionTitle}>Business Need</p>
+          <p style={styles.longText}>-</p>
         </div>
 
-        <div style={sectionDivider}>
-          <Field label="Proposed Solution" value="-" />
+        <div style={styles.longTextWrap}>
+          <p style={styles.sectionTitle}>Proposed Solution</p>
+          <p style={styles.longText}>-</p>
         </div>
       </div>
-    </Card>
+    </>
   )
 }

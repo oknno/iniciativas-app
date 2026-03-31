@@ -15,7 +15,8 @@ const initialFilters: CommandBarFilters = {
 }
 
 export function InitiativesPage() {
-  const { items, selectedId, selectedItemDetail, isWizardOpen, wizardMode, isSaving, actions } = useInitiativesPage()
+  const { items, selectedId, selectedItemDetail, selectedItemDetailState, isWizardOpen, wizardMode, isSaving, actions } =
+    useInitiativesPage()
   const [filters, setFilters] = useState<CommandBarFilters>(initialFilters)
 
   return (
@@ -55,7 +56,11 @@ export function InitiativesPage() {
 
           <section style={styles.mainGrid}>
             <InitiativesTableSection items={items} selectedId={selectedId} onSelect={actions.select} />
-            <InitiativeSummarySection item={selectedItemDetail} />
+            <InitiativeSummarySection
+              selectedId={selectedId ?? null}
+              selectedFull={selectedItemDetail}
+              selectedFullState={selectedItemDetailState}
+            />
           </section>
         </div>
       </main>
