@@ -12,9 +12,14 @@ type WizardUiProps = {
   onSelectStep: (stepIndex: number) => void
   onBack: () => void
   onNext: () => void
+  nextLabel?: string
+  backLabel?: string
+  disableNext?: boolean
   onSave: () => void
   saveLabel: string
   disableSave?: boolean
+  footerStatus: string
+  footerStatusTone?: 'info' | 'success' | 'warning' | 'error'
   onClose: () => void
 }
 
@@ -76,12 +81,26 @@ export function WizardUi({
   onSelectStep,
   onBack,
   onNext,
+  nextLabel,
+  backLabel,
+  disableNext,
   onSave,
   saveLabel,
   disableSave,
+  footerStatus,
+  footerStatusTone = 'info',
   onClose,
 }: WizardUiProps) {
   const activeStep = steps[activeStepIndex]
+
+  const footerStatusColor =
+    footerStatusTone === 'success'
+      ? '#166534'
+      : footerStatusTone === 'warning'
+        ? '#92400e'
+        : footerStatusTone === 'error'
+          ? uiTokens.colors.dangerText
+          : uiTokens.colors.textMuted
 
   return (
     <Card
@@ -189,7 +208,7 @@ export function WizardUi({
         </div>
 
         <span style={{ ...uiTokens.typography.caption, color: uiTokens.colors.textMuted, whiteSpace: 'nowrap' }}>
-          Step {activeStepIndex + 1} of {steps.length}
+          Etapa {activeStepIndex + 1} de {steps.length}
         </span>
       </nav>
 
@@ -214,16 +233,16 @@ export function WizardUi({
           background: uiTokens.colors.surface,
         }}
       >
-        <span style={{ ...uiTokens.typography.caption, color: uiTokens.colors.textMuted }}>
-          {activeStep ? `Working on: ${activeStep.label}` : 'Wizard ready'}
+        <span style={{ ...uiTokens.typography.caption, color: footerStatusColor }}>
+          {footerStatus}
         </span>
 
         <div style={{ display: 'flex', gap: uiTokens.spacing.sm }}>
           <Button onClick={onBack} disabled={activeStepIndex === 0}>
-            Back
+            {backLabel ?? 'Voltar'}
           </Button>
-          <Button onClick={onNext} disabled={activeStepIndex === steps.length - 1}>
-            Next
+          <Button onClick={onNext} disabled={activeStepIndex === steps.length - 1 || disableNext}>
+            {nextLabel ?? 'Próximo'}
           </Button>
           <Button onClick={onSave} tone="primary" disabled={disableSave}>
             {saveLabel}

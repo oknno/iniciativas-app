@@ -11,7 +11,11 @@ type KpiValuesGridProps = {
 
 export function KpiValuesGrid({ rows, valuesByRow, onValueChange }: KpiValuesGridProps) {
   if (rows.length === 0) {
-    return <div style={{ fontSize: 13, color: tokens.colors.textSecondary }}>No KPI-based components configured for this initiative.</div>
+    return (
+      <div style={{ fontSize: 13, color: tokens.colors.textSecondary }}>
+        Nenhum componente baseado em KPI configurado. Volte à etapa anterior para adicionar um componente KPI.
+      </div>
+    )
   }
 
   return (

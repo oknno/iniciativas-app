@@ -12,16 +12,24 @@ export function ReviewCalculationPanel({ calculation, mode }: ReviewCalculationP
   const annualGain = calculation.results.reduce((sum, item) => sum + item.gainValue, 0)
 
   if (mode === 'monthly') {
+    if (calculation.results.length === 0) {
+      return (
+        <div style={{ fontSize: 13, color: tokens.colors.textSecondary }}>
+          Resultado mensal ainda não disponível. Preencha as etapas anteriores para calcular o preview.
+        </div>
+      )
+    }
+
     return (
       <div style={{ border: `1px solid ${tokens.colors.border}`, borderRadius: tokens.radius.md, overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
             <tr style={{ background: tokens.colors.surfaceMuted }}>
               <th align="left" style={headerCellStyle}>
-                Month
+                Mês
               </th>
               <th align="right" style={headerCellStyle}>
-                Gain
+                Ganho
               </th>
             </tr>
           </thead>
@@ -33,11 +41,19 @@ export function ReviewCalculationPanel({ calculation, mode }: ReviewCalculationP
               </tr>
             ))}
             <tr style={{ background: '#f8fafc' }}>
-              <td style={{ ...bodyCellStyle, fontWeight: 700 }}>Total annual gain</td>
+              <td style={{ ...bodyCellStyle, fontWeight: 700 }}>Ganho anual total</td>
               <td style={{ ...bodyCellStyle, textAlign: 'right', fontWeight: 700 }}>{currency.format(annualGain)}</td>
             </tr>
           </tbody>
         </table>
+      </div>
+    )
+  }
+
+  if (calculation.details.length === 0) {
+    return (
+      <div style={{ fontSize: 13, color: tokens.colors.textSecondary }}>
+        Detalhamento indisponível no momento. O cálculo será exibido após atualização do preview.
       </div>
     )
   }
@@ -47,12 +63,12 @@ export function ReviewCalculationPanel({ calculation, mode }: ReviewCalculationP
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 860 }}>
         <thead>
           <tr style={{ background: tokens.colors.surfaceMuted }}>
-            <th align="left" style={headerCellStyle}>Month</th>
-            <th align="left" style={headerCellStyle}>Component</th>
-            <th align="left" style={headerCellStyle}>Formula</th>
-            <th align="right" style={headerCellStyle}>Raw</th>
-            <th align="right" style={headerCellStyle}>Signed</th>
-            <th align="left" style={headerCellStyle}>Explanation</th>
+            <th align="left" style={headerCellStyle}>Mês</th>
+            <th align="left" style={headerCellStyle}>Componente</th>
+            <th align="left" style={headerCellStyle}>Fórmula</th>
+            <th align="right" style={headerCellStyle}>Bruto</th>
+            <th align="right" style={headerCellStyle}>Com sinal</th>
+            <th align="left" style={headerCellStyle}>Explicação</th>
           </tr>
         </thead>
         <tbody>

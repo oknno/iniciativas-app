@@ -90,12 +90,17 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
   const [form, setForm] = useState<InitiativeFormState>(getInitialFormState(selectedInitiative))
   const [components, setComponents] = useState<readonly InitiativeComponentDraftDto[]>([])
   const [isLoadingComponents, setIsLoadingComponents] = useState<boolean>(false)
+  const [isLoadingValues, setIsLoadingValues] = useState<boolean>(false)
   const [valuesYear] = useState<number>(DEFAULT_VALUES_YEAR)
   const [valuesScenario] = useState<typeof DEFAULT_VALUES_SCENARIO>(DEFAULT_VALUES_SCENARIO)
   const [kpiValuesByRow, setKpiValuesByRow] = useState<Readonly<Record<string, MonthlyInputMap>>>({})
   const [fixedValuesByRow, setFixedValuesByRow] = useState<Readonly<Record<string, MonthlyInputMap>>>({})
   const [catalogs, setCatalogs] = useState<CatalogsDtoBundle>(emptyCatalogs)
   const [isLoadingCatalogs, setIsLoadingCatalogs] = useState<boolean>(false)
+  const [isPreviewCalculating, setIsPreviewCalculating] = useState<boolean>(false)
+  const [componentsLoadError, setComponentsLoadError] = useState<string | null>(null)
+  const [valuesLoadError, setValuesLoadError] = useState<string | null>(null)
+  const [previewError, setPreviewError] = useState<string | null>(null)
   const [calculationPreview, setCalculationPreview] = useState<CalculateInitiativeResultDto>({
     initiativeId: asInitiativeId('INIT-NEW'),
     year: valuesYear,
@@ -142,11 +147,13 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
     }
 
     setIsLoadingComponents(true)
+    setComponentsLoadError(null)
     void getInitiativeComponents(selectedInitiative.id, catalogs.componentCatalog)
       .then(setComponents)
       .catch((error) => {
         console.error('Failed to load initiative components from SharePoint.', error)
         setComponents([])
+        setComponentsLoadError('Não foi possível carregar os componentes da iniciativa.')
       })
       .finally(() => setIsLoadingComponents(false))
   }, [catalogs.componentCatalog, isOpen, mode, selectedInitiative])
@@ -167,6 +174,8 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
     const kpiRows = buildKpiValueGridRows(components, catalogs.componentCatalog, catalogs.kpiCatalog)
     const fixedRows = buildFixedValueGridRows(components, catalogs.componentCatalog)
 
+    setIsLoadingValues(true)
+    setValuesLoadError(null)
     void getInitiativeValues(selectedInitiative.id, valuesYear, valuesScenario)
       .then(({ kpiValues, componentValues }) => {
         setKpiValuesByRow(toKpiValueDraftMap(kpiValues, kpiRows, valuesYear))
@@ -176,7 +185,9 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
         console.error('Failed to load initiative values from SharePoint.', error)
         setKpiValuesByRow({})
         setFixedValuesByRow({})
+        setValuesLoadError('Não foi possível carregar os valores mensais da iniciativa.')
       })
+      .finally(() => setIsLoadingValues(false))
   }, [
     catalogs.componentCatalog,
     catalogs.kpiCatalog,
@@ -194,7 +205,7 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
     () => [
       {
         id: 'initiative',
-        label: 'Initiative',
+        label: 'Iniciativa',
         render: () => (
           <InitiativeStep
             form={form}
@@ -208,7 +219,7 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
       },
       {
         id: 'components',
-        label: 'Components',
+        label: 'Componentes',
         render: () => (
           <ComponentsStep
             components={components}
@@ -217,6 +228,10 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
             conversionCatalog={catalogs.conversionCatalog}
             formulaCatalog={catalogs.formulaCatalog}
             isLoading={isLoadingComponents || isLoadingCatalogs}
+            loadingMessage={
+              isLoadingCatalogs ? 'Carregando catálogos da iniciativa...' : 'Carregando componentes da iniciativa...'
+            }
+            loadErrorMessage={componentsLoadError}
             onAddComponent={() =>
               setComponents((current) => [
                 ...current,
@@ -264,7 +279,7 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
       },
       {
         id: 'values',
-        label: 'Values',
+        label: 'Valores',
         render: () => (
           <ValuesStep
             components={components}
@@ -274,6 +289,10 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
             conversionValues={catalogs.conversionValues}
             year={valuesYear}
             scenario={valuesScenario}
+            isLoadingValues={isLoadingValues}
+            valuesLoadErrorMessage={valuesLoadError}
+            isPreviewCalculating={isPreviewCalculating}
+            previewErrorMessage={previewError}
             kpiValuesByRow={kpiValuesByRow}
             fixedValuesByRow={fixedValuesByRow}
             onKpiValueChange={(rowSignature: string, month: MonthNumber, value: string) =>
@@ -299,11 +318,13 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
       },
       {
         id: 'review',
-        label: 'Review',
+        label: 'Revisão',
         render: () => (
           <ReviewStep
             selectedInitiative={selectedInitiative}
             calculation={calculationPreview}
+            isCalculating={isPreviewCalculating}
+            previewErrorMessage={previewError}
             componentsCount={components.length}
             kpiRowsCount={buildKpiValueGridRows(components, catalogs.componentCatalog, catalogs.kpiCatalog).length}
             fixedRowsCount={buildFixedValueGridRows(components, catalogs.componentCatalog).length}
@@ -322,10 +343,16 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
       fixedValuesByRow,
       form,
       isLoadingComponents,
+      isLoadingCatalogs,
+      isLoadingValues,
+      isPreviewCalculating,
       kpiValuesByRow,
+      componentsLoadError,
+      previewError,
       selectedInitiative,
       valuesScenario,
       valuesYear,
+      valuesLoadError,
     ],
   )
 
@@ -350,6 +377,8 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
     const kpiRows = buildKpiValueGridRows(components, catalogs.componentCatalog, catalogs.kpiCatalog)
     const fixedRows = buildFixedValueGridRows(components, catalogs.componentCatalog)
 
+    setIsPreviewCalculating(true)
+    setPreviewError(null)
     void previewInitiativeCalculation({
       initiativeId: effectiveInitiativeId,
       year: valuesYear,
@@ -362,7 +391,9 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
       .then(setCalculationPreview)
       .catch((error) => {
         console.error('Failed to preview initiative calculation.', error)
+        setPreviewError('Não foi possível atualizar o preview de cálculo.')
       })
+      .finally(() => setIsPreviewCalculating(false))
   }, [
     catalogs.componentCatalog,
     catalogs.conversionValues,
@@ -415,8 +446,38 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
   const hasInvalidComponent = components.some(
     (component) => getInitiativeComponentDraftErrors(component, catalogs.componentCatalog).length > 0,
   )
+  const isInitiativeInfoInvalid = form.title.trim().length === 0 || form.unidade.trim().length === 0 || form.responsavel.trim().length === 0
+  const canMoveToNextStep = !isLoadingCatalogs && !isLoadingComponents && !isLoadingValues && !isPreviewCalculating
+  const hasBlockingIssues = isInitiativeInfoInvalid || hasInvalidComponent
   const isSaveDisabled =
-    form.title.trim().length === 0 || form.unidade.trim().length === 0 || form.responsavel.trim().length === 0 || isSaving || hasInvalidComponent
+    isInitiativeInfoInvalid || isSaving || hasInvalidComponent
+
+  const footerStatus = isSaving
+    ? 'Salvando iniciativa...'
+    : isLoadingComponents
+      ? 'Carregando componentes da iniciativa...'
+      : isLoadingValues
+        ? 'Buscando valores mensais...'
+        : isPreviewCalculating
+          ? 'Atualizando resultado...'
+          : componentsLoadError ?? valuesLoadError ?? previewError ?? (
+            hasBlockingIssues
+              ? 'Existem pendências antes de continuar.'
+              : calculationPreview.results.length > 0
+                ? 'Resultado calculado com sucesso.'
+                : 'Rascunho ainda não salvo.'
+          )
+
+  const footerStatusTone: 'info' | 'success' | 'warning' | 'error' =
+    componentsLoadError || valuesLoadError || previewError
+      ? 'error'
+      : isSaving || isLoadingComponents || isLoadingValues || isPreviewCalculating
+        ? 'info'
+        : hasBlockingIssues
+          ? 'warning'
+          : calculationPreview.results.length > 0
+            ? 'success'
+            : 'info'
 
   return (
     <div
@@ -440,16 +501,21 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
         style={{ width: '100%', display: 'grid', placeItems: 'center' }}
       >
         <WizardUi
-          title={mode === 'create' ? 'Create Initiative' : 'Edit Initiative'}
-          subtitle="Use the wizard to maintain initiative setup data."
+          title={mode === 'create' ? 'Nova Iniciativa' : 'Editar Iniciativa'}
+          subtitle="Preencha as etapas para configurar, validar e salvar a iniciativa."
           steps={steps}
           activeStepIndex={activeStepIndex}
           onSelectStep={setActiveStepIndex}
           onBack={() => setActiveStepIndex((current) => Math.max(current - 1, 0))}
           onNext={() => setActiveStepIndex((current) => Math.min(current + 1, steps.length - 1))}
+          disableNext={!canMoveToNextStep}
+          nextLabel={!canMoveToNextStep ? 'Aguarde...' : activeStepIndex === steps.length - 2 ? 'Revisar' : 'Próximo'}
+          backLabel="Voltar"
           onSave={handleSave}
-          saveLabel={isSaving ? 'Saving...' : mode === 'create' ? 'Create' : 'Save Changes'}
+          saveLabel={isSaving ? 'Salvando iniciativa...' : 'Salvar rascunho'}
           disableSave={isSaveDisabled}
+          footerStatus={footerStatus}
+          footerStatusTone={footerStatusTone}
           onClose={handleClose}
         />
       </div>

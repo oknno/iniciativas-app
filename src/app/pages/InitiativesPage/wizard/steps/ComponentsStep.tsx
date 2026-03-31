@@ -16,6 +16,8 @@ type ComponentsStepProps = {
   conversionCatalog: readonly ConversionMasterDto[]
   formulaCatalog: readonly FormulaMasterDto[]
   isLoading: boolean
+  loadingMessage?: string
+  loadErrorMessage?: string | null
   onAddComponent: () => void
   onRemoveComponent: (index: number) => void
   onUpdateComponent: (index: number, patch: Partial<InitiativeComponentDraftDto>) => void
@@ -28,6 +30,8 @@ export function ComponentsStep({
   conversionCatalog,
   formulaCatalog,
   isLoading,
+  loadingMessage,
+  loadErrorMessage,
   onAddComponent,
   onRemoveComponent,
   onUpdateComponent,
@@ -44,19 +48,28 @@ export function ComponentsStep({
       >
         <div style={{ border: `1px solid ${uiTokens.colors.border}`, borderRadius: uiTokens.radius.md, padding: uiTokens.spacing.md }}>
           {isLoading ? (
-            <p style={{ margin: 0, ...uiTokens.typography.body, color: uiTokens.colors.textMuted }}>Loading initiative components...</p>
+            <p style={{ margin: 0, ...uiTokens.typography.body, color: uiTokens.colors.textMuted }}>
+              {loadingMessage ?? 'Carregando componentes da iniciativa...'}
+            </p>
           ) : (
-            <ComponentConfigGrid
-              components={components}
-              componentCatalog={componentCatalog}
-              kpiCatalog={kpiCatalog}
-              conversionCatalog={conversionCatalog}
-              formulaCatalog={formulaCatalog}
-              validationByRow={validationByRow}
-              onAddComponent={onAddComponent}
-              onRemoveComponent={onRemoveComponent}
-              onUpdateComponent={onUpdateComponent}
-            />
+            <>
+              {loadErrorMessage ? (
+                <p style={{ margin: `0 0 ${uiTokens.spacing.sm}px`, ...uiTokens.typography.caption, color: uiTokens.colors.dangerText }}>
+                  {loadErrorMessage}
+                </p>
+              ) : null}
+              <ComponentConfigGrid
+                components={components}
+                componentCatalog={componentCatalog}
+                kpiCatalog={kpiCatalog}
+                conversionCatalog={conversionCatalog}
+                formulaCatalog={formulaCatalog}
+                validationByRow={validationByRow}
+                onAddComponent={onAddComponent}
+                onRemoveComponent={onRemoveComponent}
+                onUpdateComponent={onUpdateComponent}
+              />
+            </>
           )}
         </div>
       </Section>

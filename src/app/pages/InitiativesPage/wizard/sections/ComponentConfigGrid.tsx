@@ -20,6 +20,26 @@ type ComponentConfigGridProps = {
   onUpdateComponent: (index: number, patch: Partial<InitiativeComponentDraftDto>) => void
 }
 
+const toFriendlyValidationMessage = (message: string): string => {
+  if (message === 'Component type is required.') {
+    return 'Selecione o componente.'
+  }
+
+  if (message === 'Formula is required.') {
+    return 'Selecione a fórmula.'
+  }
+
+  if (message === 'KPI is required for KPI based components.') {
+    return 'Selecione o KPI do componente.'
+  }
+
+  if (message === 'Conversion is required for KPI based components.') {
+    return 'Selecione a conversão do componente.'
+  }
+
+  return 'Revise a configuração deste componente.'
+}
+
 const cellInputStyle = {
   width: '100%',
   border: `1px solid ${tokens.colors.borderStrong}`,
@@ -66,11 +86,11 @@ export function ComponentConfigGrid({
             background: '#f8fafc',
           }}
         >
-          No components configured yet. Add at least one component to start the value engine setup.
+          Nenhum componente configurado. Adicione pelo menos um componente para continuar.
         </div>
         <div>
           <button type="button" onClick={onAddComponent} style={actionButtonStyle}>
-            Add component
+            Adicionar componente
           </button>
         </div>
       </div>
@@ -95,12 +115,12 @@ export function ComponentConfigGrid({
             letterSpacing: 0.3,
           }}
         >
-          <span>Component Type</span>
-          <span>Direction</span>
-          <span>Calc Type</span>
+          <span>Componente</span>
+          <span>Direção</span>
+          <span>Tipo cálculo</span>
           <span>KPI</span>
-          <span>Conversion</span>
-          <span>Formula</span>
+          <span>Conversão</span>
+          <span>Fórmula</span>
           <span />
         </div>
 
@@ -129,7 +149,7 @@ export function ComponentConfigGrid({
                   value={component.componentCode}
                   onChange={(event) => onUpdateComponent(index, { componentCode: event.target.value })}
                 >
-                  <option value="">Select component</option>
+                  <option value="">Selecione um componente</option>
                   {componentCatalog.map((catalogItem) => (
                     <option key={catalogItem.code} value={catalogItem.code}>
                       {catalogItem.name}
@@ -137,16 +157,18 @@ export function ComponentConfigGrid({
                   ))}
                 </select>
                 {validationErrors.length > 0 ? (
-                  <span style={{ fontSize: 12, color: tokens.colors.dangerText }}>{validationErrors[0]}</span>
+                  <span style={{ fontSize: 12, color: tokens.colors.dangerText }}>
+                    {toFriendlyValidationMessage(validationErrors[0])}
+                  </span>
                 ) : null}
               </div>
 
               <span style={{ fontSize: 13, color: tokens.colors.textSecondary }}>
-                {selectedCatalog ? (selectedCatalog.defaultDirection === 1 ? 'Positive' : 'Negative') : '-'}
+                {selectedCatalog ? (selectedCatalog.defaultDirection === 1 ? 'Positiva' : 'Negativa') : '-'}
               </span>
 
               <span style={{ fontSize: 13, color: tokens.colors.textSecondary }}>
-                {selectedCatalog ? (selectedCatalog.defaultCalculationType === 'KPI_BASED' ? 'KPI Based' : 'Fixed') : '-'}
+                {selectedCatalog ? (selectedCatalog.defaultCalculationType === 'KPI_BASED' ? 'KPI' : 'Fixo') : '-'}
               </span>
 
               <select
@@ -155,7 +177,7 @@ export function ComponentConfigGrid({
                 onChange={(event) => onUpdateComponent(index, { kpiCode: event.target.value ? asKpiCode(event.target.value) : undefined })}
                 disabled={!isKpiBased}
               >
-                <option value="">Select KPI</option>
+                <option value="">Selecione um KPI</option>
                 {kpiCatalog.map((kpi) => (
                   <option key={kpi.code} value={kpi.code}>
                     {kpi.name}
@@ -169,7 +191,7 @@ export function ComponentConfigGrid({
                 onChange={(event) => onUpdateComponent(index, { conversionCode: event.target.value ? asConversionCode(event.target.value) : undefined })}
                 disabled={!isKpiBased}
               >
-                <option value="">Select conversion</option>
+                <option value="">Selecione uma conversão</option>
                 {conversionCatalog.map((conversion) => (
                   <option key={conversion.code} value={conversion.code}>
                     {conversion.name}
@@ -182,7 +204,7 @@ export function ComponentConfigGrid({
                 value={component.formulaCode ?? ''}
                 onChange={(event) => onUpdateComponent(index, { formulaCode: event.target.value ? asFormulaCode(event.target.value) : undefined })}
               >
-                <option value="">Select formula</option>
+                <option value="">Selecione uma fórmula</option>
                 {formulaCatalog.map((formula) => (
                   <option key={formula.code} value={formula.code}>
                     {formula.name}
@@ -205,7 +227,7 @@ export function ComponentConfigGrid({
                   color: tokens.colors.textSecondary,
                 }}
               >
-                Remove
+                Remover
               </button>
             </div>
           )
@@ -214,7 +236,7 @@ export function ComponentConfigGrid({
 
       <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
         <button type="button" onClick={onAddComponent} style={actionButtonStyle}>
-          Add component
+          Adicionar componente
         </button>
       </div>
     </div>
