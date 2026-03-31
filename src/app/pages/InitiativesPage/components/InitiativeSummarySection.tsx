@@ -16,6 +16,15 @@ const sectionDivider = {
 }
 
 const styles = {
+  root: {
+    height: '100%',
+    minHeight: 0,
+    overflow: 'auto',
+  },
+  content: {
+    display: 'grid',
+    gap: uiTokens.spacing.md,
+  },
   summaryHeader: {
     marginBottom: 10,
   },
@@ -73,57 +82,61 @@ const styles = {
 }
 
 export function InitiativeSummarySection({ selectedId, selectedFull, selectedFullState }: InitiativeSummarySectionProps) {
+  let content
+
   if (!selectedId || selectedFullState === 'idle') {
-    return <StateMessage title="No initiative selected" description="Select one item to view its summary." />
-  }
+    content = <StateMessage title="No initiative selected" description="Select one item to view its summary." />
+  } else if (selectedFullState === 'loading') {
+    content = <StateMessage title="Loading initiative" description="Please wait while initiative data is fetched." />
+  } else if (selectedFullState === 'error') {
+    content = <StateMessage title="Unable to load initiative" description="Try selecting the initiative again." />
+  } else if (!selectedFull) {
+    content = <StateMessage title="No initiative selected" description="Select one item to view its summary." />
+  } else {
+    content = (
+      <>
+        <header style={styles.summaryHeader}>
+          <h3 style={styles.summaryTitle}>Resumo</h3>
+        </header>
 
-  if (selectedFullState === 'loading') {
-    return <StateMessage title="Loading initiative" description="Please wait while initiative data is fetched." />
-  }
+        <div style={styles.summaryContent}>
+          <div style={styles.summaryTitleRow}>
+            <h4 style={styles.initiativeTitle} title={selectedFull.title}>
+              {selectedFull.title}
+            </h4>
+            <InitiativeStatusBadge status={selectedFull.status} />
+          </div>
 
-  if (selectedFullState === 'error') {
-    return <StateMessage title="Unable to load initiative" description="Try selecting the initiative again." />
-  }
+          <p style={styles.sapCodeText}>codigoSAP: Pendente</p>
 
-  if (!selectedFull) {
-    return <StateMessage title="No initiative selected" description="Select one item to view its summary." />
+          <div style={styles.fieldGrid}>
+            <Field layout="inline" label="Unidade" value={selectedFull.unidade || '-'} />
+            <Field layout="inline" label="Responsável" value={selectedFull.responsavel || '-'} />
+            <Field layout="inline" label="Stage" value={selectedFull.stage || '-'} />
+            <Field layout="inline" label="Status" value={selectedFull.status || '-'} />
+            <Field layout="inline" label="ID" value={selectedFull.id || '-'} />
+            <Field layout="inline" label="Ganho anual" value={selectedFull.annualGain ?? '-'} />
+          </div>
+
+          <div style={styles.longTextWrap}>
+            <p style={styles.sectionTitle}>Business Need</p>
+            <p style={styles.longText}>-</p>
+          </div>
+
+          <div style={styles.longTextWrap}>
+            <p style={styles.sectionTitle}>Proposed Solution</p>
+            <p style={styles.longText}>-</p>
+          </div>
+        </div>
+      </>
+    )
   }
 
   return (
-    <>
-      <header style={styles.summaryHeader}>
-        <h3 style={styles.summaryTitle}>Resumo</h3>
-      </header>
-
-      <div style={styles.summaryContent}>
-        <div style={styles.summaryTitleRow}>
-          <h4 style={styles.initiativeTitle} title={selectedFull.title}>
-            {selectedFull.title}
-          </h4>
-          <InitiativeStatusBadge status={selectedFull.status} />
-        </div>
-
-        <p style={styles.sapCodeText}>codigoSAP: Pendente</p>
-
-        <div style={styles.fieldGrid}>
-          <Field layout="inline" label="Unidade" value={selectedFull.unidade || '-'} />
-          <Field layout="inline" label="Responsável" value={selectedFull.responsavel || '-'} />
-          <Field layout="inline" label="Stage" value={selectedFull.stage || '-'} />
-          <Field layout="inline" label="Status" value={selectedFull.status || '-'} />
-          <Field layout="inline" label="ID" value={selectedFull.id || '-'} />
-          <Field layout="inline" label="Ganho anual" value={selectedFull.annualGain ?? '-'} />
-        </div>
-
-        <div style={styles.longTextWrap}>
-          <p style={styles.sectionTitle}>Business Need</p>
-          <p style={styles.longText}>-</p>
-        </div>
-
-        <div style={styles.longTextWrap}>
-          <p style={styles.sectionTitle}>Proposed Solution</p>
-          <p style={styles.longText}>-</p>
-        </div>
+    <div style={styles.root}>
+      <div style={styles.content}>
+        {content}
       </div>
-    </>
+    </div>
   )
 }
