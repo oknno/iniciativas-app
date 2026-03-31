@@ -31,6 +31,7 @@ export function useInitiativesPage() {
   const [isSaving, setIsSaving] = useState<boolean>(false)
   const [isWizardOpen, setIsWizardOpen] = useState<boolean>(false)
   const [wizardMode, setWizardMode] = useState<InitiativeWizardMode>('create')
+  const [selectedItemDetailState, setSelectedItemDetailState] = useState<'idle' | 'loading' | 'error' | 'loaded'>('idle')
 
   const { selectedId, setSelectedId, selectAfterDelete } = useInitiativeSelection(items)
 
@@ -55,15 +56,22 @@ export function useInitiativesPage() {
   useEffect(() => {
     if (!selectedId) {
       setSelectedItemDetail(undefined)
+      setSelectedItemDetailState('idle')
       return
     }
 
+    setSelectedItemDetailState('loading')
+
     void getInitiativeById(selectedId)
-      .then(setSelectedItemDetail)
+      .then((detail) => {
+        setSelectedItemDetail(detail)
+        setSelectedItemDetailState('loaded')
+      })
       .catch((error) => {
         console.error(`Failed to load initiative details for ${selectedId}.`, error)
         pushToast({ title: 'Unable to load initiative details', tone: 'error' })
         setSelectedItemDetail(undefined)
+        setSelectedItemDetailState('error')
       })
   }, [pushToast, selectedId])
 
@@ -103,6 +111,7 @@ export function useInitiativesPage() {
 
       setSelectedId(detail.id)
       setSelectedItemDetail(detail)
+      setSelectedItemDetailState('loaded')
       setIsWizardOpen(false)
       pushToast({
         tone: 'success',
@@ -130,6 +139,7 @@ export function useInitiativesPage() {
       setItems((current) => [toListItem(duplicated), ...current])
       setSelectedId(duplicated.id)
       setSelectedItemDetail(duplicated)
+      setSelectedItemDetailState('loaded')
       pushToast({ tone: 'success', title: 'Initiative duplicated', message: duplicated.title })
     } catch (error) {
       console.error(`Failed to duplicate initiative ${selectedId}.`, error)
@@ -167,6 +177,7 @@ export function useInitiativesPage() {
     items,
     selectedId,
     selectedItemDetail,
+    selectedItemDetailState,
     isWizardOpen,
     wizardMode,
     isLoading,
