@@ -55,12 +55,19 @@ export function InitiativesPage() {
           />
 
           <section style={styles.mainGrid}>
-            <InitiativesTableSection items={items} selectedId={selectedId} onSelect={actions.select} />
-            <InitiativeSummarySection
-              selectedId={selectedId ?? null}
-              selectedFull={selectedItemDetail}
-              selectedFullState={selectedItemDetailState}
-            />
+            <div style={styles.leftColumn}>
+              <InitiativesTableSection items={items} selectedId={selectedId} onSelect={actions.select} />
+            </div>
+
+            <aside style={styles.rightColumn}>
+              <div style={styles.summaryPanel}>
+                <InitiativeSummarySection
+                  selectedId={selectedId ?? null}
+                  selectedFull={selectedItemDetail}
+                  selectedFullState={selectedItemDetailState}
+                />
+              </div>
+            </aside>
           </section>
         </div>
       </main>
