@@ -1,5 +1,4 @@
 import type { CSSProperties } from 'react'
-import { Card } from '../../../components/ui/Card'
 import { StateMessage } from '../../../components/ui/StateMessage'
 import { uiTokens } from '../../../components/ui/tokens'
 import type { InitiativeListItemDto } from '../../../../application/dto/initiatives/InitiativeListItemDto'
@@ -9,86 +8,123 @@ type InitiativesTableSectionProps = {
   items: readonly InitiativeListItemDto[]
   selectedId?: InitiativeId
   onSelect: (id: InitiativeId) => void
+  isLoading?: boolean
+  errorMessage?: string
 }
 
+const columnTemplate = '90px 1fr 220px 160px'
+
 const styles: Record<string, CSSProperties> = {
-  header: {
-    display: 'grid',
-    gridTemplateColumns: '100px 1.8fr 1fr 1fr',
-    gap: uiTokens.spacing.xs,
-    ...uiTokens.typography.overline,
-    color: uiTokens.colors.textSecondary,
-    padding: `${uiTokens.spacing.sm}px ${uiTokens.spacing.md}px`,
-    borderBottom: `1px solid ${uiTokens.colors.borderStrong}`,
-    background: uiTokens.colors.surfaceMuted,
-    textTransform: 'uppercase',
-  },
-  row: {
-    display: 'grid',
-    gridTemplateColumns: '100px 1.8fr 1fr 1fr',
-    gap: uiTokens.spacing.xs,
-    width: '100%',
-    border: 'none',
-    borderBottom: `1px solid ${uiTokens.colors.border}`,
-    padding: `${uiTokens.spacing.sm}px ${uiTokens.spacing.md}px`,
-    textAlign: 'left',
-    cursor: 'pointer',
+  container: {
+    border: `1px solid ${uiTokens.colors.borderStrong}`,
+    borderRadius: uiTokens.radius.md,
+    overflow: 'hidden',
+    display: 'flex',
+    flexDirection: 'column',
     background: uiTokens.colors.surface,
   },
-  cell: {
-    ...uiTokens.typography.body,
+  tableWrap: {
+    display: 'flex',
+    flexDirection: 'column',
+    minHeight: 0,
+  },
+  headerRow: {
+    display: 'grid',
+    gridTemplateColumns: columnTemplate,
+    background: uiTokens.colors.surfaceMuted,
+    borderBottom: `1px solid ${uiTokens.colors.borderStrong}`,
+  },
+  headerCell: {
+    padding: '10px 10px',
+    fontSize: 12,
+    fontWeight: 700,
     color: uiTokens.colors.textSecondary,
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
   },
-  footer: {
+  body: {
     display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: `${uiTokens.spacing.sm}px ${uiTokens.spacing.md}px`,
-    background: uiTokens.colors.surfaceMuted,
-    borderTop: `1px solid ${uiTokens.colors.borderStrong}`,
-    ...uiTokens.typography.caption,
-    color: uiTokens.colors.textMuted,
+    flexDirection: 'column',
+    overflow: 'auto',
+  },
+  row: {
+    display: 'grid',
+    gridTemplateColumns: columnTemplate,
+    width: '100%',
+    border: 'none',
+    borderBottom: `1px solid ${uiTokens.colors.border}`,
+    cursor: 'pointer',
+    background: uiTokens.colors.surface,
+    textAlign: 'left',
+  },
+  cell: {
+    padding: '10px 10px',
+    fontSize: 13,
+    color: uiTokens.colors.textPrimary,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  stateRow: {
+    borderBottom: `1px solid ${uiTokens.colors.border}`,
+    padding: uiTokens.spacing.sm,
   },
 }
 
-export function InitiativesTableSection({ items, selectedId, onSelect }: InitiativesTableSectionProps) {
-  if (items.length === 0) {
-    return <StateMessage title="No initiatives available" description="Use New Initiative to create your first CAPEX initiative." />
-  }
+export function InitiativesTableSection({ items, selectedId, onSelect, isLoading = false, errorMessage }: InitiativesTableSectionProps) {
+  const isEmpty = !isLoading && !errorMessage && items.length === 0
 
   return (
-    <Card style={{ padding: 0, overflow: 'hidden' }}>
-      <div style={styles.header}>
-        <span>ID</span>
-        <span>Title</span>
-        <span>Unidade</span>
-        <span>Status</span>
-      </div>
+    <div style={styles.container}>
+      <div style={styles.tableWrap}>
+        <div style={styles.headerRow}>
+          <span style={styles.headerCell}>ID</span>
+          <span style={styles.headerCell}>Title</span>
+          <span style={styles.headerCell}>Unidade</span>
+          <span style={styles.headerCell}>Status</span>
+        </div>
 
-      {items.map((item) => {
-        const isSelected = item.id === selectedId
-        return (
-          <button
-            key={item.id}
-            type="button"
-            onClick={() => onSelect(item.id)}
-            style={{ ...styles.row, background: isSelected ? uiTokens.colors.accentSoft : uiTokens.colors.surface }}
-          >
-            <span style={styles.cell}>{item.id}</span>
-            <span style={styles.cell}>{item.title}</span>
-            <span style={styles.cell}>{item.unidade || '-'}</span>
-            <span style={styles.cell}>{item.status || '-'}</span>
-          </button>
-        )
-      })}
+        <div style={styles.body}>
+          {isLoading ? (
+            <div style={styles.stateRow}>
+              <StateMessage title="Loading initiatives" description="Please wait while initiative data is fetched." />
+            </div>
+          ) : null}
 
-      <div style={styles.footer}>
-        <span>Total</span>
-        <span>{items.length}</span>
+          {!isLoading && errorMessage ? (
+            <div style={styles.stateRow}>
+              <StateMessage title="Unable to load initiatives" description={errorMessage} />
+            </div>
+          ) : null}
+
+          {isEmpty ? (
+            <div style={styles.stateRow}>
+              <StateMessage title="No initiatives available" description="Use New Initiative to create your first CAPEX initiative." />
+            </div>
+          ) : null}
+
+          {!isLoading && !errorMessage
+            ? items.map((item) => {
+                const isSelected = item.id === selectedId
+
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => onSelect(item.id)}
+                    style={{ ...styles.row, background: isSelected ? uiTokens.colors.accentSoft : uiTokens.colors.surface }}
+                  >
+                    <span style={styles.cell}>{item.id}</span>
+                    <span style={styles.cell}>{item.title}</span>
+                    <span style={styles.cell}>{item.unidade || '-'}</span>
+                    <span style={styles.cell}>{item.status || '-'}</span>
+                  </button>
+                )
+              })
+            : null}
+        </div>
       </div>
-    </Card>
+    </div>
   )
 }
