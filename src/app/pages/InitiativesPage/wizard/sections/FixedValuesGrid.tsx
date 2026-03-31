@@ -21,7 +21,7 @@ export function FixedValuesGrid({ rows, valuesByRow, onValueChange }: FixedValue
           <tr style={{ background: tokens.colors.surfaceMuted }}>
             <th style={headerStyle}>Fixed Component</th>
             {MONTHS.map(({ month, label }) => (
-              <th key={month} style={headerStyle}>
+              <th key={month} style={{ ...headerStyle, textAlign: 'right' }}>
                 {label}
               </th>
             ))}
@@ -30,7 +30,7 @@ export function FixedValuesGrid({ rows, valuesByRow, onValueChange }: FixedValue
         <tbody>
           {rows.map((row, index) => (
             <tr key={row.signature} style={{ background: index % 2 === 0 ? '#ffffff' : '#fbfcfe' }}>
-              <td style={{ ...cellStyle, minWidth: 240 }}>
+              <td style={{ ...cellStyle, ...rowLabelStyle }}>
                 <div style={{ fontWeight: 600, fontSize: 13 }}>{row.componentName}</div>
                 <div style={{ fontSize: 12, color: tokens.colors.textSecondary }}>Direction: {row.direction === 1 ? 'Positive' : 'Negative'}</div>
               </td>
@@ -56,7 +56,7 @@ export function FixedValuesGrid({ rows, valuesByRow, onValueChange }: FixedValue
 const headerStyle: CSSProperties = {
   borderBottom: `1px solid ${tokens.colors.border}`,
   borderRight: `1px solid ${tokens.colors.border}`,
-  padding: `${tokens.spacing.xs}px ${tokens.spacing.sm}px`,
+  padding: `${tokens.spacing.sm}px ${tokens.spacing.sm}px`,
   textAlign: 'left',
   fontSize: 11,
   textTransform: 'uppercase',
@@ -75,6 +75,18 @@ const inputStyle: CSSProperties = {
   minWidth: 72,
   border: `1px solid ${tokens.colors.borderStrong}`,
   borderRadius: tokens.radius.sm,
-  padding: `${tokens.spacing.xs}px ${tokens.spacing.sm}px`,
+  height: 32,
+  padding: `0 ${tokens.spacing.sm}px`,
   fontSize: 13,
+  textAlign: 'right',
+  color: tokens.colors.textPrimary,
+  background: '#ffffff',
+}
+
+const rowLabelStyle: CSSProperties = {
+  minWidth: 260,
+  position: 'sticky',
+  left: 0,
+  zIndex: 1,
+  background: 'inherit',
 }

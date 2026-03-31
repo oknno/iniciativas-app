@@ -26,8 +26,8 @@ export function ReviewCalculationPanel({ calculation, mode }: ReviewCalculationP
             </tr>
           </thead>
           <tbody>
-            {calculation.results.map((item) => (
-              <tr key={`${item.year}-${item.month}`}>
+            {calculation.results.map((item, index) => (
+              <tr key={`${item.year}-${item.month}`} style={{ background: index % 2 === 0 ? '#ffffff' : '#fbfcfe' }}>
                 <td style={bodyCellStyle}>{item.year}-{String(item.month).padStart(2, '0')}</td>
                 <td style={{ ...bodyCellStyle, textAlign: 'right' }}>{currency.format(item.gainValue)}</td>
               </tr>
@@ -57,7 +57,7 @@ export function ReviewCalculationPanel({ calculation, mode }: ReviewCalculationP
         </thead>
         <tbody>
           {calculation.details.map((item, index) => (
-            <tr key={`${item.month}-${item.componentType}-${index}`}>
+            <tr key={`${item.month}-${item.componentType}-${index}`} style={{ background: index % 2 === 0 ? '#ffffff' : '#fbfcfe' }}>
               <td style={bodyCellStyle}>{item.year}-{String(item.month).padStart(2, '0')}</td>
               <td style={bodyCellStyle}>{item.componentType}</td>
               <td style={bodyCellStyle}>{item.formulaCode}</td>
@@ -74,8 +74,9 @@ export function ReviewCalculationPanel({ calculation, mode }: ReviewCalculationP
 
 const headerCellStyle = {
   borderBottom: `1px solid ${tokens.colors.border}`,
-  padding: `${tokens.spacing.xs}px ${tokens.spacing.sm}px`,
-  fontSize: 12,
+  padding: `${tokens.spacing.sm}px ${tokens.spacing.sm}px`,
+  fontSize: 11,
+  fontWeight: 700,
   textTransform: 'uppercase' as const,
   color: tokens.colors.textMuted,
   letterSpacing: 0.2,
@@ -83,5 +84,5 @@ const headerCellStyle = {
 
 const bodyCellStyle = {
   borderBottom: `1px solid ${tokens.colors.border}`,
-  padding: `${tokens.spacing.xs}px ${tokens.spacing.sm}px`,
+  padding: `${tokens.spacing.sm}px ${tokens.spacing.sm}px`,
 }

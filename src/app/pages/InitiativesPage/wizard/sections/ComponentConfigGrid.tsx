@@ -26,7 +26,8 @@ const cellInputStyle = {
   borderRadius: tokens.radius.sm,
   fontSize: 13,
   color: tokens.colors.textPrimary,
-  padding: `${tokens.spacing.xs}px ${tokens.spacing.sm}px`,
+  height: 34,
+  padding: `0 ${tokens.spacing.sm}px`,
   background: '#ffffff',
 } as const
 
@@ -82,11 +83,11 @@ export function ComponentConfigGrid({
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '1.3fr .7fr .8fr 1fr 1fr 1fr auto',
+            gridTemplateColumns: 'minmax(180px, 1.3fr) minmax(90px, .7fr) minmax(90px, .8fr) minmax(140px, 1fr) minmax(140px, 1fr) minmax(140px, 1fr) auto',
             gap: tokens.spacing.sm,
             fontSize: 12,
             color: tokens.colors.textMuted,
-            padding: `${tokens.spacing.xs}px ${tokens.spacing.md}px`,
+            padding: `${tokens.spacing.sm}px ${tokens.spacing.md}px`,
             borderBottom: `1px solid ${tokens.colors.border}`,
             background: tokens.colors.surfaceMuted,
             fontWeight: 700,
@@ -114,11 +115,11 @@ export function ComponentConfigGrid({
               key={`${component.id ?? 'new'}-${index}`}
               style={{
                 display: 'grid',
-                gridTemplateColumns: '1.3fr .7fr .8fr 1fr 1fr 1fr auto',
+                gridTemplateColumns: 'minmax(180px, 1.3fr) minmax(90px, .7fr) minmax(90px, .8fr) minmax(140px, 1fr) minmax(140px, 1fr) minmax(140px, 1fr) auto',
                 gap: tokens.spacing.sm,
-                padding: `${tokens.spacing.xs}px ${tokens.spacing.md}px`,
+                padding: `${tokens.spacing.sm}px ${tokens.spacing.md}px`,
                 borderBottom: `1px solid ${tokens.colors.border}`,
-                alignItems: 'start',
+                alignItems: 'center',
                 background: index % 2 === 0 ? '#ffffff' : '#fbfcfe',
               }}
             >
@@ -140,16 +141,16 @@ export function ComponentConfigGrid({
                 ) : null}
               </div>
 
-              <span style={{ fontSize: 13, color: tokens.colors.textSecondary, padding: `${tokens.spacing.xs}px 0` }}>
+              <span style={{ fontSize: 13, color: tokens.colors.textSecondary }}>
                 {selectedCatalog ? (selectedCatalog.defaultDirection === 1 ? 'Positive' : 'Negative') : '-'}
               </span>
 
-              <span style={{ fontSize: 13, color: tokens.colors.textSecondary, padding: `${tokens.spacing.xs}px 0` }}>
+              <span style={{ fontSize: 13, color: tokens.colors.textSecondary }}>
                 {selectedCatalog ? (selectedCatalog.defaultCalculationType === 'KPI_BASED' ? 'KPI Based' : 'Fixed') : '-'}
               </span>
 
               <select
-                style={{ ...cellInputStyle, background: isKpiBased ? '#ffffff' : '#f1f5f9' }}
+                style={{ ...cellInputStyle, background: isKpiBased ? '#ffffff' : '#f3f4f6', color: isKpiBased ? tokens.colors.textPrimary : tokens.colors.textSecondary }}
                 value={component.kpiCode ?? ''}
                 onChange={(event) => onUpdateComponent(index, { kpiCode: event.target.value ? asKpiCode(event.target.value) : undefined })}
                 disabled={!isKpiBased}
@@ -163,7 +164,7 @@ export function ComponentConfigGrid({
               </select>
 
               <select
-                style={{ ...cellInputStyle, background: isKpiBased ? '#ffffff' : '#f1f5f9' }}
+                style={{ ...cellInputStyle, background: isKpiBased ? '#ffffff' : '#f3f4f6', color: isKpiBased ? tokens.colors.textPrimary : tokens.colors.textSecondary }}
                 value={component.conversionCode ?? ''}
                 onChange={(event) => onUpdateComponent(index, { conversionCode: event.target.value ? asConversionCode(event.target.value) : undefined })}
                 disabled={!isKpiBased}
@@ -196,8 +197,10 @@ export function ComponentConfigGrid({
                   border: `1px solid ${tokens.colors.borderStrong}`,
                   borderRadius: tokens.radius.sm,
                   background: '#ffffff',
-                  padding: `${tokens.spacing.xs}px ${tokens.spacing.sm}px`,
+                  height: 34,
+                  padding: `0 ${tokens.spacing.sm}px`,
                   fontSize: 12,
+                  fontWeight: 600,
                   cursor: 'pointer',
                   color: tokens.colors.textSecondary,
                 }}
