@@ -18,6 +18,9 @@ export interface CalculationDetailListItem {
   readonly Direction: number
   readonly RawValue: number
   readonly SignedValue: number
+  readonly BaseValue?: number
+  readonly ConversionValue?: number
+  readonly ResultValue?: number
   readonly KpiCode?: string
   readonly ConversionCode?: string
   readonly SourceType: string
@@ -33,6 +36,9 @@ export interface CreateCalculationDetailPayload {
   readonly Direction: number
   readonly RawValue: number
   readonly SignedValue: number
+  readonly BaseValue?: number
+  readonly ConversionValue?: number
+  readonly ResultValue?: number
   readonly KpiCode?: string
   readonly ConversionCode?: string
   readonly SourceType: string

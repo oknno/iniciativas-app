@@ -14,6 +14,9 @@ export interface CalculationDetail {
   readonly direction: Direction
   readonly rawValue: number
   readonly signedValue: number
+  readonly baseValue?: number
+  readonly conversionValue?: number
+  readonly resultValue?: number
   readonly kpiCode?: KpiCode
   readonly conversionCode?: ConversionCode
   readonly sourceType: 'KPI_BASED' | 'FIXED'

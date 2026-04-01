@@ -1,4 +1,5 @@
 import type { CalculateInitiativeInputDto } from '../../dto/calculation/CalculateInitiativeInputDto'
+import type { FormulaCode } from '../../../domain/catalogs/value-objects/FormulaCode'
 import type { InitiativeCalculationSnapshot } from '../../../domain/calculation/entities/CalculationResult'
 import { CalculationEngine } from '../../../domain/calculation/engine/CalculationEngine'
 import { toConversionValues } from '../../mappers/calculation/calculationMappers'
@@ -16,12 +17,21 @@ export async function calculateInitiative(input: CalculateInitiativeInputDto): P
     initiativeValuesRepository.listByInitiativeYearScenario(input.initiativeId, year, input.scenario),
     catalogsRepository.listConversionValues(),
   ])
+  const formulaCodes = [
+    ...new Set(
+      components
+        .map((component) => component.formulaCode)
+        .filter((formulaCode): formulaCode is FormulaCode => formulaCode !== undefined),
+    ),
+  ]
+  const formulaTerms = (await Promise.all(formulaCodes.map((formulaCode) => catalogsRepository.listFormulaTerms(formulaCode)))).flat()
 
   const snapshot = CalculationEngine.run({
     initiativeId: input.initiativeId,
     year,
     scenario: input.scenario,
     components,
+    formulaTerms,
     kpiValues: values.kpiValues,
     fixedValues: values.componentValues,
     conversionValues: toConversionValues(conversionValues),

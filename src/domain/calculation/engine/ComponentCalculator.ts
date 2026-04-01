@@ -1,97 +1,204 @@
+import type { FormulaTerm } from '../../catalogs/entities/FormulaTerm'
 import type { CalculationDetail } from '../entities/CalculationDetail'
 import type { InitiativeComponent } from '../../initiatives/entities/InitiativeComponent'
 import { applyDirection } from '../rules/calculationRules'
-import { resolveMissingConversionValue, resolveMissingFixedValue, resolveMissingKpiValue } from '../rules/missingDataRules'
-import { explainFixedValue, explainKpiMultiplier, explainMissingConversion } from '../services/calculationExplainer'
-import { FormulaResolver } from './FormulaResolver'
+import { resolveMissingFixedValue, resolveMissingKpiValue } from '../rules/missingDataRules'
+import { explainFixedValue, explainKpiMultiplier } from '../services/calculationExplainer'
 import { CalculationContextFactory, type CalculationContext } from './CalculationContextFactory'
 import { asFormulaCode } from '../../catalogs/value-objects/FormulaCode'
 
 export interface ComponentCalculationOutput {
-  readonly detail: CalculationDetail
+  readonly details: readonly CalculationDetail[]
+  readonly componentResult: number
   readonly issues: readonly string[]
+  readonly isValid: boolean
+}
+
+const calculateTermValue = (input: {
+  component: InitiativeComponent
+  term: FormulaTerm
+  context: CalculationContext
+  monthRef: string
+  initiativeId: InitiativeComponent['initiativeId']
+}): {
+  readonly baseValue: number
+  readonly conversionValue: number
+  readonly resultValue: number
+  readonly explanation: string
+  readonly issues: readonly string[]
+  readonly missingConversion: boolean
+} => {
+  const issues: string[] = []
+  const { component, term, context, monthRef, initiativeId } = input
+
+  if (term.calculationType === 'FIXED') {
+    const baseValue = context.fixedValuesByKey.get(CalculationContextFactory.keys.toFixedKey(component.id, monthRef)) ?? resolveMissingFixedValue()
+    const resultValue = baseValue * term.signal
+    return {
+      baseValue,
+      conversionValue: 1,
+      resultValue,
+      explanation: explainFixedValue(component),
+      issues,
+      missingConversion: false,
+    }
+  }
+
+  const kpiValue = context.kpiValuesByKey.get(CalculationContextFactory.keys.toKpiKey(component.id, monthRef)) ?? resolveMissingKpiValue()
+
+  if (!term.conversionCode) {
+    const issue = `Missing conversion reference for formula term ${term.formulaCode} (${component.name})`
+    issues.push(issue)
+    return {
+      baseValue: kpiValue,
+      conversionValue: 0,
+      resultValue: 0,
+      explanation: issue,
+      issues,
+      missingConversion: true,
+    }
+  }
+
+  const conversionKey = CalculationContextFactory.keys.toConversionKey(term.conversionCode, monthRef)
+  const initiativeConversion = context.conversionValuesByInitiativeKey.get(`${initiativeId}|${conversionKey}`)
+  const globalConversion = context.conversionValuesByGlobalKey.get(conversionKey)
+  const resolvedConversion = initiativeConversion ?? globalConversion
+
+  if (resolvedConversion === undefined) {
+    const issue = `Missing conversion value for ${term.conversionCode} (${monthRef}) on component ${component.name}`
+    issues.push(issue)
+    return {
+      baseValue: kpiValue,
+      conversionValue: 0,
+      resultValue: 0,
+      explanation: issue,
+      issues,
+      missingConversion: true,
+    }
+  }
+
+  const resultValue = kpiValue * resolvedConversion * term.signal
+  return {
+    baseValue: kpiValue,
+    conversionValue: resolvedConversion,
+    resultValue,
+    explanation: explainKpiMultiplier(component),
+    issues,
+    missingConversion: false,
+  }
 }
 
 export const ComponentCalculator = {
   calculate(input: {
     initiativeId: InitiativeComponent['initiativeId']
     component: InitiativeComponent
+    formulaTerms: readonly FormulaTerm[]
     year: number
     month: number
     context: CalculationContext
   }): ComponentCalculationOutput {
-    const { component, year, month, context } = input
+    const { component, year, month, context, formulaTerms } = input
     const monthRef = CalculationContextFactory.buildMonthRef(year, month)
     const issues: string[] = []
 
     const formulaCode = component.formulaCode
     if (!formulaCode) {
+      const issue = `Missing formula for component ${component.name}`
       return {
-        detail: {
-          initiativeId: input.initiativeId,
-          componentType: component.componentType,
-          year,
-          month,
-          formulaCode: asFormulaCode('FORMULA-DIRECT-VALUE'),
-          direction: component.direction,
-          rawValue: 0,
-          signedValue: 0,
-          kpiCode: component.kpiCode,
-          conversionCode: component.conversionCode,
-          sourceType: component.calculationType,
-          explanation: `Missing formula for ${component.name}`,
-        },
-        issues: [`Missing formula for component ${component.name}`],
+        details: [
+          {
+            initiativeId: input.initiativeId,
+            componentType: component.componentType,
+            year,
+            month,
+            formulaCode: asFormulaCode('FORMULA-DIRECT-VALUE'),
+            direction: component.direction,
+            rawValue: 0,
+            signedValue: 0,
+            baseValue: 0,
+            conversionValue: 0,
+            resultValue: 0,
+            kpiCode: component.kpiCode,
+            conversionCode: component.conversionCode,
+            sourceType: component.calculationType,
+            explanation: issue,
+          },
+        ],
+        componentResult: 0,
+        issues: [issue],
+        isValid: false,
       }
     }
 
-    let rawValue = 0
-    let explanation = ''
+    const terms = formulaTerms.length > 0
+      ? formulaTerms
+      : [{
+        formulaCode,
+        order: 1,
+        operation: 'ADD',
+        signal: 1,
+        calculationType: component.calculationType,
+        kpiCode: component.kpiCode,
+        conversionCode: component.conversionCode,
+      } satisfies FormulaTerm]
 
-    if (component.calculationType === 'KPI_BASED') {
-      const kpiValue = context.kpiValuesByKey.get(CalculationContextFactory.keys.toKpiKey(component.id, monthRef)) ?? resolveMissingKpiValue()
-      const conversionCode = component.conversionCode
+    let result = 0
+    let isValid = true
 
-      if (!conversionCode) {
-        issues.push(`Missing conversion reference for component ${component.name}`)
-        explanation = `Missing conversion reference for ${component.name}`
+    const details = terms.map((term) => {
+      const termOutput = calculateTermValue({
+        component,
+        term,
+        context,
+        monthRef,
+        initiativeId: input.initiativeId,
+      })
+
+      issues.push(...termOutput.issues)
+
+      if (termOutput.missingConversion) {
+        isValid = false
+      }
+
+      if (term.operation === 'SUBTRACT') {
+        result -= termOutput.resultValue
       } else {
-        const conversionValue = context.conversionValuesByKey.get(CalculationContextFactory.keys.toConversionKey(conversionCode, monthRef))
-
-        if (conversionValue === undefined) {
-          const missing = resolveMissingConversionValue(conversionCode)
-          issues.push(missing.issue)
-          rawValue = FormulaResolver.calculate({ formulaCode, kpiValue, conversionValue: missing.value })
-          explanation = explainMissingConversion(conversionCode)
-        } else {
-          rawValue = FormulaResolver.calculate({ formulaCode, kpiValue, conversionValue })
-          explanation = explainKpiMultiplier(component)
-        }
+        result += termOutput.resultValue
       }
-    } else {
-      const fixedValue = context.fixedValuesByKey.get(CalculationContextFactory.keys.toFixedKey(component.id, monthRef)) ?? resolveMissingFixedValue()
-      rawValue = FormulaResolver.calculate({ formulaCode, fixedValue })
-      explanation = explainFixedValue(component)
-    }
 
-    const signedValue = applyDirection(rawValue, component.direction)
-
-    return {
-      detail: {
+      return {
         initiativeId: input.initiativeId,
         componentType: component.componentType,
         year,
         month,
-        formulaCode,
+        formulaCode: term.formulaCode,
         direction: component.direction,
-        rawValue,
-        signedValue,
-        kpiCode: component.kpiCode,
-        conversionCode: component.conversionCode,
-        sourceType: component.calculationType,
-        explanation,
-      },
+        rawValue: termOutput.resultValue,
+        signedValue: applyDirection(termOutput.resultValue, component.direction),
+        baseValue: termOutput.baseValue,
+        conversionValue: termOutput.conversionValue,
+        resultValue: termOutput.resultValue,
+        kpiCode: term.kpiCode ?? component.kpiCode,
+        conversionCode: term.conversionCode ?? component.conversionCode,
+        sourceType: term.calculationType,
+        explanation: termOutput.explanation,
+      } satisfies CalculationDetail
+    })
+
+    if (!isValid) {
+      return {
+        details,
+        componentResult: 0,
+        issues,
+        isValid: false,
+      }
+    }
+
+    return {
+      details,
+      componentResult: applyDirection(result, component.direction),
       issues,
+      isValid: true,
     }
   },
 }

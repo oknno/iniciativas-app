@@ -8,6 +8,7 @@ export async function previewInitiativeCalculation(input: PreviewCalculationInpu
     year: input.year,
     scenario: input.scenario,
     components: input.components,
+    formulaTerms: [],
     kpiValues: input.kpiValues,
     fixedValues: input.componentValues,
     conversionValues: toConversionValues(input.conversionValues),
