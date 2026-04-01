@@ -14,6 +14,8 @@ export interface CalculationResultListItem {
   readonly Year: number
   readonly Month: number
   readonly GainValue: number
+  readonly AccumulatedValue?: number
+  readonly AnnualValue?: number
 }
 
 export interface CreateCalculationResultPayload {
@@ -21,6 +23,8 @@ export interface CreateCalculationResultPayload {
   readonly Year: number
   readonly Month: number
   readonly GainValue: number
+  readonly AccumulatedValue?: number
+  readonly AnnualValue?: number
 }
 
 const withEntityType = <TPayload extends object>(payload: TPayload): TPayload | (TPayload & { __metadata: { type: string } }) => {

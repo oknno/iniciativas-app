@@ -8,7 +8,8 @@ export interface CalculationContext {
   readonly components: readonly InitiativeComponent[]
   readonly kpiValuesByKey: ReadonlyMap<string, number>
   readonly fixedValuesByKey: ReadonlyMap<string, number>
-  readonly conversionValuesByKey: ReadonlyMap<string, number>
+  readonly conversionValuesByInitiativeKey: ReadonlyMap<string, number>
+  readonly conversionValuesByGlobalKey: ReadonlyMap<string, number>
 }
 
 const buildMonthKey = (year: number, month: number): string => `${year}-${String(month).padStart(2, '0')}`
@@ -42,18 +43,26 @@ export const CalculationContextFactory = {
         fixedValuesByKey.set(toFixedKey(item.componentId, item.monthRef), item.baseValue)
       })
 
-    const conversionValuesByKey = new Map<string, number>()
+    const conversionValuesByInitiativeKey = new Map<string, number>()
+    const conversionValuesByGlobalKey = new Map<string, number>()
     input.conversionValues
       .filter((item) => item.scenario === input.scenario && months.has(item.monthRef))
       .forEach((item) => {
-        conversionValuesByKey.set(toConversionKey(item.conversionCode, item.monthRef), item.value)
+        const key = toConversionKey(item.conversionCode, item.monthRef)
+        if (item.initiativeId) {
+          conversionValuesByInitiativeKey.set(`${item.initiativeId}|${key}`, item.value)
+          return
+        }
+
+        conversionValuesByGlobalKey.set(key, item.value)
       })
 
     return {
       components: input.components,
       kpiValuesByKey,
       fixedValuesByKey,
-      conversionValuesByKey,
+      conversionValuesByInitiativeKey,
+      conversionValuesByGlobalKey,
     }
   },
 

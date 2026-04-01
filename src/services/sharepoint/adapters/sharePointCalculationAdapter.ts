@@ -25,6 +25,8 @@ export const fromSharePointCalculationResult = (item: CalculationResultListItem)
   year: Number(item.Year),
   month: Number(item.Month),
   gainValue: Number(item.GainValue),
+  accumulatedValue: item.AccumulatedValue !== undefined ? Number(item.AccumulatedValue) : undefined,
+  annualValue: item.AnnualValue !== undefined ? Number(item.AnnualValue) : undefined,
 })
 
 export const fromSharePointCalculationDetail = (item: CalculationDetailListItem): CalculationDetail => ({
@@ -36,6 +38,9 @@ export const fromSharePointCalculationDetail = (item: CalculationDetailListItem)
   direction: item.Direction as CalculationDetail['direction'],
   rawValue: Number(item.RawValue),
   signedValue: Number(item.SignedValue),
+  baseValue: item.BaseValue !== undefined ? Number(item.BaseValue) : undefined,
+  conversionValue: item.ConversionValue !== undefined ? Number(item.ConversionValue) : undefined,
+  resultValue: item.ResultValue !== undefined ? Number(item.ResultValue) : undefined,
   kpiCode: item.KpiCode ? asKpiCode(item.KpiCode) : undefined,
   conversionCode: item.ConversionCode ? asConversionCode(item.ConversionCode) : undefined,
   sourceType: item.SourceType as CalculationDetail['sourceType'],
@@ -48,6 +53,8 @@ export const toSharePointCalculationResultPayload = (
   Year: result.year,
   Month: result.month,
   GainValue: result.gainValue,
+  AccumulatedValue: result.accumulatedValue,
+  AnnualValue: result.annualValue,
 })
 
 export const toSharePointCalculationDetailPayload = (
@@ -60,6 +67,9 @@ export const toSharePointCalculationDetailPayload = (
   Direction: detail.direction,
   RawValue: detail.rawValue,
   SignedValue: detail.signedValue,
+  BaseValue: detail.baseValue,
+  ConversionValue: detail.conversionValue,
+  ResultValue: detail.resultValue,
   KpiCode: detail.kpiCode,
   ConversionCode: detail.conversionCode,
   SourceType: detail.sourceType,

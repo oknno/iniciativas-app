@@ -5,6 +5,8 @@ export interface CalculationResult {
   readonly year: number
   readonly month: number
   readonly gainValue: number
+  readonly accumulatedValue?: number
+  readonly annualValue?: number
 }
 
 export interface InitiativeCalculationSnapshot {

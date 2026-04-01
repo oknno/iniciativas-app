@@ -3,17 +3,20 @@ import type { ConversionMasterDto } from '../../../application/dto/catalogs/Conv
 import type { ConversionValueDto } from '../../../application/dto/catalogs/ConversionValueDto'
 import type { FormulaMasterDto } from '../../../application/dto/catalogs/FormulaMasterDto'
 import type { KpiMasterDto } from '../../../application/dto/catalogs/KpiMasterDto'
+import type { FormulaTerm } from '../../../domain/catalogs/entities/FormulaTerm'
 import {
   fromSharePointComponentCatalog,
   fromSharePointConversionCatalog,
   fromSharePointConversionValue,
   fromSharePointFormulaCatalog,
+  fromSharePointFormulaTerm,
   fromSharePointKpiCatalog,
 } from '../adapters/sharePointCatalogAdapter'
 import { listAll as listComponentMaster } from '../lists/componentMasterListApi'
 import { listAll as listConversionMaster } from '../lists/conversionMasterListApi'
 import { listAll as listConversionValues } from '../lists/conversionValuesListApi'
 import { listAll as listFormulaMaster } from '../lists/formulaMasterListApi'
+import { listByFormulaCode as listFormulaTermsByFormulaCode } from '../lists/formulaTermsListApi'
 import { listAll as listKpiMaster } from '../lists/kpiMasterListApi'
 
 export interface CatalogBundle {
@@ -48,6 +51,11 @@ export const catalogsRepository = {
   async listConversionValues(): Promise<readonly ConversionValueDto[]> {
     const items = await listConversionValues()
     return items.map(fromSharePointConversionValue)
+  },
+
+  async listFormulaTerms(formulaCode: string): Promise<readonly FormulaTerm[]> {
+    const items = await listFormulaTermsByFormulaCode(formulaCode)
+    return items.map(fromSharePointFormulaTerm)
   },
 
   async listAllCatalogs(): Promise<CatalogBundle> {

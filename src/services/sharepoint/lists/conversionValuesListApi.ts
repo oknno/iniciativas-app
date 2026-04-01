@@ -12,6 +12,7 @@ interface SharePointListResponse<TItem> {
 export interface ConversionValueListItem {
   readonly Id: number
   readonly ConversionCode: string
+  readonly InitiativeId?: number | string
   readonly Year: number
   readonly Month: number
   readonly Value: number
