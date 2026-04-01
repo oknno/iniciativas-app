@@ -1,3 +1,1 @@
-export const INITIATIVE_STATUSES = ['DRAFT', 'IN_REVIEW', 'APPROVED', 'REJECTED'] as const
-
-export type InitiativeStatusConstant = (typeof INITIATIVE_STATUSES)[number]
+export { INITIATIVE_STATUSES, type InitiativeStatus } from '../../initiatives/entities/InitiativeStatus'
