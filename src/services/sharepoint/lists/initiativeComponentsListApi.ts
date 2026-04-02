@@ -12,6 +12,7 @@ interface SharePointLookupValue {
   readonly Id?: number
   readonly Title?: string
   readonly ComponentType?: string
+  readonly ComponentId?: string
   readonly KPICode?: string
   readonly ConversionCode?: string
   readonly FormulaCode?: string
@@ -57,7 +58,7 @@ const listByInitiativeIdWithLookup = async (initiativeId: number): Promise<reado
   const response = await get<SharePointListResponse<InitiativeComponentListItem>>(
     filteredListItemsEndpoint(LIST_TITLE, `InitiativeIdId eq ${initiativeId}`, {
       select:
-        'Id,Title,ComponentId,SortOrder,InitiativeIdId,InitiativeId/Id,ComponentType,ComponentType/Title,ComponentType/ComponentType,KPICode,KPICode/Title,KPICode/KPICode,ConversionCode,ConversionCode/Title,ConversionCode/ConversionCode,FormulaCode,FormulaCode/Title,FormulaCode/FormulaCode',
+        'Id,Title,ComponentId,SortOrder,InitiativeIdId,InitiativeId/Id,ComponentType,ComponentType/Title,ComponentType/ComponentType,ComponentType/ComponentId,KPICode,KPICode/Title,KPICode/KPICode,ConversionCode,ConversionCode/Title,ConversionCode/ConversionCode,FormulaCode,FormulaCode/Title,FormulaCode/FormulaCode',
       expand: 'InitiativeId,ComponentType,KPICode,ConversionCode,FormulaCode',
       orderBy: 'SortOrder asc,Id asc',
     }),

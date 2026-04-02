@@ -16,6 +16,7 @@ export const initiativeComponentsRepository = {
   async listByInitiativeId(initiativeId: InitiativeId): Promise<readonly InitiativeComponent[]> {
     const sharePointInitiativeId = initiativeIdToSharePoint(initiativeId)
     const items = await listByInitiativeId(sharePointInitiativeId)
+    console.log('[InitiativeComponentsRepository] Loaded Initiative_Component raw records:', items)
 
     return items.map(fromSharePointInitiativeComponent)
   },

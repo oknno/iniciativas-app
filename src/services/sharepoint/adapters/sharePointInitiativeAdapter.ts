@@ -83,17 +83,8 @@ const toLookupString = (value: LookupLike, fieldOrder: readonly string[]): strin
   return undefined
 }
 
-const toLookupId = (value: LookupLike): string | undefined => {
-  if (typeof value === 'number') {
-    return String(value)
-  }
-
-  if (typeof value === 'object' && value && typeof value.Id === 'number') {
-    return String(value.Id)
-  }
-
-  return undefined
-}
+const toCanonicalComponentType = (value: LookupLike): string | undefined =>
+  toLookupString(value, ['ComponentType', 'ComponentId', 'Title'])
 
 const resolveInitiativeId = (item: { readonly InitiativeId?: LookupLike; readonly InitiativeIdId?: number }): InitiativeId => {
   const fromNumeric = typeof item.InitiativeIdId === 'number' ? String(item.InitiativeIdId) : undefined
@@ -145,7 +136,7 @@ export const toUpdateInitiativePayload = (input: SaveInitiativeDto): UpdateIniti
 })
 
 export const fromSharePointInitiativeComponent = (item: InitiativeComponentListItem): InitiativeWithAnnualGain['components'][number] => {
-  const resolvedComponentType = toLookupString(item.ComponentType, ['ComponentType', 'Title'])
+  const resolvedComponentType = toCanonicalComponentType(item.ComponentType)
 
   if (!resolvedComponentType) {
     throw new Error(`ComponentType is missing for initiative component ${item.Id}.`)
@@ -155,13 +146,21 @@ export const fromSharePointInitiativeComponent = (item: InitiativeComponentListI
   const resolvedConversionCode = toLookupString(item.ConversionCode, ['ConversionCode', 'Title'])
   const resolvedFormulaCode = toLookupString(item.FormulaCode, ['FormulaCode', 'Title'])
 
+  console.log('[SharePointInitiativeAdapter] Resolved Initiative_Component row:', {
+    itemId: item.Id,
+    componentType: resolvedComponentType,
+    kpiCode: resolvedKpiCode,
+    conversionCode: resolvedConversionCode,
+    formulaCode: resolvedFormulaCode,
+  })
+
   return {
-    id: item.ComponentId ?? toLookupId(item.ComponentType) ?? String(item.Id),
+    id: item.ComponentId ?? resolvedComponentType,
     initiativeId: resolveInitiativeId(item),
     name: item.Title ?? resolvedComponentType,
     componentType: resolvedComponentType as InitiativeWithAnnualGain['components'][number]['componentType'],
     direction: 1,
-    calculationType: resolvedKpiCode ? 'KPI_BASED' : 'FIXED',
+    calculationType: 'FIXED',
     kpiCode: resolvedKpiCode ? asKpiCode(resolvedKpiCode) : undefined,
     conversionCode: resolvedConversionCode ? asConversionCode(resolvedConversionCode) : undefined,
     formulaCode: resolvedFormulaCode ? asFormulaCode(resolvedFormulaCode) : undefined,
@@ -173,8 +172,8 @@ export const fromSharePointInitiativeComponent = (item: InitiativeComponentListI
 export const toCreateInitiativeComponentPayload = (
   input: SaveInitiativeComponentDto,
 ): Omit<CreateInitiativeComponentPayload, 'InitiativeId'> => ({
-  ComponentId: input.id,
-  Title: input.name,
+  ComponentId: input.componentType,
+  Title: input.componentType,
   ComponentType: input.componentType,
   KPICode: input.kpiCode,
   ConversionCode: input.conversionCode,
@@ -190,7 +189,7 @@ export const fromSharePointKpiValue = (item: KpiValueListItem): SaveKpiValueDto 
 
   return {
     initiativeId: resolveInitiativeId(item),
-    componentId: toLookupString(item.ComponentType, ['ComponentId', 'Id', 'Title']) ?? resolvedKpiCode,
+    componentId: toCanonicalComponentType(item.ComponentType) ?? resolvedKpiCode,
     kpiCode: asKpiCode(resolvedKpiCode),
     monthRef: toMonthRef(item.Year, item.Month),
     scenario: (item.Scenario ?? 'BASE') as SaveKpiValueDto['scenario'],
@@ -203,6 +202,7 @@ export const toCreateKpiValuePayload = (value: SaveKpiValueDto): Omit<CreateKpiV
 
   return {
     KPICode: value.kpiCode,
+    ComponentType: value.componentId,
     Year: year,
     Month: month,
     Value: value.value,
@@ -212,7 +212,7 @@ export const toCreateKpiValuePayload = (value: SaveKpiValueDto): Omit<CreateKpiV
 
 export const fromSharePointComponentValue = (item: ComponentValueListItem): SaveComponentValueDto => ({
   initiativeId: resolveInitiativeId(item),
-  componentId: toLookupString(item.ComponentType, ['ComponentId', 'ComponentType', 'Title', 'Id']) ?? '',
+  componentId: toCanonicalComponentType(item.ComponentType) ?? '',
   monthRef: toMonthRef(item.Year, item.Month),
   scenario: 'BASE',
   baseValue: Number(item.Value),
