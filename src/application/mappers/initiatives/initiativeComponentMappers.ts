@@ -23,32 +23,27 @@ const resolveCatalogComponent = (
   draft: InitiativeComponentDraftDto,
   componentCatalog: readonly ComponentMasterDto[],
 ): ComponentMasterDto | undefined =>
-  componentCatalog.find((component) => component.code === draft.componentCode) ??
-  componentCatalog.find(
-    (component) =>
-      component.componentType === draft.componentType &&
-      component.defaultDirection === draft.direction &&
-      component.defaultCalculationType === draft.calculationType,
-  )
+  componentCatalog.find((component) => component.componentType === (draft.componentCode || draft.componentType)) ??
+  componentCatalog.find((component) => component.componentType === draft.componentType) ??
+  componentCatalog.find((component) => component.code === draft.componentCode)
 
 export const toInitiativeComponentDraftDto = (
   component: InitiativeComponent,
   componentCatalog: readonly ComponentMasterDto[],
 ): InitiativeComponentDraftDto => {
-  const exactByCode = componentCatalog.find((catalogComponent) => catalogComponent.code === component.componentType)
-  const exactByTypeAndRule = componentCatalog.find(
-    (catalogComponent) =>
-      catalogComponent.componentType === component.componentType &&
-      catalogComponent.defaultDirection === component.direction &&
-      catalogComponent.defaultCalculationType === component.calculationType,
-  )
   const byType = componentCatalog.find((catalogComponent) => catalogComponent.componentType === component.componentType)
+  const byCode = componentCatalog.find((catalogComponent) => catalogComponent.code === component.componentType)
+  const catalogMatch = byType ?? byCode
 
-  const catalogMatch = exactByCode ?? exactByTypeAndRule ?? byType
+  console.log('[InitiativeComponentMapper] Catalog match for component type:', {
+    componentType: component.componentType,
+    matched: Boolean(catalogMatch),
+    catalogComponentType: catalogMatch?.componentType,
+  })
 
   return {
     id: component.id,
-    componentCode: catalogMatch?.code ?? component.componentType,
+    componentCode: component.componentType,
     calculationType: catalogMatch?.defaultCalculationType ?? component.calculationType,
     direction: catalogMatch?.defaultDirection ?? component.direction,
     componentType: catalogMatch?.componentType ?? component.componentType,

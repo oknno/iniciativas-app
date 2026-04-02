@@ -261,7 +261,9 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
                   }
 
                   const nextComponentCode = patch.componentCode ?? component.componentCode
-                  const selectedCatalog = catalogs.componentCatalog.find((catalogItem) => catalogItem.code === nextComponentCode)
+                  const selectedCatalog =
+                    catalogs.componentCatalog.find((catalogItem) => catalogItem.componentType === nextComponentCode) ??
+                    catalogs.componentCatalog.find((catalogItem) => catalogItem.code === nextComponentCode)
                   const calculationType = selectedCatalog?.defaultCalculationType ?? component.calculationType
 
                   return {
@@ -369,7 +371,9 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
   useEffect(() => {
     const effectiveInitiativeId = selectedInitiative?.id ?? asInitiativeId('INIT-NEW')
     const persistedLikeComponents: InitiativeComponent[] = components.map((component, index) => {
-      const match = catalogs.componentCatalog.find((item) => item.code === component.componentCode)
+      const match =
+        catalogs.componentCatalog.find((item) => item.componentType === component.componentType) ??
+        catalogs.componentCatalog.find((item) => item.code === component.componentCode)
       return {
         id: component.id ?? `TMP-${index + 1}`,
         initiativeId: effectiveInitiativeId,

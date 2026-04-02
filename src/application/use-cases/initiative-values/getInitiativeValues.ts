@@ -9,5 +9,9 @@ export async function getInitiativeValues(
   year: number,
   scenario: Scenario,
 ): Promise<{ readonly kpiValues: readonly SaveKpiValueDto[]; readonly componentValues: readonly SaveComponentValueDto[] }> {
-  return initiativeValuesRepository.listByInitiativeYearScenario(initiativeId, year, scenario)
+  console.log('[GetInitiativeValues] Selected initiative id:', initiativeId, 'year:', year, 'scenario:', scenario)
+  const values = await initiativeValuesRepository.listByInitiativeYearScenario(initiativeId, year, scenario)
+  console.log('[GetInitiativeValues] Loaded KPI values count:', values.kpiValues.length)
+  console.log('[GetInitiativeValues] Loaded fixed values count:', values.componentValues.length)
+  return values
 }

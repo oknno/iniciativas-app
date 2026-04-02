@@ -77,39 +77,49 @@ export const buildKpiValueGridRows = (
   components: readonly InitiativeComponentDraftDto[],
   componentCatalog: readonly ComponentMasterDto[],
   kpiCatalog: readonly KpiMasterDto[],
-): readonly KpiValueGridRow[] =>
-  components
+): readonly KpiValueGridRow[] => {
+  const rows = components
     .filter((component) => component.calculationType === 'KPI_BASED' && Boolean(component.kpiCode))
     .map<KpiValueGridRow>((component) => {
       const kpi = kpiCatalog.find((kpiItem) => kpiItem.code === component.kpiCode)
-      const componentMatch = componentCatalog.find((catalogItem) => catalogItem.code === component.componentCode)
+      const componentMatch =
+        componentCatalog.find((catalogItem) => catalogItem.componentType === component.componentType) ??
+        componentCatalog.find((catalogItem) => catalogItem.code === component.componentCode)
 
       return {
         signature: buildKpiRowSignature(component),
-        componentId: component.id,
-        componentName: componentMatch?.name ?? component.componentCode,
+        componentId: component.id ?? component.componentType,
+        componentName: componentMatch?.name ?? component.componentType,
         kpiCode: component.kpiCode as KpiCode,
         kpiName: kpi?.name ?? component.kpiCode ?? 'Unknown KPI',
         unit: kpi?.unit ?? '-',
       }
     })
+  console.log('[InitiativeValueMapper] KPI rows generated:', rows.length)
+  return rows
+}
 
 export const buildFixedValueGridRows = (
   components: readonly InitiativeComponentDraftDto[],
   componentCatalog: readonly ComponentMasterDto[],
-): readonly FixedValueGridRow[] =>
-  components
+): readonly FixedValueGridRow[] => {
+  const rows = components
     .filter((component) => component.calculationType === 'FIXED')
     .map<FixedValueGridRow>((component) => {
-      const componentMatch = componentCatalog.find((catalogItem) => catalogItem.code === component.componentCode)
+      const componentMatch =
+        componentCatalog.find((catalogItem) => catalogItem.componentType === component.componentType) ??
+        componentCatalog.find((catalogItem) => catalogItem.code === component.componentCode)
 
       return {
         signature: buildComponentSignature(component),
-        componentId: component.id,
-        componentName: componentMatch?.name ?? component.componentCode,
+        componentId: component.id ?? component.componentType,
+        componentName: componentMatch?.name ?? component.componentType,
         direction: component.direction,
       }
     })
+  console.log('[InitiativeValueMapper] Fixed rows generated:', rows.length)
+  return rows
+}
 
 export const buildConversionPreviewGroups = (
   components: readonly InitiativeComponentDraftDto[],
@@ -125,7 +135,7 @@ export const buildConversionPreviewGroups = (
       .map((component) => component.conversionCode),
   )
 
-  return conversionCatalog
+  const groups = conversionCatalog
     .filter((conversion) => usedConversionCodes.has(conversion.code))
     .map((conversion) => {
       const monthlyValues: Partial<Record<MonthNumber, number>> = {}
@@ -158,6 +168,8 @@ export const buildConversionPreviewGroups = (
         monthlyValues,
       }
     })
+  console.log('[InitiativeValueMapper] Conversion preview groups generated:', groups.length)
+  return groups
 }
 
 export const toKpiValueDraftMap = (
@@ -192,11 +204,15 @@ export const toFixedValueDraftMap = (
   year: number,
 ): Readonly<Record<string, MonthlyInputMap>> => {
   const byComponentId = new Map(rows.filter((row) => row.componentId).map((row) => [row.componentId as string, row.signature]))
-  const byName = new Map(rows.map((row) => [row.componentName, row.signature]))
+  const byCanonicalType = new Map(
+    rows
+      .filter((row) => row.componentId)
+      .map((row) => [String(row.componentId), row.signature]),
+  )
   const next: Record<string, MonthlyInputMap> = {}
 
   values.forEach((value) => {
-    const signature = byComponentId.get(value.componentId) ?? byName.get(value.componentId)
+    const signature = byComponentId.get(value.componentId) ?? byCanonicalType.get(value.componentId)
     const month = toMonthNumber(value.monthRef, year)
 
     if (!signature || !month) {

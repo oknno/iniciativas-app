@@ -13,6 +13,7 @@ interface SharePointLookupValue {
   readonly Title?: string
   readonly KPICode?: string
   readonly ComponentId?: string
+  readonly ComponentType?: string
 }
 
 export interface KpiValueListItem {
@@ -30,6 +31,7 @@ export interface KpiValueListItem {
 export interface CreateKpiValuePayload {
   readonly InitiativeId: number
   readonly KPICode: string
+  readonly ComponentType?: string
   readonly Year: number
   readonly Month: number
   readonly Value: number
