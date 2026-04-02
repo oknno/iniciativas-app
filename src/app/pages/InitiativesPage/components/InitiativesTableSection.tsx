@@ -95,6 +95,11 @@ const styles: Record<string, CSSProperties> = {
 export function InitiativesTableSection({ items, selectedId, onSelect, isLoading = false, errorMessage }: InitiativesTableSectionProps) {
   const isEmpty = !isLoading && !errorMessage && items.length === 0
 
+  const handleSelect = (id: InitiativeId, status: string): void => {
+    console.info('[InitiativesTableSection] row click', { id, status })
+    onSelect(id)
+  }
+
   return (
     <div style={styles.container}>
       <div style={styles.tableWrap}>
@@ -132,7 +137,7 @@ export function InitiativesTableSection({ items, selectedId, onSelect, isLoading
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => onSelect(item.id)}
+                    onClick={() => handleSelect(item.id, item.status)}
                     style={{ ...styles.row, background: isSelected ? uiTokens.colors.accentSoft : uiTokens.colors.surface }}
                   >
                     <span style={styles.cell}>{item.id}</span>
