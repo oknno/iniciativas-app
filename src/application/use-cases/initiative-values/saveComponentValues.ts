@@ -1,4 +1,5 @@
 import type { SaveComponentValueDto } from '../../dto/initiatives/SaveComponentValueDto'
+import type { InitiativeId } from '../../../domain/initiatives/value-objects/InitiativeId'
 import type { RuleActor } from '../../../domain/initiatives/services/initiativePolicy'
 import { InitiativePolicy } from '../../../domain/initiatives/services/initiativePolicy'
 import { BusinessRuleError } from '../../../domain/shared/errors/BusinessRuleError'
@@ -7,15 +8,15 @@ import { initiativesRepository } from '../../../services/sharepoint/repositories
 import { governanceRepository } from '../../../services/sharepoint/repositories/governanceRepository'
 import { resolveActor } from '../../services/businessRuleGuards'
 
-export async function saveComponentValues(values: readonly SaveComponentValueDto[], actor?: RuleActor): Promise<void> {
-  if (values.length === 0) {
-    return
-  }
-
+export async function saveComponentValues(
+  values: readonly SaveComponentValueDto[],
+  actor?: RuleActor,
+  initiativeIdOverride?: InitiativeId,
+): Promise<void> {
   const resolvedActor = resolveActor(actor)
   InitiativePolicy.ensureCanEditComponentValues(resolvedActor.role)
 
-  const initiativeId = values[0]?.initiativeId
+  const initiativeId = initiativeIdOverride ?? values[0]?.initiativeId
   if (!initiativeId) {
     throw new BusinessRuleError('Iniciativa não encontrada')
   }

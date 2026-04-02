@@ -30,6 +30,8 @@ import { ValuesStep } from './wizard/steps/ValuesStep'
 import { ReviewStep } from './wizard/steps/ReviewStep'
 import { previewInitiativeCalculation } from '../../../application/use-cases/calculation/previewInitiativeCalculation'
 import { calculateInitiative } from '../../../application/use-cases/calculation/calculateInitiative'
+import { getCalculationDetails } from '../../../application/use-cases/calculation/getCalculationDetails'
+import { getCalculationResult } from '../../../application/use-cases/calculation/getCalculationResult'
 import { asInitiativeId } from '../../../domain/initiatives/value-objects/InitiativeId'
 import type { InitiativeComponent } from '../../../domain/initiatives/entities/InitiativeComponent'
 import type { CalculateInitiativeResultDto } from '../../../application/dto/calculation/CalculateInitiativeResultDto'
@@ -185,10 +187,14 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
     setValuesLoadError(null)
     void getInitiativeValues(selectedInitiative.id, valuesYear, valuesScenario)
       .then(({ kpiValues, componentValues }) => {
-        console.log('[InitiativeWizard] Loaded KPI values:', kpiValues)
-        console.log('[InitiativeWizard] Loaded fixed values:', componentValues)
-        setKpiValuesByRow(toKpiValueDraftMap(kpiValues, kpiRows, valuesYear))
-        setFixedValuesByRow(toFixedValueDraftMap(componentValues, fixedRows, valuesYear))
+        const mappedKpiRows = toKpiValueDraftMap(kpiValues, kpiRows, valuesYear)
+        const mappedFixedRows = toFixedValueDraftMap(componentValues, fixedRows, valuesYear)
+        console.log('[InitiativeWizard] Loaded KPI values (raw):', kpiValues)
+        console.log('[InitiativeWizard] Loaded fixed values (raw):', componentValues)
+        console.log('[InitiativeWizard] Mapped KPI value rows:', mappedKpiRows)
+        console.log('[InitiativeWizard] Mapped fixed value rows:', mappedFixedRows)
+        setKpiValuesByRow(mappedKpiRows)
+        setFixedValuesByRow(mappedFixedRows)
       })
       .catch((error) => {
         console.error('Failed to load initiative values from SharePoint.', error)
@@ -209,6 +215,33 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
     valuesScenario,
     valuesYear,
   ])
+
+  useEffect(() => {
+    if (!isOpen || mode !== 'edit' || !selectedInitiative) {
+      return
+    }
+
+    void Promise.all([getCalculationResult(selectedInitiative.id), getCalculationDetails(selectedInitiative.id)])
+      .then(([results, details]) => {
+        console.log('[InitiativeWizard] Loaded calculation result rows:', results)
+        console.log('[InitiativeWizard] Loaded calculation detail rows:', details)
+        if (results.length === 0 && details.length === 0) {
+          return
+        }
+
+        setCalculationPreview({
+          initiativeId: selectedInitiative.id,
+          year: results[0]?.year ?? details[0]?.year ?? valuesYear,
+          results,
+          details,
+          calculatedAt: new Date().toISOString(),
+          issues: [],
+        })
+      })
+      .catch((error) => {
+        console.error('Failed to load persisted calculation from SharePoint.', error)
+      })
+  }, [isOpen, mode, selectedInitiative, valuesYear])
 
   const steps = useMemo<WizardStepOption[]>(
     () => [
@@ -390,6 +423,8 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
 
     const kpiRows = buildKpiValueGridRows(components, catalogs.componentCatalog, catalogs.kpiCatalog)
     const fixedRows = buildFixedValueGridRows(components, catalogs.componentCatalog)
+    const kpiPayload = toSaveKpiValueDtos(effectiveInitiativeId, valuesYear, valuesScenario, kpiRows, kpiValuesByRow)
+    const fixedPayload = toSaveComponentValueDtos(effectiveInitiativeId, valuesYear, valuesScenario, fixedRows, fixedValuesByRow)
 
     setIsPreviewCalculating(true)
     setPreviewError(null)
@@ -398,11 +433,20 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
       year: valuesYear,
       scenario: valuesScenario,
       components: persistedLikeComponents,
-      kpiValues: toSaveKpiValueDtos(effectiveInitiativeId, valuesYear, valuesScenario, kpiRows, kpiValuesByRow),
-      componentValues: toSaveComponentValueDtos(effectiveInitiativeId, valuesYear, valuesScenario, fixedRows, fixedValuesByRow),
+      kpiValues: kpiPayload,
+      componentValues: fixedPayload,
       conversionValues: catalogs.conversionValues,
     })
-      .then(setCalculationPreview)
+      .then((preview) => {
+        console.log('[InitiativeWizard] Preview calculation input:', {
+          initiativeId: effectiveInitiativeId,
+          components: persistedLikeComponents,
+          kpiValues: kpiPayload,
+          fixedValues: fixedPayload,
+        })
+        console.log('[InitiativeWizard] Preview calculation output:', preview)
+        setCalculationPreview(preview)
+      })
       .catch((error) => {
         console.error('Failed to preview initiative calculation.', error)
         setPreviewError('Não foi possível atualizar o preview de cálculo.')
@@ -447,20 +491,32 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
     }
 
     const savedInitiative = await onSave(dto)
+    console.log('[Initiative Save] initiative id after save:', savedInitiative.id)
     await saveInitiativeComponents(savedInitiative.id, components, catalogs.componentCatalog)
 
     const persistedComponents = await getInitiativeComponents(savedInitiative.id, catalogs.componentCatalog)
+    console.log('[Initiative Save] components payload sent:', persistedComponents)
     const kpiRows = buildKpiValueGridRows(persistedComponents, catalogs.componentCatalog, catalogs.kpiCatalog)
     const fixedRows = buildFixedValueGridRows(persistedComponents, catalogs.componentCatalog)
+    const kpiPayload = toSaveKpiValueDtos(savedInitiative.id, valuesYear, valuesScenario, kpiRows, kpiValuesByRow)
+    const fixedPayload = toSaveComponentValueDtos(savedInitiative.id, valuesYear, valuesScenario, fixedRows, fixedValuesByRow)
 
-    await saveKpiValues(toSaveKpiValueDtos(savedInitiative.id, valuesYear, valuesScenario, kpiRows, kpiValuesByRow))
-    await saveComponentValues(
-      toSaveComponentValueDtos(savedInitiative.id, valuesYear, valuesScenario, fixedRows, fixedValuesByRow),
-    )
-    await calculateInitiative({
+    console.log('[Initiative Save] KPI values payload sent:', kpiPayload)
+    console.log('[Initiative Save] fixed values payload sent:', fixedPayload)
+    await saveKpiValues(kpiPayload, undefined, savedInitiative.id)
+    await saveComponentValues(fixedPayload, undefined, savedInitiative.id)
+    const calculationInput = {
       initiativeId: savedInitiative.id,
       monthRef: `${valuesYear}-01` as MonthRef,
       scenario: valuesScenario,
+    }
+    console.log('[Initiative Save] calculation input:', calculationInput)
+    const calculated = await calculateInitiative(calculationInput)
+    console.log('[Initiative Save] calculation output:', calculated)
+    console.log('[Initiative Save] calculation result saved confirmation:', {
+      initiativeId: calculated.initiativeId,
+      results: calculated.results.length,
+      details: calculated.details.length,
     })
   }
 

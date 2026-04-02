@@ -10,6 +10,24 @@ import { asInitiativeId, type InitiativeId } from '../../../domain/initiatives/v
 
 export const initiativeIdFromSharePointCalculation = (id: number | string): InitiativeId => asInitiativeId(String(id))
 
+const resolveInitiativeId = (
+  item: { readonly InitiativeId: number | { readonly Id?: number }; readonly InitiativeIdId?: number },
+): InitiativeId => {
+  if (typeof item.InitiativeIdId === 'number') {
+    return initiativeIdFromSharePointCalculation(item.InitiativeIdId)
+  }
+
+  if (typeof item.InitiativeId === 'number') {
+    return initiativeIdFromSharePointCalculation(item.InitiativeId)
+  }
+
+  if (typeof item.InitiativeId === 'object' && typeof item.InitiativeId.Id === 'number') {
+    return initiativeIdFromSharePointCalculation(item.InitiativeId.Id)
+  }
+
+  throw new Error('InitiativeId is missing in calculation record.')
+}
+
 export const initiativeIdToSharePointCalculation = (initiativeId: InitiativeId): number => {
   const parsed = Number(initiativeId)
 
@@ -21,7 +39,7 @@ export const initiativeIdToSharePointCalculation = (initiativeId: InitiativeId):
 }
 
 export const fromSharePointCalculationResult = (item: CalculationResultListItem): CalculationResult => ({
-  initiativeId: initiativeIdFromSharePointCalculation(item.InitiativeId),
+  initiativeId: resolveInitiativeId(item),
   year: Number(item.Year),
   month: Number(item.Month),
   gainValue: Number(item.GainValue),
@@ -30,7 +48,7 @@ export const fromSharePointCalculationResult = (item: CalculationResultListItem)
 })
 
 export const fromSharePointCalculationDetail = (item: CalculationDetailListItem): CalculationDetail => ({
-  initiativeId: initiativeIdFromSharePointCalculation(item.InitiativeId),
+  initiativeId: resolveInitiativeId(item),
   componentType: item.ComponentType as CalculationDetail['componentType'],
   year: Number(item.Year),
   month: Number(item.Month),

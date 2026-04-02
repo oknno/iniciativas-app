@@ -1,4 +1,5 @@
 import type { SaveKpiValueDto } from '../../dto/initiatives/SaveKpiValueDto'
+import type { InitiativeId } from '../../../domain/initiatives/value-objects/InitiativeId'
 import type { RuleActor } from '../../../domain/initiatives/services/initiativePolicy'
 import { InitiativePolicy } from '../../../domain/initiatives/services/initiativePolicy'
 import { BusinessRuleError } from '../../../domain/shared/errors/BusinessRuleError'
@@ -8,15 +9,15 @@ import { catalogsRepository } from '../../../services/sharepoint/repositories/ca
 import { governanceRepository } from '../../../services/sharepoint/repositories/governanceRepository'
 import { ensureKpiExists, resolveActor } from '../../services/businessRuleGuards'
 
-export async function saveKpiValues(values: readonly SaveKpiValueDto[], actor?: RuleActor): Promise<void> {
-  if (values.length === 0) {
-    return
-  }
-
+export async function saveKpiValues(
+  values: readonly SaveKpiValueDto[],
+  actor?: RuleActor,
+  initiativeIdOverride?: InitiativeId,
+): Promise<void> {
   const resolvedActor = resolveActor(actor)
   InitiativePolicy.ensureCanEditKpiValues(resolvedActor.role)
 
-  const initiativeId = values[0]?.initiativeId
+  const initiativeId = initiativeIdOverride ?? values[0]?.initiativeId
   if (!initiativeId) {
     throw new BusinessRuleError('Iniciativa não encontrada')
   }
@@ -26,8 +27,10 @@ export async function saveKpiValues(values: readonly SaveKpiValueDto[], actor?: 
     throw new BusinessRuleError('Iniciativa não encontrada')
   }
 
-  const kpiCatalog = await catalogsRepository.listKpiCatalog()
-  values.forEach((value) => ensureKpiExists(value.kpiCode, kpiCatalog))
+  if (values.length > 0) {
+    const kpiCatalog = await catalogsRepository.listKpiCatalog()
+    values.forEach((value) => ensureKpiExists(value.kpiCode, kpiCatalog))
+  }
 
   await initiativeValuesRepository.saveKpiValues(values)
   await governanceRepository.logAudit({
