@@ -166,10 +166,11 @@ export const toKpiValueDraftMap = (
   year: number,
 ): Readonly<Record<string, MonthlyInputMap>> => {
   const byComponentId = new Map(rows.filter((row) => row.componentId).map((row) => [row.componentId as string, row.signature]))
+  const byKpiCode = new Map(rows.map((row) => [row.kpiCode, row.signature]))
   const next: Record<string, MonthlyInputMap> = {}
 
   values.forEach((value) => {
-    const signature = byComponentId.get(value.componentId)
+    const signature = byComponentId.get(value.componentId) ?? byKpiCode.get(value.kpiCode)
     const month = toMonthNumber(value.monthRef, year)
 
     if (!signature || !month) {
@@ -191,10 +192,11 @@ export const toFixedValueDraftMap = (
   year: number,
 ): Readonly<Record<string, MonthlyInputMap>> => {
   const byComponentId = new Map(rows.filter((row) => row.componentId).map((row) => [row.componentId as string, row.signature]))
+  const byName = new Map(rows.map((row) => [row.componentName, row.signature]))
   const next: Record<string, MonthlyInputMap> = {}
 
   values.forEach((value) => {
-    const signature = byComponentId.get(value.componentId)
+    const signature = byComponentId.get(value.componentId) ?? byName.get(value.componentId)
     const month = toMonthNumber(value.monthRef, year)
 
     if (!signature || !month) {

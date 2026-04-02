@@ -59,6 +59,8 @@ export function ValuesStep({
   const fixedRows = buildFixedValueGridRows(components, componentCatalog)
   const conversionGroups = buildConversionPreviewGroups(components, conversionCatalog, conversionValues, year, scenario, initiativeId)
 
+  console.log('[InitiativeWizard] Loaded conversion preview values:', conversionGroups)
+
   return (
     <div style={{ display: 'grid', gap: uiTokens.spacing.md }}>
       <Card style={{ borderColor: uiTokens.colors.borderStrong, padding: uiTokens.spacing.md }}>

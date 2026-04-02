@@ -8,10 +8,18 @@ interface SharePointListResponse<TItem> {
   readonly value: readonly TItem[]
 }
 
+interface SharePointLookupValue {
+  readonly Id?: number
+  readonly Title?: string
+  readonly ComponentId?: string
+  readonly ComponentType?: string
+}
+
 export interface ComponentValueListItem {
   readonly Id: number
-  readonly InitiativeId: number | string
-  readonly ComponentType: string
+  readonly InitiativeId?: number | string | SharePointLookupValue
+  readonly InitiativeIdId?: number
+  readonly ComponentType: string | SharePointLookupValue
   readonly Year: number
   readonly Month: number
   readonly Value: number
@@ -38,15 +46,31 @@ const withEntityType = <TPayload extends object>(payload: TPayload): TPayload | 
   }
 }
 
+const listByInitiativeIdWithLookup = async (initiativeId: number): Promise<readonly ComponentValueListItem[]> => {
+  const response = await get<SharePointListResponse<ComponentValueListItem>>(
+    filteredListItemsEndpoint(LIST_TITLE, `InitiativeIdId eq ${initiativeId}`, {
+      select: 'Id,InitiativeIdId,InitiativeId/Id,ComponentType,ComponentType/Id,ComponentType/Title,ComponentType/ComponentId,ComponentType/ComponentType,Year,Month,Value',
+      expand: 'InitiativeId,ComponentType',
+      orderBy: 'Year asc,Month asc',
+    }),
+  )
+
+  return response.value
+}
+
 export const listByInitiativeId = async (initiativeId: number): Promise<readonly ComponentValueListItem[]> => {
   try {
-    const response = await get<SharePointListResponse<ComponentValueListItem>>(
-      filteredListItemsEndpoint(LIST_TITLE, `InitiativeId eq ${initiativeId}`),
-    )
+    return await listByInitiativeIdWithLookup(initiativeId)
+  } catch {
+    try {
+      const response = await get<SharePointListResponse<ComponentValueListItem>>(
+        filteredListItemsEndpoint(LIST_TITLE, `InitiativeId eq ${initiativeId}`),
+      )
 
-    return response.value
-  } catch (error) {
-    throw new Error(`Failed to list component values for initiative ${initiativeId}. ${(error as Error).message}`)
+      return response.value
+    } catch (error) {
+      throw new Error(`Failed to list component values for initiative ${initiativeId}. ${(error as Error).message}`)
+    }
   }
 }
 

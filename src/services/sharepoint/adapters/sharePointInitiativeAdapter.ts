@@ -12,6 +12,21 @@ import type { InitiativeComponentListItem, CreateInitiativeComponentPayload } fr
 import type { CreateInitiativePayload, InitiativeListItem, UpdateInitiativePayload } from '../lists/initiativesListApi'
 import type { CreateKpiValuePayload, KpiValueListItem } from '../lists/kpiValuesListApi'
 
+type LookupLike =
+  | string
+  | number
+  | {
+      readonly Id?: number
+      readonly Title?: string
+      readonly ComponentType?: string
+      readonly ComponentId?: string
+      readonly KPICode?: string
+      readonly ConversionCode?: string
+      readonly FormulaCode?: string
+    }
+  | undefined
+  | null
+
 const toMonthRef = (year: number, month: number): SaveKpiValueDto['monthRef'] =>
   `${year}-${String(month).padStart(2, '0')}` as SaveKpiValueDto['monthRef']
 
@@ -38,6 +53,58 @@ const toSharePointInitiativeId = (initiativeId: InitiativeId): number => {
   }
 
   return parsed
+}
+
+const toLookupString = (value: LookupLike, fieldOrder: readonly string[]): string | undefined => {
+  if (typeof value === 'string') {
+    const trimmed = value.trim()
+    return trimmed.length > 0 ? trimmed : undefined
+  }
+
+  if (typeof value === 'number') {
+    return String(value)
+  }
+
+  if (!value || typeof value !== 'object') {
+    return undefined
+  }
+
+  for (const field of fieldOrder) {
+    const candidate = value[field as keyof typeof value]
+    if (typeof candidate === 'string' && candidate.trim().length > 0) {
+      return candidate.trim()
+    }
+  }
+
+  if (typeof value.Id === 'number') {
+    return String(value.Id)
+  }
+
+  return undefined
+}
+
+const toLookupId = (value: LookupLike): string | undefined => {
+  if (typeof value === 'number') {
+    return String(value)
+  }
+
+  if (typeof value === 'object' && value && typeof value.Id === 'number') {
+    return String(value.Id)
+  }
+
+  return undefined
+}
+
+const resolveInitiativeId = (item: { readonly InitiativeId?: LookupLike; readonly InitiativeIdId?: number }): InitiativeId => {
+  const fromNumeric = typeof item.InitiativeIdId === 'number' ? String(item.InitiativeIdId) : undefined
+  const fromLookup = toLookupString(item.InitiativeId, ['Id'])
+  const resolved = fromNumeric ?? fromLookup
+
+  if (!resolved) {
+    throw new Error('InitiativeId is missing in SharePoint record.')
+  }
+
+  return asInitiativeId(resolved)
 }
 
 export const initiativeIdFromSharePoint = (id: number | string): InitiativeId => asInitiativeId(String(id))
@@ -77,19 +144,31 @@ export const toUpdateInitiativePayload = (input: SaveInitiativeDto): UpdateIniti
   Status: input.status,
 })
 
-export const fromSharePointInitiativeComponent = (item: InitiativeComponentListItem): InitiativeWithAnnualGain['components'][number] => ({
-  id: item.ComponentId ?? String(item.Id),
-  initiativeId: initiativeIdFromSharePoint(item.InitiativeId),
-  name: item.Title ?? item.ComponentType,
-  componentType: item.ComponentType as InitiativeWithAnnualGain['components'][number]['componentType'],
-  direction: 1,
-  calculationType: item.KPICode ? 'KPI_BASED' : 'FIXED',
-  kpiCode: item.KPICode ? asKpiCode(item.KPICode) : undefined,
-  conversionCode: item.ConversionCode ? asConversionCode(item.ConversionCode) : undefined,
-  formulaCode: item.FormulaCode ? asFormulaCode(item.FormulaCode) : undefined,
-  fixedValue: undefined,
-  sortOrder: item.Id,
-})
+export const fromSharePointInitiativeComponent = (item: InitiativeComponentListItem): InitiativeWithAnnualGain['components'][number] => {
+  const resolvedComponentType = toLookupString(item.ComponentType, ['ComponentType', 'Title'])
+
+  if (!resolvedComponentType) {
+    throw new Error(`ComponentType is missing for initiative component ${item.Id}.`)
+  }
+
+  const resolvedKpiCode = toLookupString(item.KPICode, ['KPICode', 'Title'])
+  const resolvedConversionCode = toLookupString(item.ConversionCode, ['ConversionCode', 'Title'])
+  const resolvedFormulaCode = toLookupString(item.FormulaCode, ['FormulaCode', 'Title'])
+
+  return {
+    id: item.ComponentId ?? toLookupId(item.ComponentType) ?? String(item.Id),
+    initiativeId: resolveInitiativeId(item),
+    name: item.Title ?? resolvedComponentType,
+    componentType: resolvedComponentType as InitiativeWithAnnualGain['components'][number]['componentType'],
+    direction: 1,
+    calculationType: resolvedKpiCode ? 'KPI_BASED' : 'FIXED',
+    kpiCode: resolvedKpiCode ? asKpiCode(resolvedKpiCode) : undefined,
+    conversionCode: resolvedConversionCode ? asConversionCode(resolvedConversionCode) : undefined,
+    formulaCode: resolvedFormulaCode ? asFormulaCode(resolvedFormulaCode) : undefined,
+    fixedValue: undefined,
+    sortOrder: item.SortOrder ?? item.Id,
+  }
+}
 
 export const toCreateInitiativeComponentPayload = (
   input: SaveInitiativeComponentDto,
@@ -102,14 +181,22 @@ export const toCreateInitiativeComponentPayload = (
   FormulaCode: input.formulaCode,
 })
 
-export const fromSharePointKpiValue = (item: KpiValueListItem): SaveKpiValueDto => ({
-  initiativeId: initiativeIdFromSharePoint(item.InitiativeId),
-  componentId: item.KPICode,
-  kpiCode: asKpiCode(item.KPICode),
-  monthRef: toMonthRef(item.Year, item.Month),
-  scenario: (item.Scenario ?? 'BASE') as SaveKpiValueDto['scenario'],
-  value: Number(item.Value),
-})
+export const fromSharePointKpiValue = (item: KpiValueListItem): SaveKpiValueDto => {
+  const resolvedKpiCode = toLookupString(item.KPICode, ['KPICode', 'Title'])
+
+  if (!resolvedKpiCode) {
+    throw new Error(`KPICode is missing for KPI value ${item.Id}.`)
+  }
+
+  return {
+    initiativeId: resolveInitiativeId(item),
+    componentId: toLookupString(item.ComponentType, ['ComponentId', 'Id', 'Title']) ?? resolvedKpiCode,
+    kpiCode: asKpiCode(resolvedKpiCode),
+    monthRef: toMonthRef(item.Year, item.Month),
+    scenario: (item.Scenario ?? 'BASE') as SaveKpiValueDto['scenario'],
+    value: Number(item.Value),
+  }
+}
 
 export const toCreateKpiValuePayload = (value: SaveKpiValueDto): Omit<CreateKpiValuePayload, 'InitiativeId'> => {
   const { year, month } = toYearMonth(value.monthRef)
@@ -124,8 +211,8 @@ export const toCreateKpiValuePayload = (value: SaveKpiValueDto): Omit<CreateKpiV
 }
 
 export const fromSharePointComponentValue = (item: ComponentValueListItem): SaveComponentValueDto => ({
-  initiativeId: initiativeIdFromSharePoint(item.InitiativeId),
-  componentId: item.ComponentType,
+  initiativeId: resolveInitiativeId(item),
+  componentId: toLookupString(item.ComponentType, ['ComponentId', 'ComponentType', 'Title', 'Id']) ?? '',
   monthRef: toMonthRef(item.Year, item.Month),
   scenario: 'BASE',
   baseValue: Number(item.Value),

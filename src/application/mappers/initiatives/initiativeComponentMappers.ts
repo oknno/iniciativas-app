@@ -35,19 +35,23 @@ export const toInitiativeComponentDraftDto = (
   component: InitiativeComponent,
   componentCatalog: readonly ComponentMasterDto[],
 ): InitiativeComponentDraftDto => {
-  const catalogMatch = componentCatalog.find(
+  const exactByCode = componentCatalog.find((catalogComponent) => catalogComponent.code === component.componentType)
+  const exactByTypeAndRule = componentCatalog.find(
     (catalogComponent) =>
       catalogComponent.componentType === component.componentType &&
       catalogComponent.defaultDirection === component.direction &&
       catalogComponent.defaultCalculationType === component.calculationType,
   )
+  const byType = componentCatalog.find((catalogComponent) => catalogComponent.componentType === component.componentType)
+
+  const catalogMatch = exactByCode ?? exactByTypeAndRule ?? byType
 
   return {
     id: component.id,
-    componentCode: catalogMatch?.code ?? '',
-    calculationType: component.calculationType,
-    direction: component.direction,
-    componentType: component.componentType,
+    componentCode: catalogMatch?.code ?? component.componentType,
+    calculationType: catalogMatch?.defaultCalculationType ?? component.calculationType,
+    direction: catalogMatch?.defaultDirection ?? component.direction,
+    componentType: catalogMatch?.componentType ?? component.componentType,
     kpiCode: component.kpiCode,
     conversionCode: component.conversionCode,
     formulaCode: component.formulaCode,
