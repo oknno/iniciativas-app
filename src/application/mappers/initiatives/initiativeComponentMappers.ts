@@ -43,7 +43,7 @@ export const toInitiativeComponentDraftDto = (
 
   return {
     id: component.id,
-    componentCode: component.componentType,
+    componentCode: catalogMatch?.code ?? component.componentType,
     calculationType: catalogMatch?.defaultCalculationType ?? component.calculationType,
     direction: catalogMatch?.defaultDirection ?? component.direction,
     componentType: catalogMatch?.componentType ?? component.componentType,

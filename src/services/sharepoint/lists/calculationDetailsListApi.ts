@@ -10,7 +10,8 @@ interface SharePointListResponse<TItem> {
 
 export interface CalculationDetailListItem {
   readonly Id: number
-  readonly InitiativeId: number
+  readonly InitiativeId: number | { readonly Id?: number }
+  readonly InitiativeIdId?: number
   readonly ComponentType: string
   readonly Year: number
   readonly Month: number
@@ -61,12 +62,24 @@ const withEntityType = <TPayload extends object>(payload: TPayload): TPayload | 
 export const listByInitiativeId = async (initiativeId: number): Promise<readonly CalculationDetailListItem[]> => {
   try {
     const response = await get<SharePointListResponse<CalculationDetailListItem>>(
-      filteredListItemsEndpoint(LIST_TITLE, `InitiativeId eq ${initiativeId}`, { orderBy: 'Year asc,Month asc' }),
+      filteredListItemsEndpoint(LIST_TITLE, `InitiativeIdId eq ${initiativeId}`, {
+        select:
+          'Id,InitiativeId,InitiativeIdId,ComponentType,Year,Month,FormulaCode,Direction,RawValue,SignedValue,BaseValue,ConversionValue,ResultValue,KpiCode,ConversionCode,SourceType,Explanation',
+        orderBy: 'Year asc,Month asc',
+      }),
     )
 
     return response.value
-  } catch (error) {
-    throw new Error(`Failed to list calculation details for initiative ${initiativeId}. ${(error as Error).message}`)
+  } catch {
+    try {
+      const response = await get<SharePointListResponse<CalculationDetailListItem>>(
+        filteredListItemsEndpoint(LIST_TITLE, `InitiativeId eq ${initiativeId}`, { orderBy: 'Year asc,Month asc' }),
+      )
+
+      return response.value
+    } catch (error) {
+      throw new Error(`Failed to list calculation details for initiative ${initiativeId}. ${(error as Error).message}`)
+    }
   }
 }
 
