@@ -28,7 +28,7 @@ type CommandBarProps = {
   onExport: () => void
 }
 
-const statusOptions = ['Rascunho', 'Em Aprovação', 'Aprovado', 'Reprovado'] as const
+const statusOptions = ['Em preenchimento', 'Em Aprovação', 'Aprovado', 'Reprovado'] as const
 const sortByOptions = ['Title', 'Id', 'approvalYear'] as const
 const sortDirOptions = ['asc', 'desc'] as const
 
@@ -170,20 +170,41 @@ export function CommandBar({
     }
   }, [isFilterOpen])
 
-  const status = normalizeStatus(selectedStatus)
+  const normalizedStatus = normalizeStatus(selectedStatus)
 
   const actionAvailability = useMemo(() => {
     const hasSelection = selectedId !== null
-    const editableStatus = status.length === 0 || status === 'rascunho'
+    const editableStatus = normalizedStatus === 'em preenchimento'
+    const canBackStatus = hasSelection && normalizedStatus !== 'em preenchimento'
+
+    console.info('[CommandBar] action availability', {
+      selectedId,
+      selectedStatus,
+      normalizedStatus,
+      hasSelection,
+      canView: hasSelection,
+      canDuplicate: hasSelection,
+      canEdit: hasSelection && editableStatus,
+      canDelete: hasSelection && editableStatus,
+      canBackStatus,
+    })
 
     return {
       canView: hasSelection,
       canDuplicate: hasSelection,
       canEdit: hasSelection && editableStatus,
       canDelete: hasSelection && editableStatus,
-      canBackStatus: status !== 'aprovado',
+      canBackStatus,
     }
-  }, [selectedId, status])
+  }, [normalizedStatus, selectedId, selectedStatus])
+
+  useEffect(() => {
+    console.info('[CommandBar] received selected state', {
+      selectedId,
+      selectedStatus,
+      normalizedStatus,
+    })
+  }, [normalizedStatus, selectedId, selectedStatus])
 
   const handleFilterField = <K extends keyof CommandBarFilters>(key: K, value: CommandBarFilters[K]) => {
     onChangeFilters({ ...filters, [key]: value })

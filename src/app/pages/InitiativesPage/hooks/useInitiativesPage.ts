@@ -13,6 +13,10 @@ import { useInitiativeSelection } from './useInitiativeSelection'
 
 export type InitiativeWizardMode = 'create' | 'edit'
 
+const normalizeStatusForComparison = (status: string | undefined): string => status?.trim().toLowerCase() ?? ''
+
+const isEditableStatus = (status: string | undefined): boolean => normalizeStatusForComparison(status) === 'em preenchimento'
+
 const toListItem = (detail: InitiativeDetailDto): InitiativeListItemDto => ({
   id: detail.id,
   unidade: detail.unidade,
@@ -33,7 +37,7 @@ export function useInitiativesPage() {
   const [wizardMode, setWizardMode] = useState<InitiativeWizardMode>('create')
   const [selectedItemDetailState, setSelectedItemDetailState] = useState<'idle' | 'loading' | 'error' | 'loaded'>('idle')
 
-  const { selectedId, setSelectedId, selectAfterDelete } = useInitiativeSelection(items)
+  const { selectedId, selectedListItem, setSelectedId, selectAfterDelete } = useInitiativeSelection(items)
 
   const refresh = useCallback(async () => {
     setIsLoading(true)
@@ -81,6 +85,15 @@ export function useInitiativesPage() {
   }
 
   const openEdit = () => {
+    if (!selectedId || !isEditableStatus(selectedListItem?.status)) {
+      return
+    }
+
+    setWizardMode('edit')
+    setIsWizardOpen(true)
+  }
+
+  const openView = () => {
     if (!selectedId) {
       return
     }
@@ -166,16 +179,43 @@ export function useInitiativesPage() {
 
   const commandState = useMemo(
     () => ({
-      canEdit: Boolean(selectedId),
+      canEdit: Boolean(selectedId) && isEditableStatus(selectedListItem?.status),
       canDuplicate: Boolean(selectedId),
-      canDelete: Boolean(selectedId),
+      canDelete: Boolean(selectedId) && isEditableStatus(selectedListItem?.status),
     }),
-    [selectedId],
+    [selectedId, selectedListItem?.status],
   )
+
+  const selectedStatus = selectedItemDetail?.status ?? selectedListItem?.status ?? ''
+
+  const select = useCallback(
+    (id: InitiativeDetailDto['id']) => {
+      const listItem = items.find((item) => item.id === id)
+      console.info('[InitiativesPage] row selected', {
+        id,
+        status: listItem?.status ?? '',
+      })
+      setSelectedId(id)
+    },
+    [items, setSelectedId],
+  )
+
+  useEffect(() => {
+    if (!selectedId) {
+      return
+    }
+
+    console.info('[InitiativesPage] selected detail state', {
+      id: selectedId,
+      status: selectedStatus,
+      detailState: selectedItemDetailState,
+    })
+  }, [selectedId, selectedStatus, selectedItemDetailState])
 
   return {
     items,
     selectedId,
+    selectedStatus,
     selectedItemDetail,
     selectedItemDetailState,
     isWizardOpen,
@@ -184,9 +224,10 @@ export function useInitiativesPage() {
     isSaving,
     commandState,
     actions: {
-      select: setSelectedId,
+      select,
       refresh,
       openCreate,
+      openView,
       openEdit,
       closeWizard,
       saveFromWizard,

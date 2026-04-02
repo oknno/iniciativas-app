@@ -15,7 +15,7 @@ const initialFilters: CommandBarFilters = {
 }
 
 export function InitiativesPage() {
-  const { items, selectedId, selectedItemDetail, selectedItemDetailState, isWizardOpen, wizardMode, isSaving, actions } =
+  const { items, selectedId, selectedStatus, selectedItemDetail, selectedItemDetailState, isWizardOpen, wizardMode, isSaving, actions } =
     useInitiativesPage()
   const [filters, setFilters] = useState<CommandBarFilters>(initialFilters)
 
@@ -23,9 +23,9 @@ export function InitiativesPage() {
     <div className="initiatives-app">
       <main className="initiatives-container">
         <div style={styles.pageFrame}>
-          <CommandBar
-            selectedId={selectedId ?? null}
-            selectedStatus={selectedItemDetail?.status ?? ''}
+            <CommandBar
+              selectedId={selectedId ?? null}
+              selectedStatus={selectedStatus}
             totalLoaded={items.length}
             filters={filters}
             onChangeFilters={setFilters}
@@ -37,9 +37,7 @@ export function InitiativesPage() {
             }}
             onRefresh={actions.refresh}
             onNew={actions.openCreate}
-            onView={() => {
-              // Reserved for view action behavior.
-            }}
+            onView={actions.openView}
             onEdit={actions.openEdit}
             onDuplicate={actions.duplicateSelected}
             onDelete={actions.deleteSelected}
