@@ -19,18 +19,29 @@ export async function updateInitiative(input: SaveInitiativeDto, actor?: RuleAct
     throw new BusinessRuleError('Iniciativa não encontrada')
   }
 
-  ensureRequiredInitiativeFields(input)
-  InitiativePolicy.ensureStatusTransition(current.status, input.status)
+  const normalizedInput: SaveInitiativeDto = {
+    ...input,
+    status: input.status.trim() || current.status,
+  }
 
-  if (input.status === 'Aprovada') {
+  console.info('[Initiative Save] update with status:', {
+    from: current.status,
+    requested: input.status,
+    used: normalizedInput.status,
+  })
+
+  ensureRequiredInitiativeFields(normalizedInput)
+  InitiativePolicy.ensureStatusTransition(current.status, normalizedInput.status)
+
+  if (normalizedInput.status === 'Aprovada') {
     InitiativePolicy.ensureCanApprove(resolvedActor.role)
   }
 
-  if (input.status === 'Reprovada') {
+  if (normalizedInput.status === 'Reprovada') {
     InitiativePolicy.ensureCanReject(resolvedActor.role)
   }
 
-  const updated = await initiativesRepository.update(input)
+  const updated = await initiativesRepository.update(normalizedInput)
 
   if (current.status !== updated.status) {
     await governanceRepository.addStatusHistory({

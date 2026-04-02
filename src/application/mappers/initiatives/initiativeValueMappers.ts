@@ -117,6 +117,7 @@ export const buildConversionPreviewGroups = (
   conversionValues: readonly ConversionValueDto[],
   year: number,
   scenario: Scenario,
+  initiativeId?: InitiativeId,
 ): readonly ConversionPreviewGroup[] => {
   const usedConversionCodes = new Set(
     components
@@ -129,14 +130,23 @@ export const buildConversionPreviewGroups = (
     .map((conversion) => {
       const monthlyValues: Partial<Record<MonthNumber, number>> = {}
 
-      conversionValues.forEach((value) => {
-        if (value.conversionCode !== conversion.code || value.scenario !== scenario) {
-          return
-        }
+      MONTHS.forEach(({ month }) => {
+        const monthRef = toMonthRef(year, month)
+        const initiativeSpecific = conversionValues.find((value) =>
+          value.conversionCode === conversion.code &&
+          value.scenario === scenario &&
+          value.monthRef === monthRef &&
+          initiativeId !== undefined &&
+          value.initiativeId === initiativeId)
+        const globalValue = conversionValues.find((value) =>
+          value.conversionCode === conversion.code &&
+          value.scenario === scenario &&
+          value.monthRef === monthRef &&
+          value.initiativeId === undefined)
+        const resolvedValue = initiativeSpecific ?? globalValue
 
-        const month = toMonthNumber(value.monthRef, year)
-        if (month) {
-          monthlyValues[month] = value.value
+        if (resolvedValue) {
+          monthlyValues[month] = resolvedValue.value
         }
       })
 

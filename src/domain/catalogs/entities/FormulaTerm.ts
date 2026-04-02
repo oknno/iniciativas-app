@@ -1,4 +1,5 @@
 import type { CalculationType } from '../value-objects/CalculationType'
+import type { ComponentType } from '../value-objects/ComponentType'
 import type { ConversionCode } from '../value-objects/ConversionCode'
 import type { FormulaCode } from '../value-objects/FormulaCode'
 import type { KpiCode } from '../value-objects/KpiCode'
@@ -7,6 +8,7 @@ export type FormulaTermOperation = 'MULTIPLY' | 'ADD' | 'SUBTRACT'
 
 export interface FormulaTerm {
   readonly formulaCode: FormulaCode
+  readonly componentType?: ComponentType
   readonly order: number
   readonly operation: FormulaTermOperation
   readonly signal: 1 | -1

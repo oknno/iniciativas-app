@@ -12,6 +12,7 @@ interface SharePointListResponse<TItem> {
 export interface FormulaTermListItem {
   readonly Id: number
   readonly FormulaCode: string
+  readonly ComponentType?: string
   readonly Order: number
   readonly Operation: string
   readonly Signal: number

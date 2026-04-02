@@ -60,6 +60,7 @@ export const fromSharePointConversionValue = (item: ConversionValueListItem): Co
 
 export const fromSharePointFormulaTerm = (item: FormulaTermListItem): FormulaTerm => ({
   formulaCode: asFormulaCode(item.FormulaCode),
+  componentType: item.ComponentType as FormulaTerm['componentType'],
   order: Number(item.Order),
   operation: item.Operation as FormulaTerm['operation'],
   signal: Number(item.Signal) >= 0 ? 1 : -1,

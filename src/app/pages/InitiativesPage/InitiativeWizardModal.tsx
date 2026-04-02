@@ -61,7 +61,7 @@ const getInitialFormState = (initiative: InitiativeDetailDto | undefined): Initi
   unidade: initiative?.unidade ?? '',
   responsavel: initiative?.responsavel ?? '',
   stage: initiative?.stage ?? '',
-  status: initiative?.status ?? '',
+  status: initiative?.status ?? 'Em preenchimento',
 })
 
 
@@ -289,6 +289,7 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
             conversionValues={catalogs.conversionValues}
             year={valuesYear}
             scenario={valuesScenario}
+            initiativeId={selectedInitiative?.id}
             isLoadingValues={isLoadingValues}
             valuesLoadErrorMessage={valuesLoadError}
             isPreviewCalculating={isPreviewCalculating}
@@ -416,13 +417,20 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
   }
 
   const handleSave = async () => {
+    const resolvedStatus = form.status.trim() || 'Em preenchimento'
+    console.info('[Initiative Save] status usado no save:', {
+      mode,
+      initiativeId: selectedInitiative?.id ?? 'NEW',
+      status: resolvedStatus,
+    })
+
     const dto: SaveInitiativeDto = {
       id: mode === 'edit' ? selectedInitiative?.id : undefined,
       title: form.title.trim(),
       unidade: form.unidade.trim(),
       responsavel: form.responsavel.trim(),
       stage: form.stage.trim(),
-      status: form.status.trim(),
+      status: resolvedStatus,
     }
 
     const savedInitiative = await onSave(dto)

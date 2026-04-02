@@ -64,7 +64,11 @@ export const CalculationEngine = {
         ComponentCalculator.calculate({
           initiativeId: input.initiativeId,
           component,
-          formulaTerms: component.formulaCode ? (formulaTermsByCode.get(component.formulaCode) ?? []).sort((a, b) => a.order - b.order) : [],
+          formulaTerms: component.formulaCode
+            ? (formulaTermsByCode.get(component.formulaCode) ?? [])
+              .filter((term) => !term.componentType || term.componentType === component.componentType)
+              .sort((a, b) => a.order - b.order)
+            : [],
           year: input.year,
           month,
           context,
@@ -74,6 +78,21 @@ export const CalculationEngine = {
       monthlyResults.forEach((item) => {
         details.push(...item.details)
         issues.push(...item.issues)
+      })
+
+      monthlyResults.forEach((item, index) => {
+        const component = input.components[index]
+        console.info('[Calculation] resultado mensal por componente', {
+          initiativeId: input.initiativeId,
+          year: input.year,
+          month,
+          componentType: component.componentType,
+          componentName: component.name,
+          calculationType: component.calculationType,
+          isValid: item.isValid,
+          componentResult: item.componentResult,
+          issues: item.issues,
+        })
       })
 
       const gainValue = monthlyResults.filter((item) => item.isValid).reduce((sum, item) => sum + item.componentResult, 0)

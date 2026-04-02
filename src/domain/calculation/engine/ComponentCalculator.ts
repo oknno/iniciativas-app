@@ -48,6 +48,12 @@ const calculateTermValue = (input: {
 
   if (!term.conversionCode) {
     const issue = `Missing conversion reference for formula term ${term.formulaCode} (${component.name})`
+    console.info('[Calculation] conversão não encontrada (sem referência)', {
+      initiativeId,
+      componentType: component.componentType,
+      formulaCode: term.formulaCode,
+      monthRef,
+    })
     issues.push(issue)
     return {
       baseValue: kpiValue,
@@ -66,6 +72,13 @@ const calculateTermValue = (input: {
 
   if (resolvedConversion === undefined) {
     const issue = `Missing conversion value for ${term.conversionCode} (${monthRef}) on component ${component.name}`
+    console.info('[Calculation] conversão não encontrada', {
+      initiativeId,
+      componentType: component.componentType,
+      formulaCode: term.formulaCode,
+      conversionCode: term.conversionCode,
+      monthRef,
+    })
     issues.push(issue)
     return {
       baseValue: kpiValue,
@@ -78,6 +91,15 @@ const calculateTermValue = (input: {
   }
 
   const resultValue = kpiValue * resolvedConversion * term.signal
+  console.info('[Calculation] conversão encontrada', {
+    initiativeId,
+    componentType: component.componentType,
+    formulaCode: term.formulaCode,
+    conversionCode: term.conversionCode,
+    monthRef,
+    source: initiativeConversion !== undefined ? 'initiative_override' : 'global',
+    value: resolvedConversion,
+  })
   return {
     baseValue: kpiValue,
     conversionValue: resolvedConversion,
