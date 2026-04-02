@@ -8,15 +8,26 @@ interface SharePointListResponse<TItem> {
   readonly value: readonly TItem[]
 }
 
-export interface InitiativeComponentListItem {
-  readonly Id: number
-  readonly InitiativeId: number | string
-  readonly ComponentType: string
+interface SharePointLookupValue {
+  readonly Id?: number
+  readonly Title?: string
+  readonly ComponentType?: string
   readonly KPICode?: string
   readonly ConversionCode?: string
   readonly FormulaCode?: string
+}
+
+export interface InitiativeComponentListItem {
+  readonly Id: number
+  readonly InitiativeId?: number | string | SharePointLookupValue
+  readonly InitiativeIdId?: number
+  readonly ComponentType?: string | SharePointLookupValue
+  readonly KPICode?: string | SharePointLookupValue
+  readonly ConversionCode?: string | SharePointLookupValue
+  readonly FormulaCode?: string | SharePointLookupValue
   readonly Title?: string
   readonly ComponentId?: string
+  readonly SortOrder?: number
 }
 
 export interface CreateInitiativeComponentPayload {
@@ -42,17 +53,34 @@ const withEntityType = <TPayload extends object>(payload: TPayload): TPayload | 
   }
 }
 
+const listByInitiativeIdWithLookup = async (initiativeId: number): Promise<readonly InitiativeComponentListItem[]> => {
+  const response = await get<SharePointListResponse<InitiativeComponentListItem>>(
+    filteredListItemsEndpoint(LIST_TITLE, `InitiativeIdId eq ${initiativeId}`, {
+      select:
+        'Id,Title,ComponentId,SortOrder,InitiativeIdId,InitiativeId/Id,ComponentType,ComponentType/Title,ComponentType/ComponentType,KPICode,KPICode/Title,KPICode/KPICode,ConversionCode,ConversionCode/Title,ConversionCode/ConversionCode,FormulaCode,FormulaCode/Title,FormulaCode/FormulaCode',
+      expand: 'InitiativeId,ComponentType,KPICode,ConversionCode,FormulaCode',
+      orderBy: 'SortOrder asc,Id asc',
+    }),
+  )
+
+  return response.value
+}
+
 export const listByInitiativeId = async (initiativeId: number): Promise<readonly InitiativeComponentListItem[]> => {
   try {
-    const response = await get<SharePointListResponse<InitiativeComponentListItem>>(
-      filteredListItemsEndpoint(LIST_TITLE, `InitiativeId eq ${initiativeId}`),
-    )
+    return await listByInitiativeIdWithLookup(initiativeId)
+  } catch {
+    try {
+      const response = await get<SharePointListResponse<InitiativeComponentListItem>>(
+        filteredListItemsEndpoint(LIST_TITLE, `InitiativeId eq ${initiativeId}`, { orderBy: 'Id asc' }),
+      )
 
-    return response.value
-  } catch (error) {
-    throw new Error(
-      `Failed to list initiative components for initiative ${initiativeId} from '${LIST_TITLE}'. ${(error as Error).message}`,
-    )
+      return response.value
+    } catch (error) {
+      throw new Error(
+        `Failed to list initiative components for initiative ${initiativeId} from '${LIST_TITLE}'. ${(error as Error).message}`,
+      )
+    }
   }
 }
 

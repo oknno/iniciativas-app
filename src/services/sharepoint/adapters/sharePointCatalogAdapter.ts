@@ -15,8 +15,50 @@ import type { FormulaTermListItem } from '../lists/formulaTermsListApi'
 import type { KpiMasterListItem } from '../lists/kpiMasterListApi'
 import type { FormulaTerm } from '../../../domain/catalogs/entities/FormulaTerm'
 
+type LookupLike =
+  | string
+  | number
+  | {
+      readonly Id?: number
+      readonly Title?: string
+      readonly ComponentType?: string
+      readonly KPICode?: string
+      readonly ConversionCode?: string
+      readonly FormulaCode?: string
+    }
+  | undefined
+  | null
+
 const toMonthRef = (year: number, month: number): ConversionValueDto['monthRef'] =>
   `${year}-${String(month).padStart(2, '0')}` as ConversionValueDto['monthRef']
+
+const toLookupString = (value: LookupLike, fieldOrder: readonly string[]): string | undefined => {
+  if (typeof value === 'string') {
+    const trimmed = value.trim()
+    return trimmed.length > 0 ? trimmed : undefined
+  }
+
+  if (typeof value === 'number') {
+    return String(value)
+  }
+
+  if (!value || typeof value !== 'object') {
+    return undefined
+  }
+
+  for (const field of fieldOrder) {
+    const candidate = value[field as keyof typeof value]
+    if (typeof candidate === 'string' && candidate.trim().length > 0) {
+      return candidate.trim()
+    }
+  }
+
+  if (typeof value.Id === 'number') {
+    return String(value.Id)
+  }
+
+  return undefined
+}
 
 export const fromSharePointComponentCatalog = (item: ComponentMasterListItem): ComponentMasterDto => ({
   code: item.ComponentType,
@@ -50,13 +92,23 @@ export const fromSharePointFormulaCatalog = (item: FormulaMasterListItem): Formu
   active: true,
 })
 
-export const fromSharePointConversionValue = (item: ConversionValueListItem): ConversionValueDto => ({
-  conversionCode: asConversionCode(item.ConversionCode),
-  initiativeId: item.InitiativeId !== undefined && item.InitiativeId !== null ? asInitiativeId(String(item.InitiativeId)) : undefined,
-  monthRef: toMonthRef(item.Year, item.Month),
-  scenario: (item.Scenario ?? 'BASE') as ConversionValueDto['scenario'],
-  value: Number(item.Value),
-})
+export const fromSharePointConversionValue = (item: ConversionValueListItem): ConversionValueDto => {
+  const resolvedConversionCode = toLookupString(item.ConversionCode, ['ConversionCode', 'Title'])
+  if (!resolvedConversionCode) {
+    throw new Error(`ConversionCode is missing for conversion value ${item.Id}.`)
+  }
+
+  const resolvedInitiativeId =
+    typeof item.InitiativeIdId === 'number' ? String(item.InitiativeIdId) : toLookupString(item.InitiativeId, ['Id'])
+
+  return {
+    conversionCode: asConversionCode(resolvedConversionCode),
+    initiativeId: resolvedInitiativeId ? asInitiativeId(resolvedInitiativeId) : undefined,
+    monthRef: toMonthRef(item.Year, item.Month),
+    scenario: (item.Scenario ?? 'BASE') as ConversionValueDto['scenario'],
+    value: Number(item.Value),
+  }
+}
 
 export const fromSharePointFormulaTerm = (item: FormulaTermListItem): FormulaTerm => ({
   formulaCode: asFormulaCode(item.FormulaCode),

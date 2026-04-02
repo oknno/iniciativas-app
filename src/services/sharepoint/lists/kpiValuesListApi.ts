@@ -8,10 +8,19 @@ interface SharePointListResponse<TItem> {
   readonly value: readonly TItem[]
 }
 
+interface SharePointLookupValue {
+  readonly Id?: number
+  readonly Title?: string
+  readonly KPICode?: string
+  readonly ComponentId?: string
+}
+
 export interface KpiValueListItem {
   readonly Id: number
-  readonly InitiativeId: number | string
-  readonly KPICode: string
+  readonly InitiativeId?: number | string | SharePointLookupValue
+  readonly InitiativeIdId?: number
+  readonly KPICode: string | SharePointLookupValue
+  readonly ComponentType?: string | SharePointLookupValue
   readonly Year: number
   readonly Month: number
   readonly Value: number
@@ -40,15 +49,31 @@ const withEntityType = <TPayload extends object>(payload: TPayload): TPayload | 
   }
 }
 
+const listByInitiativeIdWithLookup = async (initiativeId: number): Promise<readonly KpiValueListItem[]> => {
+  const response = await get<SharePointListResponse<KpiValueListItem>>(
+    filteredListItemsEndpoint(LIST_TITLE, `InitiativeIdId eq ${initiativeId}`, {
+      select: 'Id,InitiativeIdId,InitiativeId/Id,KPICode,KPICode/Title,KPICode/KPICode,ComponentType,ComponentType/Id,ComponentType/ComponentId,Year,Month,Value,Scenario',
+      expand: 'InitiativeId,KPICode,ComponentType',
+      orderBy: 'Year asc,Month asc',
+    }),
+  )
+
+  return response.value
+}
+
 export const listByInitiativeId = async (initiativeId: number): Promise<readonly KpiValueListItem[]> => {
   try {
-    const response = await get<SharePointListResponse<KpiValueListItem>>(
-      filteredListItemsEndpoint(LIST_TITLE, `InitiativeId eq ${initiativeId}`),
-    )
+    return await listByInitiativeIdWithLookup(initiativeId)
+  } catch {
+    try {
+      const response = await get<SharePointListResponse<KpiValueListItem>>(
+        filteredListItemsEndpoint(LIST_TITLE, `InitiativeId eq ${initiativeId}`),
+      )
 
-    return response.value
-  } catch (error) {
-    throw new Error(`Failed to list KPI values for initiative ${initiativeId}. ${(error as Error).message}`)
+      return response.value
+    } catch (error) {
+      throw new Error(`Failed to list KPI values for initiative ${initiativeId}. ${(error as Error).message}`)
+    }
   }
 }
 

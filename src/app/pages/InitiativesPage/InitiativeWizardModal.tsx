@@ -148,8 +148,15 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
 
     setIsLoadingComponents(true)
     setComponentsLoadError(null)
+    console.log('[InitiativeWizard] Loading data for selected initiative id:', selectedInitiative.id)
     void getInitiativeComponents(selectedInitiative.id, catalogs.componentCatalog)
-      .then(setComponents)
+      .then((loadedComponents) => {
+        console.log('[InitiativeWizard] Loaded Initiative_Component records:', loadedComponents)
+        console.log('[InitiativeWizard] Resolved component codes:', loadedComponents.map((item) => item.componentCode))
+        console.log('[InitiativeWizard] Resolved KPI codes:', loadedComponents.map((item) => item.kpiCode).filter(Boolean))
+        console.log('[InitiativeWizard] Resolved conversion codes:', loadedComponents.map((item) => item.conversionCode).filter(Boolean))
+        setComponents(loadedComponents)
+      })
       .catch((error) => {
         console.error('Failed to load initiative components from SharePoint.', error)
         setComponents([])
@@ -178,6 +185,8 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
     setValuesLoadError(null)
     void getInitiativeValues(selectedInitiative.id, valuesYear, valuesScenario)
       .then(({ kpiValues, componentValues }) => {
+        console.log('[InitiativeWizard] Loaded KPI values:', kpiValues)
+        console.log('[InitiativeWizard] Loaded fixed values:', componentValues)
         setKpiValuesByRow(toKpiValueDraftMap(kpiValues, kpiRows, valuesYear))
         setFixedValuesByRow(toFixedValueDraftMap(componentValues, fixedRows, valuesYear))
       })
