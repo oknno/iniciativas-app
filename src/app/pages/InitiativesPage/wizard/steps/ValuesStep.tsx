@@ -10,6 +10,7 @@ import {
   buildKpiValueGridRows,
 } from '../../../../../application/mappers/initiatives/initiativeValueMappers'
 import type { Scenario } from '../../../../../domain/initiatives/value-objects/Scenario'
+import type { InitiativeId } from '../../../../../domain/initiatives/value-objects/InitiativeId'
 import { Card } from '../../../../components/ui/Card'
 import { Section } from '../../../../components/ui/Section'
 import { uiTokens } from '../../../../components/ui/tokens'
@@ -25,6 +26,7 @@ type ValuesStepProps = {
   conversionValues: readonly ConversionValueDto[]
   year: number
   scenario: Scenario
+  initiativeId?: InitiativeId
   isLoadingValues: boolean
   valuesLoadErrorMessage?: string | null
   isPreviewCalculating: boolean
@@ -43,6 +45,7 @@ export function ValuesStep({
   conversionValues,
   year,
   scenario,
+  initiativeId,
   isLoadingValues,
   valuesLoadErrorMessage,
   isPreviewCalculating,
@@ -54,7 +57,7 @@ export function ValuesStep({
 }: ValuesStepProps) {
   const kpiRows = buildKpiValueGridRows(components, componentCatalog, kpiCatalog)
   const fixedRows = buildFixedValueGridRows(components, componentCatalog)
-  const conversionGroups = buildConversionPreviewGroups(components, conversionCatalog, conversionValues, year, scenario)
+  const conversionGroups = buildConversionPreviewGroups(components, conversionCatalog, conversionValues, year, scenario, initiativeId)
 
   return (
     <div style={{ display: 'grid', gap: uiTokens.spacing.md }}>

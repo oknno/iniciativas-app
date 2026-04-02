@@ -7,6 +7,7 @@ import type { InitiativeCalculationSnapshot } from '../../../domain/calculation/
 export const toConversionValues = (items: readonly ConversionValueDto[]): readonly ConversionValue[] =>
   items.map((item) => ({
     conversionCode: item.conversionCode,
+    initiativeId: item.initiativeId,
     monthRef: item.monthRef,
     scenario: item.scenario,
     value: item.value,

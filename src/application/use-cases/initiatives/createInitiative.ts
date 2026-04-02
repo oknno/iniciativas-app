@@ -9,9 +9,14 @@ import { ensureRequiredInitiativeFields, resolveActor } from '../../services/bus
 export async function createInitiative(input: SaveInitiativeDto, actor?: RuleActor): Promise<InitiativeDetailDto> {
   const resolvedActor = resolveActor(actor)
   InitiativePolicy.ensureCanCreateInitiative(resolvedActor.role)
-  ensureRequiredInitiativeFields(input)
+  const normalizedInput: SaveInitiativeDto = {
+    ...input,
+    status: input.status.trim() || 'Em preenchimento',
+  }
+  console.info('[Initiative Save] create with status:', normalizedInput.status)
+  ensureRequiredInitiativeFields(normalizedInput)
 
-  const created = await initiativesRepository.create(input)
+  const created = await initiativesRepository.create(normalizedInput)
 
   await governanceRepository.logAudit({
     initiativeId: created.id,
