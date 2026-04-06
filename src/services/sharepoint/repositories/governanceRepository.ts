@@ -2,11 +2,11 @@ import type { InitiativeId } from '../../../domain/initiatives/value-objects/Ini
 import { createAuditLog } from '../lists/auditLogListApi'
 import { createStatusHistory } from '../lists/initiativeStatusHistoryListApi'
 
-const toInitiativeIdText = (initiativeId: InitiativeId): string => String(initiativeId)
+const toInitiativeIdText = (initiativeId?: InitiativeId): string => (initiativeId ? String(initiativeId) : 'N/A')
 
 export const governanceRepository = {
   async logAudit(input: {
-    readonly initiativeId: InitiativeId
+    readonly initiativeId?: InitiativeId
     readonly eventType: string
     readonly changedBy: string
     readonly payload?: object
@@ -17,6 +17,25 @@ export const governanceRepository = {
       EventType: input.eventType,
       ChangedBy: input.changedBy,
       PayloadJson: input.payload ? JSON.stringify(input.payload) : undefined,
+    })
+  },
+
+  async logAccessDenied(input: {
+    readonly initiativeId?: InitiativeId
+    readonly changedBy: string
+    readonly action: string
+    readonly role: string
+    readonly reason: string
+  }): Promise<void> {
+    await this.logAudit({
+      initiativeId: input.initiativeId,
+      eventType: 'ACCESS_DENIED',
+      changedBy: input.changedBy,
+      payload: {
+        action: input.action,
+        role: input.role,
+        reason: input.reason,
+      },
     })
   },
 

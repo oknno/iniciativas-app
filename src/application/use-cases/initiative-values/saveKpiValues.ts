@@ -11,11 +11,10 @@ import { ensureKpiExists, resolveActor } from '../../services/businessRuleGuards
 
 export async function saveKpiValues(
   values: readonly SaveKpiValueDto[],
-  actor?: RuleActor,
+  actor: RuleActor,
   initiativeIdOverride?: InitiativeId,
 ): Promise<void> {
   const resolvedActor = resolveActor(actor)
-  InitiativePolicy.ensureCanEditKpiValues(resolvedActor.role)
 
   const initiativeId = initiativeIdOverride ?? values[0]?.initiativeId
   if (!initiativeId) {
@@ -25,6 +24,21 @@ export async function saveKpiValues(
   const initiative = await initiativesRepository.getById(initiativeId)
   if (!initiative) {
     throw new BusinessRuleError('Iniciativa não encontrada')
+  }
+
+  try {
+    InitiativePolicy.ensureCanEditKpiValues(resolvedActor.role, initiative.status)
+  } catch (error) {
+    if (error instanceof BusinessRuleError) {
+      await governanceRepository.logAccessDenied({
+        initiativeId,
+        changedBy: resolvedActor.user,
+        action: 'SAVE_KPI_VALUES',
+        role: resolvedActor.role,
+        reason: error.message,
+      })
+    }
+    throw error
   }
 
   if (values.length > 0) {

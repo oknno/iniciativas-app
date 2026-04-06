@@ -7,7 +7,7 @@ import { initiativesRepository } from '../../../services/sharepoint/repositories
 import { governanceRepository } from '../../../services/sharepoint/repositories/governanceRepository'
 import { ensureRequiredInitiativeFields, resolveActor } from '../../services/businessRuleGuards'
 
-export async function updateInitiative(input: SaveInitiativeDto, actor?: RuleActor): Promise<InitiativeDetailDto> {
+export async function updateInitiative(input: SaveInitiativeDto, actor: RuleActor): Promise<InitiativeDetailDto> {
   if (!input.id) {
     throw new BusinessRuleError('Iniciativa não encontrada')
   }
@@ -31,14 +31,32 @@ export async function updateInitiative(input: SaveInitiativeDto, actor?: RuleAct
   })
 
   ensureRequiredInitiativeFields(normalizedInput)
-  InitiativePolicy.ensureStatusTransition(current.status, normalizedInput.status)
+  try {
+    InitiativePolicy.ensureStatusTransition(current.status, normalizedInput.status)
 
-  if (normalizedInput.status === 'Aprovada') {
-    InitiativePolicy.ensureCanApprove(resolvedActor.role)
-  }
+    if (normalizedInput.status === 'Em validação') {
+      InitiativePolicy.ensureCanValidateLocal(resolvedActor.role, current.status, normalizedInput.status)
+    }
 
-  if (normalizedInput.status === 'Reprovada') {
-    InitiativePolicy.ensureCanReject(resolvedActor.role)
+    if (normalizedInput.status === 'Aprovada') {
+      InitiativePolicy.ensureCanApprove(resolvedActor.role, current.status, normalizedInput.status)
+    }
+
+    if (normalizedInput.status === 'Reprovada') {
+      InitiativePolicy.ensureCanReject(resolvedActor.role, current.status, normalizedInput.status)
+    }
+  } catch (error) {
+    if (error instanceof BusinessRuleError) {
+      await governanceRepository.logAccessDenied({
+        initiativeId: current.id,
+        changedBy: resolvedActor.user,
+        action: 'UPDATE_INITIATIVE',
+        role: resolvedActor.role,
+        reason: error.message,
+      })
+    }
+
+    throw error
   }
 
   const updated = await initiativesRepository.update(normalizedInput)

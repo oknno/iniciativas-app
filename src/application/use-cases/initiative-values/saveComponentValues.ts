@@ -10,11 +10,10 @@ import { resolveActor } from '../../services/businessRuleGuards'
 
 export async function saveComponentValues(
   values: readonly SaveComponentValueDto[],
-  actor?: RuleActor,
+  actor: RuleActor,
   initiativeIdOverride?: InitiativeId,
 ): Promise<void> {
   const resolvedActor = resolveActor(actor)
-  InitiativePolicy.ensureCanEditComponentValues(resolvedActor.role)
 
   const initiativeId = initiativeIdOverride ?? values[0]?.initiativeId
   if (!initiativeId) {
@@ -24,6 +23,21 @@ export async function saveComponentValues(
   const initiative = await initiativesRepository.getById(initiativeId)
   if (!initiative) {
     throw new BusinessRuleError('Iniciativa não encontrada')
+  }
+
+  try {
+    InitiativePolicy.ensureCanEditComponentValues(resolvedActor.role, initiative.status)
+  } catch (error) {
+    if (error instanceof BusinessRuleError) {
+      await governanceRepository.logAccessDenied({
+        initiativeId,
+        changedBy: resolvedActor.user,
+        action: 'SAVE_COMPONENT_VALUES',
+        role: resolvedActor.role,
+        reason: error.message,
+      })
+    }
+    throw error
   }
 
   await initiativeValuesRepository.saveComponentValues(values)
