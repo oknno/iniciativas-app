@@ -54,9 +54,11 @@ export async function saveInitiativeComponents(
 
   await initiativeComponentsRepository.saveByInitiativeId(initiativeId, components)
   await governanceRepository.logAudit({
+    title: 'COMPONENT_STRUCTURE_UPDATED',
     initiativeId,
-    eventType: 'COMPONENT_STRUCTURE_UPDATED',
+    entityType: 'ComponentStructure',
+    entityId: String(initiativeId),
     changedBy: resolvedActor.user,
-    payload: { componentCount: components.length },
+    changes: [{ fieldName: 'ComponentCount', newValue: String(components.length) }],
   })
 }

@@ -77,13 +77,15 @@ export async function calculateInitiative(input: CalculateInitiativeInputDto): P
 
   await calculationRepository.save(guardedSnapshot)
   await governanceRepository.logAudit({
+    title: 'CALCULATION_EXECUTED',
     initiativeId: input.initiativeId,
-    eventType: 'CALCULATION_EXECUTED',
+    entityType: 'Calculation',
+    entityId: String(input.initiativeId),
     changedBy: 'system',
-    payload: {
-      issueCount: guardedSnapshot.issues.length,
-      annual: guardedSnapshot.results[0]?.annualValue ?? 0,
-    },
+    changes: [
+      { fieldName: 'IssueCount', newValue: String(guardedSnapshot.issues.length) },
+      { fieldName: 'AnnualValue', newValue: String(guardedSnapshot.results[0]?.annualValue ?? 0) },
+    ],
   })
 
   return guardedSnapshot

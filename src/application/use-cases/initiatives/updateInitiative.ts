@@ -1,7 +1,7 @@
 import type { InitiativeDetailDto } from '../../dto/initiatives/InitiativeDetailDto'
 import type { SaveInitiativeDto } from '../../dto/initiatives/SaveInitiativeDto'
 import { toInitiativeDetailDto } from '../../mappers/initiatives/initiativeMappers'
-import { InitiativePolicy, toWorkflowEventType, type RuleActor } from '../../../domain/initiatives/services/initiativePolicy'
+import { InitiativePolicy, type RuleActor } from '../../../domain/initiatives/services/initiativePolicy'
 import { BusinessRuleError } from '../../../domain/shared/errors/BusinessRuleError'
 import { initiativesRepository } from '../../../services/sharepoint/repositories/initiativesRepository'
 import { governanceRepository } from '../../../services/sharepoint/repositories/governanceRepository'
@@ -74,16 +74,17 @@ export async function updateInitiative(input: SaveInitiativeDto, actor: RuleActo
   }
 
   await governanceRepository.logAudit({
+    title: transitionDecision?.action ?? 'INITIATIVE_UPDATED',
     initiativeId: updated.id,
-    eventType: transitionDecision ? toWorkflowEventType(transitionDecision.action) : 'INITIATIVE_UPDATED',
+    entityType: 'Initiative',
+    entityId: String(updated.id),
     changedBy: resolvedActor.user,
-    payload: {
-      fromStatus: current.status,
-      toStatus: updated.status,
-      action: transitionDecision?.action,
-      targetRole: transitionDecision?.targetRole,
-      comment: normalizedInput.decisionComment,
-    },
+    changes: [
+      { fieldName: 'Status', oldValue: current.status, newValue: updated.status },
+      { fieldName: 'Action', newValue: transitionDecision?.action },
+      { fieldName: 'TargetRole', newValue: transitionDecision?.targetRole },
+      { fieldName: 'Comment', newValue: normalizedInput.decisionComment },
+    ],
   })
 
   return toInitiativeDetailDto(updated)
