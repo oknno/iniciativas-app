@@ -67,6 +67,7 @@ export async function updateInitiative(input: SaveInitiativeDto, actor: RuleActo
       initiativeId: updated.id,
       from: current.status,
       to: updated.status,
+      initiativeStatus: updated.status,
       changedBy: resolvedActor.user,
       targetRole: transitionDecision?.targetRole,
       comment: normalizedInput.decisionComment,
