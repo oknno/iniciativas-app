@@ -476,6 +476,10 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
   }
 
   const handleSave = async () => {
+    if (!actor) {
+      throw new Error('Acesso não configurado para o usuário atual.')
+    }
+
     const resolvedStatus = form.status.trim() || 'Em preenchimento'
     console.info('[Initiative Save] status usado no save:', {
       mode,

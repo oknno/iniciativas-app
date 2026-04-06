@@ -1,11 +1,17 @@
 import type { SaveInitiativeComponentDto } from '../dto/initiatives/SaveInitiativeComponentDto'
 import { BusinessRuleError } from '../../domain/shared/errors/BusinessRuleError'
-import { InitiativePolicy, SYSTEM_ACTOR, type RuleActor } from '../../domain/initiatives/services/initiativePolicy'
+import { InitiativePolicy, type RuleActor } from '../../domain/initiatives/services/initiativePolicy'
 import type { KpiMasterDto } from '../dto/catalogs/KpiMasterDto'
 import type { FormulaMasterDto } from '../dto/catalogs/FormulaMasterDto'
 import type { FormulaTerm } from '../../domain/catalogs/entities/FormulaTerm'
 
-export const resolveActor = (actor?: RuleActor): RuleActor => actor ?? SYSTEM_ACTOR
+export const resolveActor = (actor?: RuleActor): RuleActor => {
+  if (!actor) {
+    throw new BusinessRuleError('Ator é obrigatório para esta operação')
+  }
+
+  return actor
+}
 
 export const ensureRequiredInitiativeFields = (input: {
   readonly title: string

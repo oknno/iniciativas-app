@@ -2,7 +2,7 @@ import type { InitiativeStatus } from '../entities/InitiativeStatus'
 import { isInitiativeStatus, isStatusTransitionAllowed } from '../entities/InitiativeStatus'
 import { BusinessRuleError } from '../../shared/errors/BusinessRuleError'
 
-export const USER_ROLES = ['OWNER', 'CONTROLADORIA', 'ESTRATEGIA', 'DEV', 'ADMIN'] as const
+export const USER_ROLES = ['OWNER', 'CTRL_LOCAL', 'CTRL_ESTRATEGICA', 'DEV', 'ADMIN'] as const
 export type UserRole = (typeof USER_ROLES)[number]
 
 export interface RuleActor {
@@ -20,6 +20,8 @@ const ensureRole = (role: UserRole, allowed: readonly UserRole[], message: strin
     throw new BusinessRuleError(message)
   }
 }
+
+const isFullAccessRole = (role: UserRole): boolean => role === 'DEV' || role === 'ADMIN'
 
 const ensureValidStatus = (status: string): InitiativeStatus => {
   if (!isInitiativeStatus(status)) {
@@ -53,27 +55,101 @@ export const InitiativePolicy = {
   },
 
   ensureCanCreateInitiative(role: UserRole): void {
-    ensureRole(role, ['OWNER', 'CONTROLADORIA', 'DEV', 'ADMIN'], 'Permissão insuficiente para criar iniciativa')
+    ensureRole(role, ['OWNER', 'DEV', 'ADMIN'], 'Permissão insuficiente para criar iniciativa')
   },
 
   ensureCanEditStructure(role: UserRole, status: string): void {
-    ensureRole(role, ['OWNER', 'CONTROLADORIA', 'DEV', 'ADMIN'], 'Estrutura não pode ser alterada após aprovação')
-    this.ensureStructureEditable(status)
+    if (isFullAccessRole(role)) {
+      this.ensureStructureEditable(status)
+      return
+    }
+
+    const initiativeStatus = ensureValidStatus(status)
+    if (role === 'OWNER' && initiativeStatus === 'Em preenchimento') {
+      return
+    }
+
+    if (role === 'CTRL_LOCAL' && initiativeStatus === 'Em revisão') {
+      return
+    }
+
+    throw new BusinessRuleError('Papel atual não pode editar a estrutura nesta fase')
   },
 
-  ensureCanEditKpiValues(role: UserRole): void {
-    ensureRole(role, ['OWNER', 'CONTROLADORIA', 'DEV', 'ADMIN'], 'Permissão insuficiente para editar valores de KPI')
+  ensureCanEditKpiValues(role: UserRole, status: string): void {
+    if (isFullAccessRole(role)) {
+      return
+    }
+
+    const initiativeStatus = ensureValidStatus(status)
+    if (role === 'OWNER' && initiativeStatus === 'Em preenchimento') {
+      return
+    }
+
+    throw new BusinessRuleError('Papel atual não pode editar KPI nesta fase')
   },
 
-  ensureCanEditComponentValues(role: UserRole): void {
-    ensureRole(role, ['OWNER', 'CONTROLADORIA', 'DEV', 'ADMIN'], 'Permissão insuficiente para editar valores de componentes')
+  ensureCanEditComponentValues(role: UserRole, status: string): void {
+    if (isFullAccessRole(role)) {
+      return
+    }
+
+    const initiativeStatus = ensureValidStatus(status)
+    if (role === 'OWNER' && initiativeStatus === 'Em preenchimento') {
+      return
+    }
+
+    throw new BusinessRuleError('Papel atual não pode editar custos nesta fase')
   },
 
-  ensureCanApprove(role: UserRole): void {
-    ensureRole(role, ['ESTRATEGIA', 'DEV', 'ADMIN'], 'Permissão insuficiente para aprovar iniciativa')
+  ensureCanValidateLocal(role: UserRole, from: string, to: string): void {
+    if (isFullAccessRole(role)) {
+      this.ensureStatusTransition(from, to)
+      return
+    }
+
+    if (role !== 'CTRL_LOCAL') {
+      throw new BusinessRuleError('Permissão insuficiente para validação local')
+    }
+
+    const source = ensureValidStatus(from)
+    const target = ensureValidStatus(to)
+    if (source !== 'Em revisão' || target !== 'Em validação') {
+      throw new BusinessRuleError('Validação local só pode avançar de Em revisão para Em validação')
+    }
   },
 
-  ensureCanReject(role: UserRole): void {
-    ensureRole(role, ['ESTRATEGIA', 'DEV', 'ADMIN'], 'Permissão insuficiente para reprovar iniciativa')
+  ensureCanApprove(role: UserRole, from: string, to: string): void {
+    if (isFullAccessRole(role)) {
+      this.ensureStatusTransition(from, to)
+      return
+    }
+
+    if (role !== 'CTRL_ESTRATEGICA') {
+      throw new BusinessRuleError('Permissão insuficiente para aprovar iniciativa')
+    }
+
+    const source = ensureValidStatus(from)
+    const target = ensureValidStatus(to)
+    if (source !== 'Em validação' || target !== 'Aprovada') {
+      throw new BusinessRuleError('Aprovação final só pode avançar de Em validação para Aprovada')
+    }
+  },
+
+  ensureCanReject(role: UserRole, from: string, to: string): void {
+    if (isFullAccessRole(role)) {
+      this.ensureStatusTransition(from, to)
+      return
+    }
+
+    if (role !== 'CTRL_ESTRATEGICA') {
+      throw new BusinessRuleError('Permissão insuficiente para reprovar iniciativa')
+    }
+
+    const source = ensureValidStatus(from)
+    const target = ensureValidStatus(to)
+    if (source !== 'Em validação' || target !== 'Reprovada') {
+      throw new BusinessRuleError('Reprovação final só pode avançar de Em validação para Reprovada')
+    }
   },
 }

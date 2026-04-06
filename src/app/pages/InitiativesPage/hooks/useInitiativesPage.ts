@@ -109,7 +109,7 @@ export function useInitiativesPage() {
   }
 
   const saveFromWizard = async (input: SaveInitiativeDto): Promise<InitiativeDetailDto> => {
-    if (!isConfigured) {
+    if (!isConfigured || !actor) {
       throw new Error('Acesso não configurado para o usuário atual.')
     }
 

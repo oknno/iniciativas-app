@@ -14,7 +14,7 @@ export async function saveInitiativeComponents(
   initiativeId: InitiativeId,
   drafts: readonly InitiativeComponentDraftDto[],
   componentCatalog: readonly ComponentMasterDto[],
-  actor?: RuleActor,
+  actor: RuleActor,
 ): Promise<void> {
   const resolvedActor = resolveActor(actor)
   const initiative = await initiativesRepository.getById(initiativeId)
@@ -23,7 +23,20 @@ export async function saveInitiativeComponents(
     throw new BusinessRuleError('Iniciativa não encontrada')
   }
 
-  InitiativePolicy.ensureCanEditStructure(resolvedActor.role, initiative.status)
+  try {
+    InitiativePolicy.ensureCanEditStructure(resolvedActor.role, initiative.status)
+  } catch (error) {
+    if (error instanceof BusinessRuleError) {
+      await governanceRepository.logAccessDenied({
+        initiativeId,
+        changedBy: resolvedActor.user,
+        action: 'SAVE_COMPONENT_STRUCTURE',
+        role: resolvedActor.role,
+        reason: error.message,
+      })
+    }
+    throw error
+  }
 
   const invalidDraft = drafts.find((draft) => getInitiativeComponentDraftErrors(draft, componentCatalog).length > 0)
 

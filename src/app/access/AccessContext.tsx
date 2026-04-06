@@ -13,17 +13,7 @@ export interface AccessState {
 
 const AccessContext = createContext<AccessState | null>(null)
 
-const mapRoleToActorRole = (role: AccessRole): RuleActor['role'] => {
-  if (role === 'CTRL_LOCAL') {
-    return 'CONTROLADORIA'
-  }
-
-  if (role === 'CTRL_ESTRATEGICA') {
-    return 'ESTRATEGIA'
-  }
-
-  return role
-}
+const mapRoleToActorRole = (role: AccessRole): RuleActor['role'] => role
 
 export function AccessProvider({ children }: { readonly children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
@@ -96,4 +86,3 @@ export const useAccess = (): AccessState => {
 
   return value
 }
-
