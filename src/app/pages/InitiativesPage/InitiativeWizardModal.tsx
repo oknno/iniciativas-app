@@ -23,7 +23,7 @@ import {
 } from '../../../application/mappers/initiatives/initiativeValueMappers'
 import { tokens } from '../../components/ui/tokens'
 import { WizardUi } from './wizard/WizardUi'
-import type { WizardStepOption } from './wizard/wizardOptions'
+import type { WizardStepId, WizardStepOption } from './wizard/wizardOptions'
 import { InitiativeStep } from './wizard/steps/InitiativeStep'
 import { ComponentsStep } from './wizard/steps/ComponentsStep'
 import { ValuesStep } from './wizard/steps/ValuesStep'
@@ -49,6 +49,8 @@ type InitiativeWizardModalProps = {
   selectedInitiative?: InitiativeDetailDto
   onClose: () => void
   onSave: (input: SaveInitiativeDto) => Promise<InitiativeDetailDto>
+  allowedStepIds?: readonly WizardStepId[]
+  allowSave?: boolean
 }
 
 type InitiativeFormState = {
@@ -88,7 +90,16 @@ const getNewComponentDraft = (formulaCode?: FormulaCode): InitiativeComponentDra
   sortOrder: 1,
 })
 
-export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiative, onClose, onSave }: InitiativeWizardModalProps) {
+export function InitiativeWizardModal({
+  isOpen,
+  mode,
+  isSaving,
+  selectedInitiative,
+  onClose,
+  onSave,
+  allowedStepIds,
+  allowSave = true,
+}: InitiativeWizardModalProps) {
   const { actor } = useAccess()
   const [activeStepIndex, setActiveStepIndex] = useState<number>(0)
   const [form, setForm] = useState<InitiativeFormState>(getInitialFormState(selectedInitiative))
@@ -245,7 +256,7 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
       })
   }, [isOpen, mode, selectedInitiative, valuesYear])
 
-  const steps = useMemo<WizardStepOption[]>(
+  const allSteps = useMemo<WizardStepOption[]>(
     () => [
       {
         id: 'initiative',
@@ -403,6 +414,22 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
     ],
   )
 
+  const steps = useMemo<WizardStepOption[]>(() => {
+    if (!allowedStepIds || allowedStepIds.length === 0) {
+      return allSteps
+    }
+
+    return allSteps.filter((step) => allowedStepIds.includes(step.id))
+  }, [allSteps, allowedStepIds])
+
+
+  useEffect(() => {
+    if (activeStepIndex < steps.length) {
+      return
+    }
+
+    setActiveStepIndex(0)
+  }, [activeStepIndex, steps.length])
   useEffect(() => {
     const effectiveInitiativeId = selectedInitiative?.id ?? asInitiativeId('INIT-NEW')
     const persistedLikeComponents: InitiativeComponent[] = components.map((component, index) => {
@@ -595,8 +622,8 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
           nextLabel={!canMoveToNextStep ? 'Aguarde...' : activeStepIndex === steps.length - 2 ? 'Revisar' : 'Próximo'}
           backLabel="Voltar"
           onSave={handleSave}
-          saveLabel={isSaving ? 'Salvando iniciativa...' : 'Salvar rascunho'}
-          disableSave={isSaveDisabled}
+          saveLabel={allowSave ? (isSaving ? 'Salvando iniciativa...' : 'Salvar rascunho') : 'Somente leitura'}
+          disableSave={!allowSave || isSaveDisabled}
           footerStatus={footerStatus}
           footerStatusTone={footerStatusTone}
           onClose={handleClose}

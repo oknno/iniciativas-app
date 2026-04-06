@@ -10,6 +10,15 @@ type CommandBarFilters = {
   sortDir: 'asc' | 'desc'
 }
 
+type CommandBarVisibility = {
+  new: boolean
+  edit: boolean
+  duplicate: boolean
+  delete: boolean
+  sendToApproval: boolean
+  backStatus: boolean
+}
+
 type CommandBarProps = {
   selectedId: InitiativeId | null
   selectedStatus: string
@@ -27,6 +36,15 @@ type CommandBarProps = {
   onSendToApproval: () => void
   onBackStatus: () => void
   onExport: () => void
+  visibility?: CommandBarVisibility
+  workspaceTitle?: string
+  sendToApprovalLabel?: string
+  backStatusLabel?: string
+  commandState?: {
+    canEdit: boolean
+    canDuplicate: boolean
+    canDelete: boolean
+  }
 }
 
 const statusOptions = ['DRAFT_OWNER', 'IN_REVIEW_LOCAL', 'RETURNED_TO_OWNER', 'LOCAL_APPROVED', 'IN_REVIEW_STRATEGIC', 'STRATEGIC_APPROVED', 'STRATEGIC_REJECTED'] as const
@@ -143,6 +161,11 @@ export function CommandBar({
   onSendToApproval,
   onBackStatus,
   onExport,
+  visibility,
+  workspaceTitle,
+  sendToApprovalLabel,
+  backStatusLabel,
+  commandState,
 }: CommandBarProps) {
   void totalLoaded
 
@@ -192,12 +215,12 @@ export function CommandBar({
 
     return {
       canView: hasSelection,
-      canDuplicate: hasSelection,
-      canEdit: hasSelection && editableStatus,
-      canDelete: hasSelection && editableStatus,
+      canDuplicate: commandState?.canDuplicate ?? hasSelection,
+      canEdit: commandState?.canEdit ?? (hasSelection && editableStatus),
+      canDelete: commandState?.canDelete ?? (hasSelection && editableStatus),
       canBackStatus,
     }
-  }, [normalizedStatus, selectedId, selectedStatus])
+  }, [commandState?.canDelete, commandState?.canDuplicate, commandState?.canEdit, normalizedStatus, selectedId, selectedStatus])
 
   useEffect(() => {
     console.info('[CommandBar] received selected state', {
@@ -221,42 +244,65 @@ export function CommandBar({
     setIsFilterOpen(false)
   }
 
+  const effectiveVisibility: CommandBarVisibility = visibility ?? {
+    new: true,
+    edit: true,
+    duplicate: true,
+    delete: true,
+    sendToApproval: true,
+    backStatus: true,
+  }
+
   return (
     <div style={styles.root}>
       <div style={styles.content}>
-          <h1 style={styles.title}>Termo de Abertura de Projeto - TAP 2.0</h1>
+          <h1 style={styles.title}>{workspaceTitle ?? 'Termo de Abertura de Projeto - TAP 2.0'}</h1>
 
           <div style={styles.rightSide}>
             <div style={styles.buttonGroup}>
               <button type="button" className="btn" onClick={onRefresh}>
                 Atualizar
               </button>
-              <button type="button" className="btn primary" onClick={onNew}>
-                Novo
-              </button>
+              {effectiveVisibility.new ? (
+                <button type="button" className="btn primary" onClick={onNew}>
+                  Novo
+                </button>
+              ) : null}
               <button type="button" className="btn" onClick={onView} disabled={!actionAvailability.canView}>
                 Visualizar
               </button>
-              <button type="button" className="btn" onClick={onEdit} disabled={!actionAvailability.canEdit}>
-                Editar
-              </button>
-              <button type="button" className="btn" onClick={onDuplicate} disabled={!actionAvailability.canDuplicate}>
-                Duplicar
-              </button>
-              <button type="button" className="btn" onClick={onDelete} disabled={!actionAvailability.canDelete}>
-                Excluir
-              </button>
+              {effectiveVisibility.edit ? (
+                <button type="button" className="btn" onClick={onEdit} disabled={!actionAvailability.canEdit}>
+                  Editar
+                </button>
+              ) : null}
+              {effectiveVisibility.duplicate ? (
+                <button type="button" className="btn" onClick={onDuplicate} disabled={!actionAvailability.canDuplicate}>
+                  Duplicar
+                </button>
+              ) : null}
+              {effectiveVisibility.delete ? (
+                <button type="button" className="btn" onClick={onDelete} disabled={!actionAvailability.canDelete}>
+                  Excluir
+                </button>
+              ) : null}
             </div>
-            <span style={styles.divider} />
+            {effectiveVisibility.sendToApproval || effectiveVisibility.backStatus ? <span style={styles.divider} /> : null}
 
-            <div style={styles.buttonGroup}>
-              <button type="button" className="btn" onClick={onSendToApproval}>
-                Enviar p/ Aprovação
-              </button>
-              <button type="button" className="btn" onClick={onBackStatus} disabled={!actionAvailability.canBackStatus}>
-                Voltar Status
-              </button>
-            </div>
+            {effectiveVisibility.sendToApproval || effectiveVisibility.backStatus ? (
+              <div style={styles.buttonGroup}>
+                {effectiveVisibility.sendToApproval ? (
+                  <button type="button" className="btn" onClick={onSendToApproval}>
+                    {sendToApprovalLabel ?? 'Enviar p/ Aprovação'}
+                  </button>
+                ) : null}
+                {effectiveVisibility.backStatus ? (
+                  <button type="button" className="btn" onClick={onBackStatus} disabled={!actionAvailability.canBackStatus}>
+                    {backStatusLabel ?? 'Voltar Status'}
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
             <span style={styles.divider} />
 
             <div style={styles.buttonGroup}>
