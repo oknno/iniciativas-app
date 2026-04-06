@@ -15,26 +15,26 @@ interface SharePointListResponse<TItem> {
 export interface CreateStatusHistoryPayload {
   readonly Title: string
   readonly InitiativeId: string
+  readonly Initiative_Status: string
   readonly FromStatus: string
   readonly ToStatus: string
   readonly ChangedBy: string
   readonly Comment?: string
   readonly TargetRole?: string
   readonly ChangedAt: string
-  readonly ChangedAtIso: string
 }
 
 export interface StatusHistoryEntry {
   readonly Id: number
   readonly Title: string
   readonly InitiativeId?: number
+  readonly Initiative_Status?: string
   readonly FromStatus: string
   readonly ToStatus: string
   readonly ChangedBy: string
   readonly Comment?: string
   readonly TargetRole?: string
   readonly ChangedAt?: string
-  readonly ChangedAtIso?: string
   readonly Created?: string
 }
 
@@ -61,7 +61,7 @@ export const createStatusHistory = async (payload: CreateStatusHistoryPayload): 
 const listByInitiativeIdWithLookup = async (initiativeId: number): Promise<readonly StatusHistoryEntry[]> => {
   const response = await get<SharePointListResponse<StatusHistoryEntry>>(
     filteredListItemsEndpoint(LIST_TITLE, `InitiativeIdId eq ${initiativeId}`, {
-      select: 'Id,Title,InitiativeIdId,FromStatus,ToStatus,ChangedBy,Comment,TargetRole,ChangedAt,ChangedAtIso,Created',
+      select: 'Id,Title,InitiativeIdId,Initiative_Status,FromStatus,ToStatus,ChangedBy,Comment,TargetRole,ChangedAt,Created',
       orderBy: 'Created desc',
     }),
   )
@@ -75,7 +75,7 @@ export const listStatusHistoryByInitiativeId = async (initiativeId: number): Pro
   } catch {
     const response = await get<SharePointListResponse<StatusHistoryEntry>>(
       filteredListItemsEndpoint(LIST_TITLE, `InitiativeId eq '${initiativeId}'`, {
-        select: 'Id,Title,InitiativeId,FromStatus,ToStatus,ChangedBy,Comment,TargetRole,ChangedAt,ChangedAtIso,Created',
+        select: 'Id,Title,InitiativeId,Initiative_Status,FromStatus,ToStatus,ChangedBy,Comment,TargetRole,ChangedAt,Created',
         orderBy: 'Created desc',
       }),
     )

@@ -64,6 +64,7 @@ export const governanceRepository = {
     readonly initiativeId: InitiativeId
     readonly from: string
     readonly to: string
+    readonly initiativeStatus: string
     readonly changedBy: string
     readonly comment?: string
     readonly targetRole?: string
@@ -72,13 +73,13 @@ export const governanceRepository = {
     await createStatusHistory({
       Title: `${input.from} -> ${input.to}`,
       InitiativeId: toInitiativeIdText(input.initiativeId),
+      Initiative_Status: input.initiativeStatus,
       FromStatus: input.from,
       ToStatus: input.to,
       ChangedBy: input.changedBy,
       Comment: input.comment,
       TargetRole: input.targetRole,
       ChangedAt: changedAt,
-      ChangedAtIso: changedAt,
     })
   },
 
