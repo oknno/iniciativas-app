@@ -14,19 +14,58 @@ import {
   deleteByInitiativeId as deleteComponentValues,
   listByInitiativeId as listComponentValues,
 } from '../lists/componentValuesListApi'
+import { listAll as listComponentCatalog } from '../lists/componentMasterListApi'
 import {
   createManyForInitiative as createKpiValues,
   deleteByInitiativeId as deleteKpiValues,
   listByInitiativeId as listKpiValues,
 } from '../lists/kpiValuesListApi'
+import { listAll as listKpiCatalog } from '../lists/kpiMasterListApi'
 
 const getYear = (monthRef: string): number => Number(monthRef.split('-')[0])
+
+const loadCatalogMaps = async (): Promise<{
+  readonly componentTypeIdByCode: Readonly<Record<string, number>>
+  readonly componentTypeById: Readonly<Record<number, string>>
+  readonly kpiIdByCode: Readonly<Record<string, number>>
+  readonly kpiCodeById: Readonly<Record<number, string>>
+}> => {
+  const [components, kpis] = await Promise.all([listComponentCatalog(), listKpiCatalog()])
+
+  return {
+    componentTypeIdByCode: components.reduce<Record<string, number>>((acc, item) => {
+      acc[item.ComponentType] = item.Id
+      return acc
+    }, {}),
+    componentTypeById: components.reduce<Record<number, string>>((acc, item) => {
+      acc[item.Id] = item.ComponentType
+      return acc
+    }, {}),
+    kpiIdByCode: kpis.reduce<Record<string, number>>((acc, item) => {
+      acc[item.KPICode] = item.Id
+      return acc
+    }, {}),
+    kpiCodeById: kpis.reduce<Record<number, string>>((acc, item) => {
+      acc[item.Id] = item.KPICode
+      return acc
+    }, {}),
+  }
+}
+
+const requireCatalogId = (map: Readonly<Record<string, number>>, code: string, fieldName: string): number => {
+  const value = map[code]
+  if (!Number.isInteger(value)) {
+    throw new Error(`Unable to resolve ${fieldName} code '${code}' to SharePoint lookup id.`)
+  }
+
+  return value
+}
 
 export const initiativeValuesRepository = {
   async getKpiValuesByInitiativeId(initiativeId: InitiativeId): Promise<readonly SaveKpiValueDto[]> {
     const sharePointInitiativeId = initiativeIdToSharePoint(initiativeId)
-    const items = await listKpiValues(sharePointInitiativeId)
-    return items.map(fromSharePointKpiValue)
+    const [items, maps] = await Promise.all([listKpiValues(sharePointInitiativeId), loadCatalogMaps()])
+    return items.map((item) => fromSharePointKpiValue(item, { componentTypeById: maps.componentTypeById, kpiCodeById: maps.kpiCodeById }))
   },
 
   async replaceKpiValuesByInitiativeId(initiativeId: InitiativeId, values: readonly SaveKpiValueDto[]): Promise<void> {
@@ -37,13 +76,23 @@ export const initiativeValuesRepository = {
       return
     }
 
-    await createKpiValues(sharePointInitiativeId, values.map(toCreateKpiValuePayload))
+    const maps = await loadCatalogMaps()
+
+    await createKpiValues(
+      sharePointInitiativeId,
+      values.map((value) =>
+        toCreateKpiValuePayload(value, {
+          kpiCodeId: requireCatalogId(maps.kpiIdByCode, value.kpiCode, 'KPICode'),
+          componentTypeId: value.componentId ? requireCatalogId(maps.componentTypeIdByCode, value.componentId, 'ComponentType') : undefined,
+        }),
+      ),
+    )
   },
 
   async getComponentFixedValuesByInitiativeId(initiativeId: InitiativeId): Promise<readonly SaveComponentValueDto[]> {
     const sharePointInitiativeId = initiativeIdToSharePoint(initiativeId)
-    const items = await listComponentValues(sharePointInitiativeId)
-    return items.map(fromSharePointComponentValue)
+    const [items, maps] = await Promise.all([listComponentValues(sharePointInitiativeId), loadCatalogMaps()])
+    return items.map((item) => fromSharePointComponentValue(item, { componentTypeById: maps.componentTypeById }))
   },
 
   async replaceComponentFixedValuesByInitiativeId(
@@ -57,7 +106,16 @@ export const initiativeValuesRepository = {
       return
     }
 
-    await createComponentValues(sharePointInitiativeId, values.map(toCreateComponentValuePayload))
+    const maps = await loadCatalogMaps()
+
+    await createComponentValues(
+      sharePointInitiativeId,
+      values.map((value) =>
+        toCreateComponentValuePayload(value, {
+          componentTypeId: requireCatalogId(maps.componentTypeIdByCode, value.componentId, 'ComponentType'),
+        }),
+      ),
+    )
   },
 
   async listByInitiativeYearScenario(

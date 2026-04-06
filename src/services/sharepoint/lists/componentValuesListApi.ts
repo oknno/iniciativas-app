@@ -1,5 +1,6 @@
 import { deleteItem, get, post } from '../spHttp'
 import { sharePointContext } from '../spContext'
+import { assertListFieldType } from '../listSchema'
 import { filteredListItemsEndpoint, listItemByIdEndpoint, listItemsEndpoint } from '../spUrls'
 
 const LIST_TITLE = 'Component_Values'
@@ -21,15 +22,16 @@ export interface ComponentValueListItem {
   readonly InitiativeId?: number | string | SharePointLookupValue
   readonly InitiativeIdId?: number
   readonly ComponentType: string | SharePointLookupValue
+  readonly ComponentTypeId?: number
   readonly Year: number
   readonly Month: number
   readonly Value: number
 }
 
 export interface CreateComponentValuePayload {
-  readonly InitiativeId: number
+  readonly InitiativeIdId: number
   readonly Title: string
-  readonly ComponentType: string
+  readonly ComponentTypeId: number
   readonly Year: number
   readonly Month: number
   readonly Value: number
@@ -48,47 +50,46 @@ const withEntityType = <TPayload extends object>(payload: TPayload): TPayload | 
   }
 }
 
-const listByInitiativeIdWithLookup = async (initiativeId: number): Promise<readonly ComponentValueListItem[]> => {
-  const response = await get<SharePointListResponse<ComponentValueListItem>>(
-    filteredListItemsEndpoint(LIST_TITLE, `InitiativeIdId eq ${initiativeId}`, {
-      select:
-        'Id,Title,InitiativeIdId,InitiativeId/Id,ComponentType,ComponentType/Id,ComponentType/Title,ComponentType/ComponentId,ComponentType/ComponentType,Year,Month,Value',
-      expand: 'InitiativeId,ComponentType',
-      orderBy: 'Year asc,Month asc',
-    }),
-  )
-
-  return response.value
+const validateSchema = async (): Promise<void> => {
+  await Promise.all([
+    assertListFieldType(LIST_TITLE, 'InitiativeId', 'Lookup'),
+    assertListFieldType(LIST_TITLE, 'ComponentType', 'Lookup'),
+  ])
 }
 
 export const listByInitiativeId = async (initiativeId: number): Promise<readonly ComponentValueListItem[]> => {
   try {
-    return await listByInitiativeIdWithLookup(initiativeId)
-  } catch {
-    try {
-      const response = await get<SharePointListResponse<ComponentValueListItem>>(
-        filteredListItemsEndpoint(LIST_TITLE, `InitiativeId eq ${initiativeId}`),
-      )
+    await validateSchema()
 
-      return response.value
-    } catch (error) {
-      throw new Error(`Failed to list component values for initiative ${initiativeId}. ${(error as Error).message}`)
-    }
+    const response = await get<SharePointListResponse<ComponentValueListItem>>(
+      filteredListItemsEndpoint(LIST_TITLE, `InitiativeIdId eq ${initiativeId}`, {
+        select:
+          'Id,Title,InitiativeIdId,InitiativeId/Id,ComponentTypeId,ComponentType/Id,ComponentType/Title,ComponentType/ComponentId,ComponentType/ComponentType,Year,Month,Value',
+        expand: 'InitiativeId,ComponentType',
+        orderBy: 'Year asc,Month asc',
+      }),
+    )
+
+    return response.value
+  } catch (error) {
+    throw new Error(`Failed to list component values for initiative ${initiativeId}. ${(error as Error).message}`)
   }
 }
 
 export const createManyForInitiative = async (
   initiativeId: number,
-  items: readonly Omit<CreateComponentValuePayload, 'InitiativeId'>[],
+  items: readonly Omit<CreateComponentValuePayload, 'InitiativeIdId'>[],
 ): Promise<readonly ComponentValueListItem[]> => {
   try {
+    await validateSchema()
+
     return await Promise.all(
       items.map((item) =>
         post<ComponentValueListItem, CreateComponentValuePayload | (CreateComponentValuePayload & { __metadata: { type: string } })>(
           listItemsEndpoint(LIST_TITLE),
           withEntityType({
             ...item,
-            InitiativeId: initiativeId,
+            InitiativeIdId: initiativeId,
           }),
         ),
       ),
