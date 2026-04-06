@@ -21,7 +21,8 @@ export interface CreateAuditLogPayload {
   readonly NewValue?: string
   readonly ChangedBy: string
   readonly ChangedAt: string
-  readonly InitiativeId: string
+  readonly InitiativeId?: string
+  readonly InitiativeIdId?: number
 }
 
 interface LegacyAuditLogEntry {
