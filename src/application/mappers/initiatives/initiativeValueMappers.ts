@@ -60,6 +60,17 @@ const buildComponentSignature = (component: InitiativeComponentDraftDto): string
 const buildKpiRowSignature = (component: InitiativeComponentDraftDto): string =>
   `${buildComponentSignature(component)}|${component.kpiCode ?? ''}`
 
+const resolveStableComponentId = (
+  component: InitiativeComponentDraftDto,
+  componentCatalog: readonly ComponentMasterDto[],
+): string => {
+  const componentMatch =
+    componentCatalog.find((catalogItem) => catalogItem.componentType === component.componentType) ??
+    componentCatalog.find((catalogItem) => catalogItem.code === component.componentCode)
+
+  return component.id ?? componentMatch?.componentType ?? component.componentType
+}
+
 const toMonthRef = (year: number, month: MonthNumber): MonthRef => `${year}-${String(month).padStart(2, '0')}` as MonthRef
 
 const toMonthNumber = (monthRef: MonthRef, year: number): MonthNumber | undefined => {
@@ -88,7 +99,7 @@ export const buildKpiValueGridRows = (
 
       return {
         signature: buildKpiRowSignature(component),
-        componentId: component.id ?? component.componentType,
+        componentId: resolveStableComponentId(component, componentCatalog),
         componentName: componentMatch?.name ?? component.componentType,
         kpiCode: component.kpiCode as KpiCode,
         kpiName: kpi?.name ?? component.kpiCode ?? 'Unknown KPI',
@@ -112,7 +123,7 @@ export const buildFixedValueGridRows = (
 
       return {
         signature: buildComponentSignature(component),
-        componentId: component.id ?? component.componentType,
+        componentId: resolveStableComponentId(component, componentCatalog),
         componentName: componentMatch?.name ?? component.componentType,
         direction: component.direction,
       }
