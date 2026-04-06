@@ -45,6 +45,9 @@ const toYearMonth = (monthRef: string): { year: number; month: number } => {
 const toOptionalNumber = (value: number | undefined): number | undefined =>
   typeof value === 'number' && Number.isFinite(value) ? value : undefined
 
+const toInitiativeMonthTitle = (initiativeId: InitiativeId, year: number, month: number, suffix: string): string =>
+  `INIT-${initiativeId}-${year}-${String(month).padStart(2, '0')}-${suffix}`
+
 const toSharePointInitiativeId = (initiativeId: InitiativeId): number => {
   const parsed = Number(initiativeId)
 
@@ -201,6 +204,7 @@ export const toCreateKpiValuePayload = (value: SaveKpiValueDto): Omit<CreateKpiV
   const { year, month } = toYearMonth(value.monthRef)
 
   return {
+    Title: toInitiativeMonthTitle(value.initiativeId, year, month, value.kpiCode),
     KPICode: value.kpiCode,
     ComponentType: value.componentId,
     Year: year,
@@ -225,6 +229,7 @@ export const toCreateComponentValuePayload = (
   const { year, month } = toYearMonth(value.monthRef)
 
   return {
+    Title: toInitiativeMonthTitle(value.initiativeId, year, month, value.componentId),
     ComponentType: value.componentId,
     Year: year,
     Month: month,

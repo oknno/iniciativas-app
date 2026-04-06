@@ -18,6 +18,7 @@ interface SharePointLookupValue {
 
 export interface KpiValueListItem {
   readonly Id: number
+  readonly Title?: string
   readonly InitiativeId?: number | string | SharePointLookupValue
   readonly InitiativeIdId?: number
   readonly KPICode: string | SharePointLookupValue
@@ -30,6 +31,7 @@ export interface KpiValueListItem {
 
 export interface CreateKpiValuePayload {
   readonly InitiativeId: number
+  readonly Title: string
   readonly KPICode: string
   readonly ComponentType?: string
   readonly Year: number
@@ -54,7 +56,8 @@ const withEntityType = <TPayload extends object>(payload: TPayload): TPayload | 
 const listByInitiativeIdWithLookup = async (initiativeId: number): Promise<readonly KpiValueListItem[]> => {
   const response = await get<SharePointListResponse<KpiValueListItem>>(
     filteredListItemsEndpoint(LIST_TITLE, `InitiativeIdId eq ${initiativeId}`, {
-      select: 'Id,InitiativeIdId,InitiativeId/Id,KPICode,KPICode/Title,KPICode/KPICode,ComponentType,ComponentType/Id,ComponentType/ComponentId,Year,Month,Value,Scenario',
+      select:
+        'Id,Title,InitiativeIdId,InitiativeId/Id,KPICode,KPICode/Title,KPICode/KPICode,ComponentType,ComponentType/Id,ComponentType/ComponentId,Year,Month,Value,Scenario',
       expand: 'InitiativeId,KPICode,ComponentType',
       orderBy: 'Year asc,Month asc',
     }),

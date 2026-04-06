@@ -17,6 +17,7 @@ interface SharePointLookupValue {
 
 export interface ComponentValueListItem {
   readonly Id: number
+  readonly Title?: string
   readonly InitiativeId?: number | string | SharePointLookupValue
   readonly InitiativeIdId?: number
   readonly ComponentType: string | SharePointLookupValue
@@ -27,6 +28,7 @@ export interface ComponentValueListItem {
 
 export interface CreateComponentValuePayload {
   readonly InitiativeId: number
+  readonly Title: string
   readonly ComponentType: string
   readonly Year: number
   readonly Month: number
@@ -49,7 +51,8 @@ const withEntityType = <TPayload extends object>(payload: TPayload): TPayload | 
 const listByInitiativeIdWithLookup = async (initiativeId: number): Promise<readonly ComponentValueListItem[]> => {
   const response = await get<SharePointListResponse<ComponentValueListItem>>(
     filteredListItemsEndpoint(LIST_TITLE, `InitiativeIdId eq ${initiativeId}`, {
-      select: 'Id,InitiativeIdId,InitiativeId/Id,ComponentType,ComponentType/Id,ComponentType/Title,ComponentType/ComponentId,ComponentType/ComponentType,Year,Month,Value',
+      select:
+        'Id,Title,InitiativeIdId,InitiativeId/Id,ComponentType,ComponentType/Id,ComponentType/Title,ComponentType/ComponentId,ComponentType/ComponentType,Year,Month,Value',
       expand: 'InitiativeId,ComponentType',
       orderBy: 'Year asc,Month asc',
     }),
