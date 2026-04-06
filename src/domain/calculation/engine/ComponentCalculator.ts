@@ -5,7 +5,6 @@ import { applyDirection } from '../rules/calculationRules'
 import { resolveMissingFixedValue, resolveMissingKpiValue } from '../rules/missingDataRules'
 import { explainFixedValue, explainKpiMultiplier } from '../services/calculationExplainer'
 import { CalculationContextFactory, type CalculationContext } from './CalculationContextFactory'
-import { asFormulaCode } from '../../catalogs/value-objects/FormulaCode'
 
 export interface ComponentCalculationOutput {
   readonly details: readonly CalculationDetail[]
@@ -131,19 +130,13 @@ export const ComponentCalculator = {
           {
             initiativeId: input.initiativeId,
             componentType: component.componentType,
+            kpiCode: component.kpiCode,
+            conversionCode: component.conversionCode,
             year,
             month,
-            formulaCode: asFormulaCode('FORMULA-DIRECT-VALUE'),
-            direction: component.direction,
-            rawValue: 0,
-            signedValue: 0,
             baseValue: 0,
             conversionValue: 0,
             resultValue: 0,
-            kpiCode: component.kpiCode,
-            conversionCode: component.conversionCode,
-            sourceType: component.calculationType,
-            explanation: issue,
           },
         ],
         componentResult: 0,
@@ -191,19 +184,13 @@ export const ComponentCalculator = {
       return {
         initiativeId: input.initiativeId,
         componentType: component.componentType,
+        kpiCode: term.kpiCode ?? component.kpiCode,
+        conversionCode: term.conversionCode ?? component.conversionCode,
         year,
         month,
-        formulaCode: term.formulaCode,
-        direction: component.direction,
-        rawValue: termOutput.resultValue,
-        signedValue: applyDirection(termOutput.resultValue, component.direction),
         baseValue: termOutput.baseValue,
         conversionValue: termOutput.conversionValue,
         resultValue: termOutput.resultValue,
-        kpiCode: term.kpiCode ?? component.kpiCode,
-        conversionCode: term.conversionCode ?? component.conversionCode,
-        sourceType: term.calculationType,
-        explanation: termOutput.explanation,
       } satisfies CalculationDetail
     })
 
