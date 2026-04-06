@@ -45,6 +45,7 @@ export const governanceRepository = {
     readonly to: string
     readonly changedBy: string
     readonly comment?: string
+    readonly targetRole?: string
   }): Promise<void> {
     await createStatusHistory({
       Title: `${input.from} -> ${input.to}`,
@@ -53,6 +54,7 @@ export const governanceRepository = {
       ToStatus: input.to,
       ChangedBy: input.changedBy,
       Comment: input.comment,
+      TargetRole: input.targetRole,
       ChangedAtIso: new Date().toISOString(),
     })
   },

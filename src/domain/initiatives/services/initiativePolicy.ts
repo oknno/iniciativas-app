@@ -5,9 +5,22 @@ import { BusinessRuleError } from '../../shared/errors/BusinessRuleError'
 export const USER_ROLES = ['OWNER', 'CTRL_LOCAL', 'CTRL_ESTRATEGICA', 'DEV', 'ADMIN'] as const
 export type UserRole = (typeof USER_ROLES)[number]
 
+export type TransitionAction =
+  | 'SUBMIT_LOCAL_REVIEW'
+  | 'RETURN_TO_OWNER'
+  | 'APPROVE_LOCAL'
+  | 'SUBMIT_STRATEGIC_REVIEW'
+  | 'APPROVE_STRATEGIC'
+  | 'REJECT_STRATEGIC'
+
 export interface RuleActor {
   readonly user: string
   readonly role: UserRole
+}
+
+export interface TransitionDecision {
+  readonly action: TransitionAction
+  readonly targetRole: UserRole
 }
 
 export const SYSTEM_ACTOR: RuleActor = {
@@ -31,6 +44,70 @@ const ensureValidStatus = (status: string): InitiativeStatus => {
   return status
 }
 
+const transitionActionMatrix: Readonly<Record<InitiativeStatus, Partial<Record<InitiativeStatus, TransitionDecision>>>> = {
+  DRAFT_OWNER: {
+    IN_REVIEW_LOCAL: { action: 'SUBMIT_LOCAL_REVIEW', targetRole: 'CTRL_LOCAL' },
+  },
+  IN_REVIEW_LOCAL: {
+    RETURNED_TO_OWNER: { action: 'RETURN_TO_OWNER', targetRole: 'OWNER' },
+    LOCAL_APPROVED: { action: 'APPROVE_LOCAL', targetRole: 'CTRL_LOCAL' },
+  },
+  RETURNED_TO_OWNER: {
+    IN_REVIEW_LOCAL: { action: 'SUBMIT_LOCAL_REVIEW', targetRole: 'CTRL_LOCAL' },
+  },
+  LOCAL_APPROVED: {
+    IN_REVIEW_STRATEGIC: { action: 'SUBMIT_STRATEGIC_REVIEW', targetRole: 'CTRL_ESTRATEGICA' },
+  },
+  IN_REVIEW_STRATEGIC: {
+    STRATEGIC_APPROVED: { action: 'APPROVE_STRATEGIC', targetRole: 'CTRL_ESTRATEGICA' },
+    STRATEGIC_REJECTED: { action: 'REJECT_STRATEGIC', targetRole: 'CTRL_ESTRATEGICA' },
+  },
+  STRATEGIC_APPROVED: {},
+  STRATEGIC_REJECTED: {},
+}
+
+const roleActionPermissions: Readonly<Record<UserRole, readonly TransitionAction[]>> = {
+  OWNER: ['SUBMIT_LOCAL_REVIEW'],
+  CTRL_LOCAL: ['RETURN_TO_OWNER', 'APPROVE_LOCAL', 'SUBMIT_STRATEGIC_REVIEW'],
+  CTRL_ESTRATEGICA: ['APPROVE_STRATEGIC', 'REJECT_STRATEGIC'],
+  DEV: [
+    'SUBMIT_LOCAL_REVIEW',
+    'RETURN_TO_OWNER',
+    'APPROVE_LOCAL',
+    'SUBMIT_STRATEGIC_REVIEW',
+    'APPROVE_STRATEGIC',
+    'REJECT_STRATEGIC',
+  ],
+  ADMIN: [
+    'SUBMIT_LOCAL_REVIEW',
+    'RETURN_TO_OWNER',
+    'APPROVE_LOCAL',
+    'SUBMIT_STRATEGIC_REVIEW',
+    'APPROVE_STRATEGIC',
+    'REJECT_STRATEGIC',
+  ],
+}
+
+const ensureCanExecuteAction = (role: UserRole, action: TransitionAction): void => {
+  if (isFullAccessRole(role)) {
+    return
+  }
+
+  if (!roleActionPermissions[role].includes(action)) {
+    throw new BusinessRuleError('Papel atual não pode executar essa ação de status')
+  }
+}
+
+const resolveTransitionDecision = (from: InitiativeStatus, to: InitiativeStatus): TransitionDecision => {
+  const decision = transitionActionMatrix[from][to]
+
+  if (!decision) {
+    throw new BusinessRuleError('Transição de status inválida')
+  }
+
+  return decision
+}
+
 export const InitiativePolicy = {
   ensureValidStatus,
 
@@ -49,8 +126,8 @@ export const InitiativePolicy = {
 
   ensureStructureEditable(status: string): void {
     const initiativeStatus = ensureValidStatus(status)
-    if (initiativeStatus === 'Aprovada') {
-      throw new BusinessRuleError('Estrutura não pode ser alterada após aprovação')
+    if (initiativeStatus === 'STRATEGIC_APPROVED') {
+      throw new BusinessRuleError('Estrutura não pode ser alterada após aprovação estratégica')
     }
   },
 
@@ -65,11 +142,11 @@ export const InitiativePolicy = {
     }
 
     const initiativeStatus = ensureValidStatus(status)
-    if (role === 'OWNER' && initiativeStatus === 'Em preenchimento') {
+    if (role === 'OWNER' && (initiativeStatus === 'DRAFT_OWNER' || initiativeStatus === 'RETURNED_TO_OWNER')) {
       return
     }
 
-    if (role === 'CTRL_LOCAL' && initiativeStatus === 'Em revisão') {
+    if (role === 'CTRL_LOCAL' && initiativeStatus === 'IN_REVIEW_LOCAL') {
       return
     }
 
@@ -82,7 +159,7 @@ export const InitiativePolicy = {
     }
 
     const initiativeStatus = ensureValidStatus(status)
-    if (role === 'OWNER' && initiativeStatus === 'Em preenchimento') {
+    if (role === 'OWNER' && (initiativeStatus === 'DRAFT_OWNER' || initiativeStatus === 'RETURNED_TO_OWNER')) {
       return
     }
 
@@ -95,61 +172,26 @@ export const InitiativePolicy = {
     }
 
     const initiativeStatus = ensureValidStatus(status)
-    if (role === 'OWNER' && initiativeStatus === 'Em preenchimento') {
+    if (role === 'OWNER' && (initiativeStatus === 'DRAFT_OWNER' || initiativeStatus === 'RETURNED_TO_OWNER')) {
       return
     }
 
     throw new BusinessRuleError('Papel atual não pode editar custos nesta fase')
   },
 
-  ensureCanValidateLocal(role: UserRole, from: string, to: string): void {
-    if (isFullAccessRole(role)) {
-      this.ensureStatusTransition(from, to)
-      return
-    }
-
-    if (role !== 'CTRL_LOCAL') {
-      throw new BusinessRuleError('Permissão insuficiente para validação local')
-    }
-
+  ensureCanTransition(role: UserRole, from: string, to: string): TransitionDecision {
     const source = ensureValidStatus(from)
     const target = ensureValidStatus(to)
-    if (source !== 'Em revisão' || target !== 'Em validação') {
-      throw new BusinessRuleError('Validação local só pode avançar de Em revisão para Em validação')
-    }
-  },
 
-  ensureCanApprove(role: UserRole, from: string, to: string): void {
-    if (isFullAccessRole(role)) {
-      this.ensureStatusTransition(from, to)
-      return
+    if (source === target) {
+      throw new BusinessRuleError('Nenhuma mudança de status foi solicitada')
     }
 
-    if (role !== 'CTRL_ESTRATEGICA') {
-      throw new BusinessRuleError('Permissão insuficiente para aprovar iniciativa')
-    }
+    this.ensureStatusTransition(source, target)
 
-    const source = ensureValidStatus(from)
-    const target = ensureValidStatus(to)
-    if (source !== 'Em validação' || target !== 'Aprovada') {
-      throw new BusinessRuleError('Aprovação final só pode avançar de Em validação para Aprovada')
-    }
-  },
+    const decision = resolveTransitionDecision(source, target)
+    ensureCanExecuteAction(role, decision.action)
 
-  ensureCanReject(role: UserRole, from: string, to: string): void {
-    if (isFullAccessRole(role)) {
-      this.ensureStatusTransition(from, to)
-      return
-    }
-
-    if (role !== 'CTRL_ESTRATEGICA') {
-      throw new BusinessRuleError('Permissão insuficiente para reprovar iniciativa')
-    }
-
-    const source = ensureValidStatus(from)
-    const target = ensureValidStatus(to)
-    if (source !== 'Em validação' || target !== 'Reprovada') {
-      throw new BusinessRuleError('Reprovação final só pode avançar de Em validação para Reprovada')
-    }
+    return decision
   },
 }

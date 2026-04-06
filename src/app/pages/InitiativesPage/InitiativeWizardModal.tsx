@@ -64,7 +64,7 @@ const getInitialFormState = (initiative: InitiativeDetailDto | undefined): Initi
   unidade: initiative?.unidade ?? '',
   responsavel: initiative?.responsavel ?? '',
   stage: initiative?.stage ?? '',
-  status: initiative?.status ?? 'Em preenchimento',
+  status: initiative?.status ?? 'DRAFT_OWNER',
 })
 
 
@@ -480,7 +480,7 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
       throw new Error('Acesso não configurado para o usuário atual.')
     }
 
-    const resolvedStatus = form.status.trim() || 'Em preenchimento'
+    const resolvedStatus = form.status.trim() || 'DRAFT_OWNER'
     console.info('[Initiative Save] status usado no save:', {
       mode,
       initiativeId: selectedInitiative?.id ?? 'NEW',

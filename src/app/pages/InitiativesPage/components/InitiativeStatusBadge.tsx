@@ -1,29 +1,21 @@
 import { Badge } from '../../../components/ui/Badge'
+import { toInitiativeStatusLabelPtBr } from '../../../../domain/initiatives/entities/InitiativeStatus'
 
 type InitiativeStatusBadgeProps = {
   status: string
 }
 
-const statusLabelMap: Record<string, string> = {
-  DRAFT: 'Rascunho',
-  IN_REVIEW: 'Em Aprovação',
-  APPROVED: 'Aprovado',
-  REJECTED: 'Reprovado',
-}
-
-const toLabel = (status: string): string => statusLabelMap[status] ?? status
-
 export function InitiativeStatusBadge({ status }: InitiativeStatusBadgeProps) {
   const tone =
-    status === 'DRAFT'
+    status === 'DRAFT_OWNER'
       ? 'neutral'
-      : status === 'IN_REVIEW'
+      : status === 'IN_REVIEW_LOCAL' || status === 'IN_REVIEW_STRATEGIC'
         ? 'info'
-        : status === 'APPROVED'
+        : status === 'LOCAL_APPROVED' || status === 'STRATEGIC_APPROVED'
           ? 'success'
-          : status === 'REJECTED'
+          : status === 'STRATEGIC_REJECTED'
             ? 'danger'
             : 'warning'
 
-  return <Badge tone={tone}>{toLabel(status)}</Badge>
+  return <Badge tone={tone}>{toInitiativeStatusLabelPtBr(status)}</Badge>
 }

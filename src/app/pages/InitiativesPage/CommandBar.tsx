@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import type { InitiativeId } from '../../../domain/initiatives/value-objects/InitiativeId'
+import { toInitiativeStatusLabelPtBr } from '../../../domain/initiatives/entities/InitiativeStatus'
 
 type CommandBarFilters = {
   searchTitle: string
@@ -28,7 +29,7 @@ type CommandBarProps = {
   onExport: () => void
 }
 
-const statusOptions = ['Em preenchimento', 'Em Aprovação', 'Aprovado', 'Reprovado'] as const
+const statusOptions = ['DRAFT_OWNER', 'IN_REVIEW_LOCAL', 'RETURNED_TO_OWNER', 'LOCAL_APPROVED', 'IN_REVIEW_STRATEGIC', 'STRATEGIC_APPROVED', 'STRATEGIC_REJECTED'] as const
 const sortByOptions = ['Title', 'Id', 'approvalYear'] as const
 const sortDirOptions = ['asc', 'desc'] as const
 
@@ -174,8 +175,8 @@ export function CommandBar({
 
   const actionAvailability = useMemo(() => {
     const hasSelection = selectedId !== null
-    const editableStatus = normalizedStatus === 'em preenchimento'
-    const canBackStatus = hasSelection && normalizedStatus !== 'em preenchimento'
+    const editableStatus = ['draft_owner', 'returned_to_owner'].includes(normalizedStatus)
+    const canBackStatus = hasSelection && normalizedStatus !== 'draft_owner'
 
     console.info('[CommandBar] action availability', {
       selectedId,
@@ -292,7 +293,7 @@ export function CommandBar({
                         <option value="">Todos</option>
                         {statusOptions.map((option) => (
                           <option key={option} value={option}>
-                            {option}
+                            {toInitiativeStatusLabelPtBr(option)}
                           </option>
                         ))}
                       </select>
