@@ -435,12 +435,13 @@ export function InitiativeWizardModal({
   }, [activeStepIndex, steps.length])
   useEffect(() => {
     const effectiveInitiativeId = selectedInitiative?.id ?? asInitiativeId('INIT-NEW')
-    const persistedLikeComponents: InitiativeComponent[] = components.map((component, index) => {
+    const persistedLikeComponents: InitiativeComponent[] = components.map((component) => {
       const match =
         catalogs.componentCatalog.find((item) => item.componentType === component.componentType) ??
         catalogs.componentCatalog.find((item) => item.code === component.componentCode)
+      const stableComponentId = component.id ?? match?.componentType ?? component.componentType
       return {
-        id: component.id ?? `TMP-${index + 1}`,
+        id: stableComponentId,
         initiativeId: effectiveInitiativeId,
         name: match?.name ?? component.componentCode,
         componentType: match?.componentType ?? component.componentType,
