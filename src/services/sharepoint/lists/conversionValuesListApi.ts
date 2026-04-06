@@ -1,5 +1,6 @@
 import { get } from '../spHttp'
 import { sharePointContext } from '../spContext'
+import { assertListFieldType } from '../listSchema'
 import { filteredListItemsEndpoint, listItemsEndpoint } from '../spUrls'
 
 const LIST_TITLE = 'Conversion_Values'
@@ -18,6 +19,7 @@ interface SharePointLookupValue {
 export interface ConversionValueListItem {
   readonly Id: number
   readonly ConversionCode: string | SharePointLookupValue
+  readonly ConversionCodeId?: number
   readonly InitiativeId?: number | string | SharePointLookupValue
   readonly InitiativeIdId?: number
   readonly Year: number
@@ -26,38 +28,43 @@ export interface ConversionValueListItem {
   readonly Scenario?: string
 }
 
+const validateSchema = async (): Promise<void> => {
+  await Promise.all([
+    assertListFieldType(LIST_TITLE, 'ConversionCode', 'Lookup'),
+    assertListFieldType(LIST_TITLE, 'InitiativeId', 'Lookup'),
+  ])
+}
+
 export const listAll = async (): Promise<readonly ConversionValueListItem[]> => {
   try {
+    await validateSchema()
+
     const response = await get<SharePointListResponse<ConversionValueListItem>>(
       listItemsEndpoint(LIST_TITLE, {
-        select: 'Id,ConversionCode,ConversionCode/Title,ConversionCode/ConversionCode,InitiativeId,InitiativeIdId,InitiativeId/Id,Year,Month,Value,Scenario',
+        select:
+          'Id,ConversionCodeId,ConversionCode/Id,ConversionCode/Title,ConversionCode/ConversionCode,InitiativeId,InitiativeIdId,InitiativeId/Id,Year,Month,Value,Scenario',
         expand: 'ConversionCode,InitiativeId',
         orderBy: 'Year asc,Month asc',
       }),
     )
 
     return response.value
-  } catch {
-    try {
-      const response = await get<SharePointListResponse<ConversionValueListItem>>(
-        listItemsEndpoint(LIST_TITLE, { orderBy: 'ConversionCode asc,Year asc,Month asc' }),
-      )
-
-      return response.value
-    } catch (error) {
-      throw new Error(`Failed to list conversion values records from ${CONTEXT_SITE_URL || 'configured SharePoint site'}. ${(error as Error).message}`)
-    }
+  } catch (error) {
+    throw new Error(`Failed to list conversion values records from ${CONTEXT_SITE_URL || 'configured SharePoint site'}. ${(error as Error).message}`)
   }
 }
 
 export const getByCode = async (conversionCode: string): Promise<readonly ConversionValueListItem[]> => {
   try {
+    await validateSchema()
+
     const response = await get<SharePointListResponse<ConversionValueListItem>>(
       filteredListItemsEndpoint(
         LIST_TITLE,
         `ConversionCode/ConversionCode eq '${conversionCode.replace(/'/g, "''")}'`,
         {
-          select: 'Id,ConversionCode,ConversionCode/Title,ConversionCode/ConversionCode,InitiativeId,InitiativeIdId,InitiativeId/Id,Year,Month,Value,Scenario',
+          select:
+            'Id,ConversionCodeId,ConversionCode/Id,ConversionCode/Title,ConversionCode/ConversionCode,InitiativeId,InitiativeIdId,InitiativeId/Id,Year,Month,Value,Scenario',
           expand: 'ConversionCode,InitiativeId',
           orderBy: 'Year asc,Month asc',
         },
@@ -65,19 +72,7 @@ export const getByCode = async (conversionCode: string): Promise<readonly Conver
     )
 
     return response.value
-  } catch {
-    try {
-      const response = await get<SharePointListResponse<ConversionValueListItem>>(
-        filteredListItemsEndpoint(
-          LIST_TITLE,
-          `ConversionCode eq '${conversionCode.replace(/'/g, "''")}'`,
-          { orderBy: 'Year asc,Month asc' },
-        ),
-      )
-
-      return response.value
-    } catch (error) {
-      throw new Error(`Failed to get conversion values by code '${conversionCode}'. ${(error as Error).message}`)
-    }
+  } catch (error) {
+    throw new Error(`Failed to get conversion values by code '${conversionCode}'. ${(error as Error).message}`)
   }
 }

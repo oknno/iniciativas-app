@@ -15,49 +15,54 @@ import type { FormulaTermListItem } from '../lists/formulaTermsListApi'
 import type { KpiMasterListItem } from '../lists/kpiMasterListApi'
 import type { FormulaTerm } from '../../../domain/catalogs/entities/FormulaTerm'
 
-type LookupLike =
-  | string
-  | number
-  | {
-      readonly Id?: number
-      readonly Title?: string
-      readonly ComponentType?: string
-      readonly KPICode?: string
-      readonly ConversionCode?: string
-      readonly FormulaCode?: string
-    }
-  | undefined
-  | null
+interface LookupObject {
+  readonly Id?: number
+  readonly Title?: string
+  readonly ComponentType?: string
+  readonly KPICode?: string
+  readonly ConversionCode?: string
+  readonly FormulaCode?: string
+}
+
+type LookupLike = string | number | LookupObject | undefined | null
+
+export interface ConversionCatalogCodeMaps {
+  readonly conversionCodeById?: Readonly<Record<number, string>>
+}
 
 const toMonthRef = (year: number, month: number): ConversionValueDto['monthRef'] =>
   `${year}-${String(month).padStart(2, '0')}` as ConversionValueDto['monthRef']
 
-const toLookupString = (value: LookupLike, fieldOrder: readonly string[]): string | undefined => {
+const resolveLookupCode = (
+  value: LookupLike,
+  itemId: number,
+  codeField: keyof LookupObject,
+  idMap?: Readonly<Record<number, string>>,
+): string | undefined => {
   if (typeof value === 'string') {
     const trimmed = value.trim()
     return trimmed.length > 0 ? trimmed : undefined
-  }
-
-  if (typeof value === 'number') {
-    return String(value)
   }
 
   if (!value || typeof value !== 'object') {
     return undefined
   }
 
-  for (const field of fieldOrder) {
-    const candidate = value[field as keyof typeof value]
-    if (typeof candidate === 'string' && candidate.trim().length > 0) {
-      return candidate.trim()
+  const codeCandidate = value[codeField]
+  if (typeof codeCandidate === 'string' && codeCandidate.trim().length > 0) {
+    return codeCandidate.trim()
+  }
+
+  if (typeof value.Id === 'number' && idMap) {
+    const mapped = idMap[value.Id]
+    if (mapped) {
+      return mapped
     }
   }
 
-  if (typeof value.Id === 'number') {
-    return String(value.Id)
-  }
-
-  return undefined
+  throw new Error(
+    `Lookup field '${String(codeField)}' did not return a resolvable code for item ${itemId}. Missing expanded field or mapping for id '${String(value.Id)}'.`,
+  )
 }
 
 export const fromSharePointComponentCatalog = (item: ComponentMasterListItem): ComponentMasterDto => ({
@@ -92,14 +97,21 @@ export const fromSharePointFormulaCatalog = (item: FormulaMasterListItem): Formu
   active: true,
 })
 
-export const fromSharePointConversionValue = (item: ConversionValueListItem): ConversionValueDto => {
-  const resolvedConversionCode = toLookupString(item.ConversionCode, ['ConversionCode', 'Title'])
+export const fromSharePointConversionValue = (
+  item: ConversionValueListItem,
+  catalogMaps: ConversionCatalogCodeMaps = {},
+): ConversionValueDto => {
+  const resolvedConversionCode = resolveLookupCode(item.ConversionCode, item.Id, 'ConversionCode', catalogMaps.conversionCodeById)
   if (!resolvedConversionCode) {
     throw new Error(`ConversionCode is missing for conversion value ${item.Id}.`)
   }
 
   const resolvedInitiativeId =
-    typeof item.InitiativeIdId === 'number' ? String(item.InitiativeIdId) : toLookupString(item.InitiativeId, ['Id'])
+    typeof item.InitiativeIdId === 'number'
+      ? String(item.InitiativeIdId)
+      : item.InitiativeId && typeof item.InitiativeId === 'object' && typeof item.InitiativeId.Id === 'number'
+        ? String(item.InitiativeId.Id)
+        : undefined
 
   return {
     conversionCode: asConversionCode(resolvedConversionCode),

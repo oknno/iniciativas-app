@@ -49,8 +49,13 @@ export const catalogsRepository = {
   },
 
   async listConversionValues(): Promise<readonly ConversionValueDto[]> {
-    const items = await listConversionValues()
-    return items.map(fromSharePointConversionValue)
+    const [items, conversionCatalog] = await Promise.all([listConversionValues(), listConversionMaster()])
+    const conversionCodeById = conversionCatalog.reduce<Record<number, string>>((acc, item) => {
+      acc[item.Id] = item.ConversionCode
+      return acc
+    }, {})
+
+    return items.map((item) => fromSharePointConversionValue(item, { conversionCodeById }))
   },
 
   async listFormulaTerms(formulaCode: string): Promise<readonly FormulaTerm[]> {

@@ -12,20 +12,24 @@ import type { InitiativeComponentListItem, CreateInitiativeComponentPayload } fr
 import type { CreateInitiativePayload, InitiativeListItem, UpdateInitiativePayload } from '../lists/initiativesListApi'
 import type { CreateKpiValuePayload, KpiValueListItem } from '../lists/kpiValuesListApi'
 
-type LookupLike =
-  | string
-  | number
-  | {
-      readonly Id?: number
-      readonly Title?: string
-      readonly ComponentType?: string
-      readonly ComponentId?: string
-      readonly KPICode?: string
-      readonly ConversionCode?: string
-      readonly FormulaCode?: string
-    }
-  | undefined
-  | null
+interface LookupObject {
+  readonly Id?: number
+  readonly Title?: string
+  readonly ComponentType?: string
+  readonly ComponentId?: string
+  readonly KPICode?: string
+  readonly ConversionCode?: string
+  readonly FormulaCode?: string
+}
+
+type LookupLike = string | number | LookupObject | undefined | null
+
+export interface SharePointCatalogCodeMaps {
+  readonly componentTypeById?: Readonly<Record<number, string>>
+  readonly kpiCodeById?: Readonly<Record<number, string>>
+  readonly conversionCodeById?: Readonly<Record<number, string>>
+  readonly formulaCodeById?: Readonly<Record<number, string>>
+}
 
 const toMonthRef = (year: number, month: number): SaveKpiValueDto['monthRef'] =>
   `${year}-${String(month).padStart(2, '0')}` as SaveKpiValueDto['monthRef']
@@ -58,47 +62,49 @@ const toSharePointInitiativeId = (initiativeId: InitiativeId): number => {
   return parsed
 }
 
-const toLookupString = (value: LookupLike, fieldOrder: readonly string[]): string | undefined => {
+const resolveLookupCode = (
+  value: LookupLike,
+  fieldName: string,
+  itemId: number,
+  codeField: keyof LookupObject,
+  idMap?: Readonly<Record<number, string>>,
+): string | undefined => {
   if (typeof value === 'string') {
     const trimmed = value.trim()
     return trimmed.length > 0 ? trimmed : undefined
-  }
-
-  if (typeof value === 'number') {
-    return String(value)
   }
 
   if (!value || typeof value !== 'object') {
     return undefined
   }
 
-  for (const field of fieldOrder) {
-    const candidate = value[field as keyof typeof value]
-    if (typeof candidate === 'string' && candidate.trim().length > 0) {
-      return candidate.trim()
+  const codeCandidate = value[codeField]
+  if (typeof codeCandidate === 'string' && codeCandidate.trim().length > 0) {
+    return codeCandidate.trim()
+  }
+
+  if (typeof value.Id === 'number' && idMap) {
+    const mapped = idMap[value.Id]
+    if (mapped) {
+      return mapped
     }
   }
 
-  if (typeof value.Id === 'number') {
-    return String(value.Id)
-  }
-
-  return undefined
+  throw new Error(
+    `${fieldName} is configured as lookup but did not return a resolvable code for item ${itemId}. Missing expanded '${String(codeField)}' or catalog mapping for id '${String(value.Id)}'.`,
+  )
 }
 
-const toCanonicalComponentType = (value: LookupLike): string | undefined =>
-  toLookupString(value, ['ComponentType', 'ComponentId', 'Title'])
-
-const resolveInitiativeId = (item: { readonly InitiativeId?: LookupLike; readonly InitiativeIdId?: number }): InitiativeId => {
-  const fromNumeric = typeof item.InitiativeIdId === 'number' ? String(item.InitiativeIdId) : undefined
-  const fromLookup = toLookupString(item.InitiativeId, ['Id'])
-  const resolved = fromNumeric ?? fromLookup
-
-  if (!resolved) {
-    throw new Error('InitiativeId is missing in SharePoint record.')
+const resolveInitiativeId = (item: { readonly InitiativeId?: LookupLike; readonly InitiativeIdId?: number; readonly Id: number }): InitiativeId => {
+  if (typeof item.InitiativeIdId === 'number') {
+    return asInitiativeId(String(item.InitiativeIdId))
   }
 
-  return asInitiativeId(resolved)
+  if (item.InitiativeId && typeof item.InitiativeId === 'object' && typeof item.InitiativeId.Id === 'number') {
+    return asInitiativeId(String(item.InitiativeId.Id))
+  }
+
+  throw new Error(`InitiativeId is missing in SharePoint record ${item.Id}.`)
 }
 
 export const initiativeIdFromSharePoint = (id: number | string): InitiativeId => asInitiativeId(String(id))
@@ -138,24 +144,37 @@ export const toUpdateInitiativePayload = (input: SaveInitiativeDto): UpdateIniti
   Status: input.status,
 })
 
-export const fromSharePointInitiativeComponent = (item: InitiativeComponentListItem): InitiativeWithAnnualGain['components'][number] => {
-  const resolvedComponentType = toCanonicalComponentType(item.ComponentType)
+export const fromSharePointInitiativeComponent = (
+  item: InitiativeComponentListItem,
+  catalogMaps: SharePointCatalogCodeMaps = {},
+): InitiativeWithAnnualGain['components'][number] => {
+  const resolvedComponentType = resolveLookupCode(
+    item.ComponentType,
+    'ComponentType',
+    item.Id,
+    'ComponentType',
+    catalogMaps.componentTypeById,
+  )
 
   if (!resolvedComponentType) {
     throw new Error(`ComponentType is missing for initiative component ${item.Id}.`)
   }
 
-  const resolvedKpiCode = toLookupString(item.KPICode, ['KPICode', 'Title'])
-  const resolvedConversionCode = toLookupString(item.ConversionCode, ['ConversionCode', 'Title'])
-  const resolvedFormulaCode = toLookupString(item.FormulaCode, ['FormulaCode', 'Title'])
-
-  console.log('[SharePointInitiativeAdapter] Resolved Initiative_Component row:', {
-    itemId: item.Id,
-    componentType: resolvedComponentType,
-    kpiCode: resolvedKpiCode,
-    conversionCode: resolvedConversionCode,
-    formulaCode: resolvedFormulaCode,
-  })
+  const resolvedKpiCode = resolveLookupCode(item.KPICode, 'KPICode', item.Id, 'KPICode', catalogMaps.kpiCodeById)
+  const resolvedConversionCode = resolveLookupCode(
+    item.ConversionCode,
+    'ConversionCode',
+    item.Id,
+    'ConversionCode',
+    catalogMaps.conversionCodeById,
+  )
+  const resolvedFormulaCode = resolveLookupCode(
+    item.FormulaCode,
+    'FormulaCode',
+    item.Id,
+    'FormulaCode',
+    catalogMaps.formulaCodeById,
+  )
 
   return {
     id: item.ComponentId ?? resolvedComponentType,
@@ -174,25 +193,39 @@ export const fromSharePointInitiativeComponent = (item: InitiativeComponentListI
 
 export const toCreateInitiativeComponentPayload = (
   input: SaveInitiativeComponentDto,
-): Omit<CreateInitiativeComponentPayload, 'InitiativeId'> => ({
+  references: {
+    readonly componentTypeId: number
+    readonly kpiCodeId?: number
+    readonly conversionCodeId?: number
+    readonly formulaCodeId?: number
+  },
+): Omit<CreateInitiativeComponentPayload, 'InitiativeIdId'> => ({
   ComponentId: input.componentType,
   Title: input.componentType,
-  ComponentType: input.componentType,
-  KPICode: input.kpiCode,
-  ConversionCode: input.conversionCode,
-  FormulaCode: input.formulaCode,
+  ComponentTypeId: references.componentTypeId,
+  KPICodeId: references.kpiCodeId,
+  ConversionCodeId: references.conversionCodeId,
+  FormulaCodeId: references.formulaCodeId,
 })
 
-export const fromSharePointKpiValue = (item: KpiValueListItem): SaveKpiValueDto => {
-  const resolvedKpiCode = toLookupString(item.KPICode, ['KPICode', 'Title'])
+export const fromSharePointKpiValue = (item: KpiValueListItem, catalogMaps: SharePointCatalogCodeMaps = {}): SaveKpiValueDto => {
+  const resolvedKpiCode = resolveLookupCode(item.KPICode, 'KPICode', item.Id, 'KPICode', catalogMaps.kpiCodeById)
 
   if (!resolvedKpiCode) {
     throw new Error(`KPICode is missing for KPI value ${item.Id}.`)
   }
 
+  const resolvedComponentType = resolveLookupCode(
+    item.ComponentType,
+    'ComponentType',
+    item.Id,
+    'ComponentType',
+    catalogMaps.componentTypeById,
+  )
+
   return {
     initiativeId: resolveInitiativeId(item),
-    componentId: toCanonicalComponentType(item.ComponentType) ?? resolvedKpiCode,
+    componentId: resolvedComponentType ?? resolvedKpiCode,
     kpiCode: asKpiCode(resolvedKpiCode),
     monthRef: toMonthRef(item.Year, item.Month),
     scenario: (item.Scenario ?? 'BASE') as SaveKpiValueDto['scenario'],
@@ -200,13 +233,16 @@ export const fromSharePointKpiValue = (item: KpiValueListItem): SaveKpiValueDto 
   }
 }
 
-export const toCreateKpiValuePayload = (value: SaveKpiValueDto): Omit<CreateKpiValuePayload, 'InitiativeId'> => {
+export const toCreateKpiValuePayload = (
+  value: SaveKpiValueDto,
+  references: { readonly kpiCodeId: number; readonly componentTypeId?: number },
+): Omit<CreateKpiValuePayload, 'InitiativeIdId'> => {
   const { year, month } = toYearMonth(value.monthRef)
 
   return {
     Title: toInitiativeMonthTitle(value.initiativeId, year, month, value.kpiCode),
-    KPICode: value.kpiCode,
-    ComponentType: value.componentId,
+    KPICodeId: references.kpiCodeId,
+    ComponentTypeId: references.componentTypeId,
     Year: year,
     Month: month,
     Value: value.value,
@@ -214,23 +250,41 @@ export const toCreateKpiValuePayload = (value: SaveKpiValueDto): Omit<CreateKpiV
   }
 }
 
-export const fromSharePointComponentValue = (item: ComponentValueListItem): SaveComponentValueDto => ({
-  initiativeId: resolveInitiativeId(item),
-  componentId: toCanonicalComponentType(item.ComponentType) ?? '',
-  monthRef: toMonthRef(item.Year, item.Month),
-  scenario: 'BASE',
-  baseValue: Number(item.Value),
-  direction: 1,
-})
+export const fromSharePointComponentValue = (
+  item: ComponentValueListItem,
+  catalogMaps: SharePointCatalogCodeMaps = {},
+): SaveComponentValueDto => {
+  const resolvedComponentType = resolveLookupCode(
+    item.ComponentType,
+    'ComponentType',
+    item.Id,
+    'ComponentType',
+    catalogMaps.componentTypeById,
+  )
+
+  if (!resolvedComponentType) {
+    throw new Error(`ComponentType is missing for component value ${item.Id}.`)
+  }
+
+  return {
+    initiativeId: resolveInitiativeId(item),
+    componentId: resolvedComponentType,
+    monthRef: toMonthRef(item.Year, item.Month),
+    scenario: 'BASE',
+    baseValue: Number(item.Value),
+    direction: 1,
+  }
+}
 
 export const toCreateComponentValuePayload = (
   value: SaveComponentValueDto,
-): Omit<CreateComponentValuePayload, 'InitiativeId'> => {
+  references: { readonly componentTypeId: number },
+): Omit<CreateComponentValuePayload, 'InitiativeIdId'> => {
   const { year, month } = toYearMonth(value.monthRef)
 
   return {
     Title: toInitiativeMonthTitle(value.initiativeId, year, month, value.componentId),
-    ComponentType: value.componentId,
+    ComponentTypeId: references.componentTypeId,
     Year: year,
     Month: month,
     Value: toOptionalNumber(value.baseValue) ?? 0,

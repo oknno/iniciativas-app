@@ -1,5 +1,6 @@
 import { deleteItem, get, post } from '../spHttp'
 import { sharePointContext } from '../spContext'
+import { assertListFieldType } from '../listSchema'
 import { filteredListItemsEndpoint, listItemByIdEndpoint, listItemsEndpoint } from '../spUrls'
 
 const LIST_TITLE = 'KPI_Values'
@@ -22,7 +23,9 @@ export interface KpiValueListItem {
   readonly InitiativeId?: number | string | SharePointLookupValue
   readonly InitiativeIdId?: number
   readonly KPICode: string | SharePointLookupValue
+  readonly KPICodeId?: number
   readonly ComponentType?: string | SharePointLookupValue
+  readonly ComponentTypeId?: number
   readonly Year: number
   readonly Month: number
   readonly Value: number
@@ -30,10 +33,10 @@ export interface KpiValueListItem {
 }
 
 export interface CreateKpiValuePayload {
-  readonly InitiativeId: number
+  readonly InitiativeIdId: number
   readonly Title: string
-  readonly KPICode: string
-  readonly ComponentType?: string
+  readonly KPICodeId: number
+  readonly ComponentTypeId?: number
   readonly Year: number
   readonly Month: number
   readonly Value: number
@@ -53,47 +56,47 @@ const withEntityType = <TPayload extends object>(payload: TPayload): TPayload | 
   }
 }
 
-const listByInitiativeIdWithLookup = async (initiativeId: number): Promise<readonly KpiValueListItem[]> => {
-  const response = await get<SharePointListResponse<KpiValueListItem>>(
-    filteredListItemsEndpoint(LIST_TITLE, `InitiativeIdId eq ${initiativeId}`, {
-      select:
-        'Id,Title,InitiativeIdId,InitiativeId/Id,KPICode,KPICode/Title,KPICode/KPICode,ComponentType,ComponentType/Id,ComponentType/ComponentId,Year,Month,Value,Scenario',
-      expand: 'InitiativeId,KPICode,ComponentType',
-      orderBy: 'Year asc,Month asc',
-    }),
-  )
-
-  return response.value
+const validateSchema = async (): Promise<void> => {
+  await Promise.all([
+    assertListFieldType(LIST_TITLE, 'InitiativeId', 'Lookup'),
+    assertListFieldType(LIST_TITLE, 'KPICode', 'Lookup'),
+    assertListFieldType(LIST_TITLE, 'ComponentType', 'Lookup'),
+  ])
 }
 
 export const listByInitiativeId = async (initiativeId: number): Promise<readonly KpiValueListItem[]> => {
   try {
-    return await listByInitiativeIdWithLookup(initiativeId)
-  } catch {
-    try {
-      const response = await get<SharePointListResponse<KpiValueListItem>>(
-        filteredListItemsEndpoint(LIST_TITLE, `InitiativeId eq ${initiativeId}`),
-      )
+    await validateSchema()
 
-      return response.value
-    } catch (error) {
-      throw new Error(`Failed to list KPI values for initiative ${initiativeId}. ${(error as Error).message}`)
-    }
+    const response = await get<SharePointListResponse<KpiValueListItem>>(
+      filteredListItemsEndpoint(LIST_TITLE, `InitiativeIdId eq ${initiativeId}`, {
+        select:
+          'Id,Title,InitiativeIdId,InitiativeId/Id,KPICodeId,KPICode/Id,KPICode/Title,KPICode/KPICode,ComponentTypeId,ComponentType/Id,ComponentType/ComponentId,ComponentType/ComponentType,Year,Month,Value,Scenario',
+        expand: 'InitiativeId,KPICode,ComponentType',
+        orderBy: 'Year asc,Month asc',
+      }),
+    )
+
+    return response.value
+  } catch (error) {
+    throw new Error(`Failed to list KPI values for initiative ${initiativeId}. ${(error as Error).message}`)
   }
 }
 
 export const createManyForInitiative = async (
   initiativeId: number,
-  items: readonly Omit<CreateKpiValuePayload, 'InitiativeId'>[],
+  items: readonly Omit<CreateKpiValuePayload, 'InitiativeIdId'>[],
 ): Promise<readonly KpiValueListItem[]> => {
   try {
+    await validateSchema()
+
     return await Promise.all(
       items.map((item) =>
         post<KpiValueListItem, CreateKpiValuePayload | (CreateKpiValuePayload & { __metadata: { type: string } })>(
           listItemsEndpoint(LIST_TITLE),
           withEntityType({
             ...item,
-            InitiativeId: initiativeId,
+            InitiativeIdId: initiativeId,
           }),
         ),
       ),
