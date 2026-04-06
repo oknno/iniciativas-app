@@ -4,7 +4,6 @@ import type { InitiativeCalculationSnapshot } from '../../../domain/calculation/
 import type { CalculationDetailListItem, CreateCalculationDetailPayload } from '../lists/calculationDetailsListApi'
 import type { CalculationResultListItem, CreateCalculationResultPayload } from '../lists/calculationResultsListApi'
 import { asConversionCode } from '../../../domain/catalogs/value-objects/ConversionCode'
-import { asFormulaCode } from '../../../domain/catalogs/value-objects/FormulaCode'
 import { asKpiCode } from '../../../domain/catalogs/value-objects/KpiCode'
 import { asInitiativeId, type InitiativeId } from '../../../domain/initiatives/value-objects/InitiativeId'
 
@@ -50,19 +49,13 @@ export const fromSharePointCalculationResult = (item: CalculationResultListItem)
 export const fromSharePointCalculationDetail = (item: CalculationDetailListItem): CalculationDetail => ({
   initiativeId: resolveInitiativeId(item),
   componentType: item.ComponentType as CalculationDetail['componentType'],
+  kpiCode: item.KPICode ? asKpiCode(item.KPICode) : undefined,
+  conversionCode: item.ConversionCode ? asConversionCode(item.ConversionCode) : undefined,
   year: Number(item.Year),
   month: Number(item.Month),
-  formulaCode: asFormulaCode(item.FormulaCode),
-  direction: item.Direction as CalculationDetail['direction'],
-  rawValue: Number(item.RawValue),
-  signedValue: Number(item.SignedValue),
   baseValue: item.BaseValue !== undefined ? Number(item.BaseValue) : undefined,
   conversionValue: item.ConversionValue !== undefined ? Number(item.ConversionValue) : undefined,
   resultValue: item.ResultValue !== undefined ? Number(item.ResultValue) : undefined,
-  kpiCode: item.KpiCode ? asKpiCode(item.KpiCode) : undefined,
-  conversionCode: item.ConversionCode ? asConversionCode(item.ConversionCode) : undefined,
-  sourceType: item.SourceType as CalculationDetail['sourceType'],
-  explanation: item.Explanation,
 })
 
 export const toSharePointCalculationResultPayload = (
@@ -79,19 +72,13 @@ export const toSharePointCalculationDetailPayload = (
   detail: CalculationDetail,
 ): Omit<CreateCalculationDetailPayload, 'InitiativeId'> => ({
   ComponentType: detail.componentType,
+  KPICode: detail.kpiCode,
+  ConversionCode: detail.conversionCode,
   Year: detail.year,
   Month: detail.month,
-  FormulaCode: detail.formulaCode,
-  Direction: detail.direction,
-  RawValue: detail.rawValue,
-  SignedValue: detail.signedValue,
   BaseValue: detail.baseValue,
   ConversionValue: detail.conversionValue,
   ResultValue: detail.resultValue,
-  KpiCode: detail.kpiCode,
-  ConversionCode: detail.conversionCode,
-  SourceType: detail.sourceType,
-  Explanation: detail.explanation,
 })
 
 export const toCalculationSnapshot = (

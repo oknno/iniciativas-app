@@ -65,10 +65,11 @@ export function ReviewCalculationPanel({ calculation, mode }: ReviewCalculationP
           <tr style={{ background: tokens.colors.surfaceMuted }}>
             <th align="left" style={headerCellStyle}>Mês</th>
             <th align="left" style={headerCellStyle}>Componente</th>
-            <th align="left" style={headerCellStyle}>Fórmula</th>
-            <th align="right" style={headerCellStyle}>Bruto</th>
-            <th align="right" style={headerCellStyle}>Com sinal</th>
-            <th align="left" style={headerCellStyle}>Explicação</th>
+            <th align="left" style={headerCellStyle}>KPI</th>
+            <th align="left" style={headerCellStyle}>Conversão</th>
+            <th align="right" style={headerCellStyle}>Base</th>
+            <th align="right" style={headerCellStyle}>Valor de conversão</th>
+            <th align="right" style={headerCellStyle}>Resultado</th>
           </tr>
         </thead>
         <tbody>
@@ -76,10 +77,11 @@ export function ReviewCalculationPanel({ calculation, mode }: ReviewCalculationP
             <tr key={`${item.month}-${item.componentType}-${index}`} style={{ background: index % 2 === 0 ? '#ffffff' : '#fbfcfe' }}>
               <td style={bodyCellStyle}>{item.year}-{String(item.month).padStart(2, '0')}</td>
               <td style={bodyCellStyle}>{item.componentType}</td>
-              <td style={bodyCellStyle}>{item.formulaCode}</td>
-              <td style={{ ...bodyCellStyle, textAlign: 'right' }}>{currency.format(item.rawValue)}</td>
-              <td style={{ ...bodyCellStyle, textAlign: 'right' }}>{currency.format(item.signedValue)}</td>
-              <td style={bodyCellStyle}>{item.explanation}</td>
+              <td style={bodyCellStyle}>{item.kpiCode ?? '-'}</td>
+              <td style={bodyCellStyle}>{item.conversionCode ?? '-'}</td>
+              <td style={{ ...bodyCellStyle, textAlign: 'right' }}>{currency.format(item.baseValue ?? 0)}</td>
+              <td style={{ ...bodyCellStyle, textAlign: 'right' }}>{currency.format(item.conversionValue ?? 0)}</td>
+              <td style={{ ...bodyCellStyle, textAlign: 'right' }}>{currency.format(item.resultValue ?? 0)}</td>
             </tr>
           ))}
         </tbody>

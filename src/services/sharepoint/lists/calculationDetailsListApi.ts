@@ -13,37 +13,25 @@ export interface CalculationDetailListItem {
   readonly InitiativeId: number | { readonly Id?: number }
   readonly InitiativeIdId?: number
   readonly ComponentType: string
+  readonly KPICode?: string
+  readonly ConversionCode?: string
   readonly Year: number
   readonly Month: number
-  readonly FormulaCode: string
-  readonly Direction: number
-  readonly RawValue: number
-  readonly SignedValue: number
   readonly BaseValue?: number
   readonly ConversionValue?: number
   readonly ResultValue?: number
-  readonly KpiCode?: string
-  readonly ConversionCode?: string
-  readonly SourceType: string
-  readonly Explanation: string
 }
 
 export interface CreateCalculationDetailPayload {
   readonly InitiativeId: number
   readonly ComponentType: string
+  readonly KPICode?: string
+  readonly ConversionCode?: string
   readonly Year: number
   readonly Month: number
-  readonly FormulaCode: string
-  readonly Direction: number
-  readonly RawValue: number
-  readonly SignedValue: number
   readonly BaseValue?: number
   readonly ConversionValue?: number
   readonly ResultValue?: number
-  readonly KpiCode?: string
-  readonly ConversionCode?: string
-  readonly SourceType: string
-  readonly Explanation: string
 }
 
 const withEntityType = <TPayload extends object>(payload: TPayload): TPayload | (TPayload & { __metadata: { type: string } }) => {
@@ -64,7 +52,7 @@ export const listByInitiativeId = async (initiativeId: number): Promise<readonly
     const response = await get<SharePointListResponse<CalculationDetailListItem>>(
       filteredListItemsEndpoint(LIST_TITLE, `InitiativeIdId eq ${initiativeId}`, {
         select:
-          'Id,InitiativeId,InitiativeIdId,ComponentType,Year,Month,FormulaCode,Direction,RawValue,SignedValue,BaseValue,ConversionValue,ResultValue,KpiCode,ConversionCode,SourceType,Explanation',
+          'Id,InitiativeId,InitiativeIdId,ComponentType,KPICode,ConversionCode,Year,Month,BaseValue,ConversionValue,ResultValue',
         orderBy: 'Year asc,Month asc',
       }),
     )
