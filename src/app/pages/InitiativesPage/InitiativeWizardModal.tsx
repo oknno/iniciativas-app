@@ -59,6 +59,7 @@ type InitiativeFormState = {
   responsavel: string
   stage: string
   status: string
+  decisionComment: string
 }
 
 const getInitialFormState = (initiative: InitiativeDetailDto | undefined): InitiativeFormState => ({
@@ -67,6 +68,7 @@ const getInitialFormState = (initiative: InitiativeDetailDto | undefined): Initi
   responsavel: initiative?.responsavel ?? '',
   stage: initiative?.stage ?? '',
   status: initiative?.status ?? 'DRAFT_OWNER',
+  decisionComment: '',
 })
 
 
@@ -269,6 +271,7 @@ export function InitiativeWizardModal({
             onResponsavelChange={(value) => setForm((current) => ({ ...current, responsavel: value }))}
             onStageChange={(value) => setForm((current) => ({ ...current, stage: value }))}
             onStatusChange={(value) => setForm((current) => ({ ...current, status: value }))}
+            onDecisionCommentChange={(value) => setForm((current) => ({ ...current, decisionComment: value }))}
           />
         ),
       },
@@ -521,6 +524,7 @@ export function InitiativeWizardModal({
       responsavel: form.responsavel.trim(),
       stage: form.stage.trim(),
       status: resolvedStatus,
+      decisionComment: form.decisionComment.trim() || undefined,
     }
 
     const savedInitiative = await onSave(dto)

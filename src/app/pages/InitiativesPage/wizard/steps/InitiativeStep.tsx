@@ -10,6 +10,7 @@ type InitiativeStepForm = {
   responsavel: string
   stage: string
   status: string
+  decisionComment?: string
 }
 
 type InitiativeStepProps = {
@@ -19,6 +20,7 @@ type InitiativeStepProps = {
   onResponsavelChange: (value: string) => void
   onStageChange: (value: string) => void
   onStatusChange: (value: string) => void
+  onDecisionCommentChange: (value: string) => void
 }
 
 const inputStyle: CSSProperties = {
@@ -54,7 +56,15 @@ const fieldsGridStyle: CSSProperties = {
   alignItems: 'start',
 }
 
-export function InitiativeStep({ form, onTitleChange, onUnidadeChange, onResponsavelChange, onStageChange, onStatusChange }: InitiativeStepProps) {
+export function InitiativeStep({
+  form,
+  onTitleChange,
+  onUnidadeChange,
+  onResponsavelChange,
+  onStageChange,
+  onStatusChange,
+  onDecisionCommentChange,
+}: InitiativeStepProps) {
   const isTitleMissing = form.title.trim().length === 0
   const isUnidadeMissing = form.unidade.trim().length === 0
   const isResponsavelMissing = form.responsavel.trim().length === 0
@@ -114,6 +124,16 @@ export function InitiativeStep({ form, onTitleChange, onUnidadeChange, onRespons
                   </option>
                 ))}
               </select>
+            </label>
+
+            <label style={{ ...labelStyle, gridColumn: '1 / -1' }}>
+              Comentário da decisão (obrigatório para devolução/reprovação)
+              <input
+                style={inputStyle}
+                value={form.decisionComment ?? ''}
+                onChange={(event) => onDecisionCommentChange(event.target.value)}
+                placeholder="Descreva o motivo da decisão"
+              />
             </label>
           </div>
         </div>

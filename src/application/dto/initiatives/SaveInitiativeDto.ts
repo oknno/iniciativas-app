@@ -7,4 +7,5 @@ export interface SaveInitiativeDto {
   readonly responsavel: string
   readonly stage: string
   readonly status: string
+  readonly decisionComment?: string
 }
