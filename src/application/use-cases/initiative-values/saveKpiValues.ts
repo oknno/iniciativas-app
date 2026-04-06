@@ -48,9 +48,11 @@ export async function saveKpiValues(
 
   await initiativeValuesRepository.saveKpiValues(values)
   await governanceRepository.logAudit({
+    title: 'KPI_VALUES_UPDATED',
     initiativeId,
-    eventType: 'KPI_VALUES_UPDATED',
+    entityType: 'KpiValues',
+    entityId: String(initiativeId),
     changedBy: resolvedActor.user,
-    payload: { rows: values.length },
+    changes: [{ fieldName: 'RowsAffected', newValue: String(values.length) }],
   })
 }

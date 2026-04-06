@@ -35,10 +35,12 @@ export async function createInitiative(input: SaveInitiativeDto, actor: RuleActo
   const created = await initiativesRepository.create(normalizedInput)
 
   await governanceRepository.logAudit({
+    title: 'INITIATIVE_CREATED',
     initiativeId: created.id,
-    eventType: 'INITIATIVE_CREATED',
+    entityType: 'Initiative',
+    entityId: String(created.id),
     changedBy: resolvedActor.user,
-    payload: { status: created.status },
+    changes: [{ fieldName: 'Status', newValue: created.status }],
   })
 
   return toInitiativeDetailDto(created)

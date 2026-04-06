@@ -5,20 +5,38 @@ import { createStatusHistory, listStatusHistoryByInitiativeId } from '../lists/i
 const toInitiativeIdText = (initiativeId?: InitiativeId): string => (initiativeId ? String(initiativeId) : 'N/A')
 const toUtcNowIso = (): string => new Date().toISOString()
 
+interface AuditFieldDiff {
+  readonly fieldName: string
+  readonly oldValue?: string
+  readonly newValue?: string
+}
+
 export const governanceRepository = {
   async logAudit(input: {
+    readonly title: string
     readonly initiativeId?: InitiativeId
-    readonly eventType: string
+    readonly entityType: string
+    readonly entityId: string
     readonly changedBy: string
-    readonly payload?: object
+    readonly changes: readonly AuditFieldDiff[]
   }): Promise<void> {
-    await createAuditLog({
-      Title: input.eventType,
-      InitiativeId: toInitiativeIdText(input.initiativeId),
-      EventType: input.eventType,
-      ChangedBy: input.changedBy,
-      PayloadJson: input.payload ? JSON.stringify(input.payload) : undefined,
-    })
+    const changedAt = toUtcNowIso()
+
+    await Promise.all(
+      input.changes.map((change) =>
+        createAuditLog({
+          Title: input.title,
+          InitiativeId: toInitiativeIdText(input.initiativeId),
+          EntityType: input.entityType,
+          EntityId: input.entityId,
+          FieldName: change.fieldName,
+          OldValue: change.oldValue,
+          NewValue: change.newValue,
+          ChangedBy: input.changedBy,
+          ChangedAt: changedAt,
+        }),
+      ),
+    )
   },
 
   async logAccessDenied(input: {
@@ -29,14 +47,16 @@ export const governanceRepository = {
     readonly reason: string
   }): Promise<void> {
     await this.logAudit({
+      title: 'ACCESS_DENIED',
       initiativeId: input.initiativeId,
-      eventType: 'ACCESS_DENIED',
+      entityType: 'AccessControl',
+      entityId: toInitiativeIdText(input.initiativeId),
       changedBy: input.changedBy,
-      payload: {
-        action: input.action,
-        role: input.role,
-        reason: input.reason,
-      },
+      changes: [
+        { fieldName: 'Action', newValue: input.action },
+        { fieldName: 'Role', newValue: input.role },
+        { fieldName: 'Reason', newValue: input.reason },
+      ],
     })
   },
 

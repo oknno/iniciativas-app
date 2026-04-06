@@ -1,9 +1,12 @@
 export interface OperationalAuditLogEntryDto {
   readonly id: number
-  readonly eventType: string
+  readonly entityType: string
+  readonly entityId: string
+  readonly fieldName: string
+  readonly oldValue?: string
+  readonly newValue?: string
   readonly changedBy: string
   readonly changedAt: string
-  readonly payloadJson?: string
   readonly title: string
 }
 

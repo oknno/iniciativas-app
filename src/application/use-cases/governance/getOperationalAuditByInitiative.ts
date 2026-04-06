@@ -10,10 +10,13 @@ export const getOperationalAuditByInitiative = async (initiativeId: InitiativeId
   return {
     auditLog: result.auditLog.map((item) => ({
       id: item.Id,
-      eventType: item.EventType,
+      entityType: item.EntityType,
+      entityId: item.EntityId,
+      fieldName: item.FieldName,
+      oldValue: item.OldValue,
+      newValue: item.NewValue,
       changedBy: item.ChangedBy,
-      changedAt: toChangedAt(undefined, undefined, item.Created),
-      payloadJson: item.PayloadJson,
+      changedAt: toChangedAt(item.ChangedAt, undefined, item.Created),
       title: item.Title,
     })),
     statusHistory: result.statusHistory.map((item) => ({

@@ -42,9 +42,11 @@ export async function saveComponentValues(
 
   await initiativeValuesRepository.saveComponentValues(values)
   await governanceRepository.logAudit({
+    title: 'COMPONENT_VALUES_UPDATED',
     initiativeId,
-    eventType: 'COMPONENT_VALUES_UPDATED',
+    entityType: 'ComponentValues',
+    entityId: String(initiativeId),
     changedBy: resolvedActor.user,
-    payload: { rows: values.length },
+    changes: [{ fieldName: 'RowsAffected', newValue: String(values.length) }],
   })
 }
