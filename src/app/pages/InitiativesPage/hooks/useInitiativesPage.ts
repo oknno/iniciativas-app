@@ -2,8 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useToast } from '../../../components/notifications/useToast'
 import type { InitiativeDetailDto } from '../../../../application/dto/initiatives/InitiativeDetailDto'
 import type { InitiativeListItemDto } from '../../../../application/dto/initiatives/InitiativeListItemDto'
-import type { SaveInitiativeDto } from '../../../../application/dto/initiatives/SaveInitiativeDto'
-import { createInitiative } from '../../../../application/use-cases/initiatives/createInitiative'
 import { deleteInitiative } from '../../../../application/use-cases/initiatives/deleteInitiative'
 import { duplicateInitiative } from '../../../../application/use-cases/initiatives/duplicateInitiative'
 import { getInitiativeById } from '../../../../application/use-cases/initiatives/getInitiativeById'
@@ -36,7 +34,6 @@ export function useInitiativesPage() {
   const [items, setItems] = useState<readonly InitiativeListItemDto[]>([])
   const [selectedItemDetail, setSelectedItemDetail] = useState<InitiativeDetailDto | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [isSaving, setIsSaving] = useState<boolean>(false)
   const [isWizardOpen, setIsWizardOpen] = useState<boolean>(false)
   const [wizardMode, setWizardMode] = useState<InitiativeWizardMode>('create')
   const [selectedItemDetailState, setSelectedItemDetailState] = useState<'idle' | 'loading' | 'error' | 'loaded'>('idle')
@@ -147,44 +144,26 @@ export function useInitiativesPage() {
     [actor, isConfigured, pushToast, selectedId, selectedItemDetail],
   )
 
-  const saveFromWizard = async (input: SaveInitiativeDto): Promise<InitiativeDetailDto> => {
-    if (!isConfigured || !actor) {
-      throw new Error('Acesso não configurado para o usuário atual.')
-    }
+  const completeWizardSave = (detail: InitiativeDetailDto) => {
+    setItems((current) => {
+      const item = toListItem(detail)
 
-    setIsSaving(true)
+      if (wizardMode === 'create') {
+        return [item, ...current]
+      }
 
-    try {
-      const detail = wizardMode === 'create' ? await createInitiative(input, actor) : await updateInitiative(input, actor)
+      return current.map((currentItem) => (currentItem.id === detail.id ? item : currentItem))
+    })
 
-      setItems((current) => {
-        const item = toListItem(detail)
-
-        if (wizardMode === 'create') {
-          return [item, ...current]
-        }
-
-        return current.map((currentItem) => (currentItem.id === detail.id ? item : currentItem))
-      })
-
-      setSelectedId(detail.id)
-      setSelectedItemDetail(detail)
-      setSelectedItemDetailState('loaded')
-      setIsWizardOpen(false)
-      pushToast({
-        tone: 'success',
-        title: wizardMode === 'create' ? 'Initiative created' : 'Initiative updated',
-        message: `${detail.title} saved successfully.`,
-      })
-
-      return detail
-    } catch (error) {
-      console.error('Failed to save initiative.', error)
-      pushToast({ tone: 'error', title: 'Failed to save initiative' })
-      throw error
-    } finally {
-      setIsSaving(false)
-    }
+    setSelectedId(detail.id)
+    setSelectedItemDetail(detail)
+    setSelectedItemDetailState('loaded')
+    setIsWizardOpen(false)
+    pushToast({
+      tone: 'success',
+      title: wizardMode === 'create' ? 'Initiative created' : 'Initiative updated',
+      message: `${detail.title} saved successfully.`,
+    })
   }
 
   const duplicateSelected = async () => {
@@ -270,7 +249,6 @@ export function useInitiativesPage() {
     isWizardOpen,
     wizardMode,
     isLoading,
-    isSaving,
     commandState,
     actions: {
       select,
@@ -279,7 +257,7 @@ export function useInitiativesPage() {
       openView,
       openEdit,
       closeWizard,
-      saveFromWizard,
+      completeWizardSave,
       duplicateSelected,
       deleteSelected,
       sendToLocalReview: () => updateSelectedStatus('IN_REVIEW_LOCAL', 'Enviado para validação local'),
