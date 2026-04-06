@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react'
 import { Card } from '../../../../components/ui/Card'
 import { Section } from '../../../../components/ui/Section'
 import { uiTokens } from '../../../../components/ui/tokens'
+import { INITIATIVE_STATUSES, toInitiativeStatusLabelPtBr } from '../../../../../domain/initiatives/entities/InitiativeStatus'
 
 type InitiativeStepForm = {
   title: string
@@ -106,7 +107,13 @@ export function InitiativeStep({ form, onTitleChange, onUnidadeChange, onRespons
 
             <label style={labelStyle}>
               Status
-              <input style={inputStyle} value={form.status} onChange={(event) => onStatusChange(event.target.value)} placeholder="Status" />
+              <select style={inputStyle} value={form.status} onChange={(event) => onStatusChange(event.target.value)}>
+                {INITIATIVE_STATUSES.map((status) => (
+                  <option key={status} value={status}>
+                    {toInitiativeStatusLabelPtBr(status)}
+                  </option>
+                ))}
+              </select>
             </label>
           </div>
         </div>

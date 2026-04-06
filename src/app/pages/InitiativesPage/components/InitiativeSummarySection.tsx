@@ -3,6 +3,7 @@ import { StateMessage } from '../../../components/ui/StateMessage'
 import { uiTokens } from '../../../components/ui/tokens'
 import type { InitiativeDetailDto } from '../../../../application/dto/initiatives/InitiativeDetailDto'
 import { InitiativeStatusBadge } from './InitiativeStatusBadge'
+import { toInitiativeStatusLabelPtBr } from '../../../../domain/initiatives/entities/InitiativeStatus'
 
 type InitiativeSummarySectionProps = {
   selectedId: string | null
@@ -113,7 +114,7 @@ export function InitiativeSummarySection({ selectedId, selectedFull, selectedFul
             <Field layout="inline" label="Unidade" value={selectedFull.unidade || '-'} />
             <Field layout="inline" label="Responsável" value={selectedFull.responsavel || '-'} />
             <Field layout="inline" label="Stage" value={selectedFull.stage || '-'} />
-            <Field layout="inline" label="Status" value={selectedFull.status || '-'} />
+            <Field layout="inline" label="Status" value={selectedFull.status ? toInitiativeStatusLabelPtBr(selectedFull.status) : '-'} />
             <Field layout="inline" label="ID" value={selectedFull.id || '-'} />
             <Field layout="inline" label="Ganho anual" value={selectedFull.annualGain ?? '-'} />
           </div>

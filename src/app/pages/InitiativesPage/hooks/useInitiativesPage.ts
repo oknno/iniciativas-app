@@ -16,7 +16,7 @@ export type InitiativeWizardMode = 'create' | 'edit'
 
 const normalizeStatusForComparison = (status: string | undefined): string => status?.trim().toLowerCase() ?? ''
 
-const isEditableStatus = (status: string | undefined): boolean => normalizeStatusForComparison(status) === 'em preenchimento'
+const isEditableStatus = (status: string | undefined): boolean => ['draft_owner', 'returned_to_owner'].includes(normalizeStatusForComparison(status))
 
 const toListItem = (detail: InitiativeDetailDto): InitiativeListItemDto => ({
   id: detail.id,

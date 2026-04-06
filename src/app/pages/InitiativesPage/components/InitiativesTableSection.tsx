@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import { StateMessage } from '../../../components/ui/StateMessage'
+import { toInitiativeStatusLabelPtBr } from '../../../../domain/initiatives/entities/InitiativeStatus'
 import { uiTokens } from '../../../components/ui/tokens'
 import type { InitiativeListItemDto } from '../../../../application/dto/initiatives/InitiativeListItemDto'
 import type { InitiativeId } from '../../../../domain/initiatives/value-objects/InitiativeId'
@@ -143,7 +144,7 @@ export function InitiativesTableSection({ items, selectedId, onSelect, isLoading
                     <span style={styles.cell}>{item.id}</span>
                     <span style={styles.cell}>{item.title}</span>
                     <span style={styles.cell}>{item.unidade || '-'}</span>
-                    <span style={styles.cell}>{item.status || '-'}</span>
+                    <span style={styles.cell}>{item.status ? toInitiativeStatusLabelPtBr(item.status) : '-'}</span>
                   </button>
                 )
               })

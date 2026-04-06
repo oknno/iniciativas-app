@@ -31,19 +31,12 @@ export async function updateInitiative(input: SaveInitiativeDto, actor: RuleActo
   })
 
   ensureRequiredInitiativeFields(normalizedInput)
+
+  let transitionDecision: ReturnType<typeof InitiativePolicy.ensureCanTransition> | undefined
+
   try {
-    InitiativePolicy.ensureStatusTransition(current.status, normalizedInput.status)
-
-    if (normalizedInput.status === 'Em validação') {
-      InitiativePolicy.ensureCanValidateLocal(resolvedActor.role, current.status, normalizedInput.status)
-    }
-
-    if (normalizedInput.status === 'Aprovada') {
-      InitiativePolicy.ensureCanApprove(resolvedActor.role, current.status, normalizedInput.status)
-    }
-
-    if (normalizedInput.status === 'Reprovada') {
-      InitiativePolicy.ensureCanReject(resolvedActor.role, current.status, normalizedInput.status)
+    if (current.status !== normalizedInput.status) {
+      transitionDecision = InitiativePolicy.ensureCanTransition(resolvedActor.role, current.status, normalizedInput.status)
     }
   } catch (error) {
     if (error instanceof BusinessRuleError) {
@@ -67,6 +60,8 @@ export async function updateInitiative(input: SaveInitiativeDto, actor: RuleActo
       from: current.status,
       to: updated.status,
       changedBy: resolvedActor.user,
+      targetRole: transitionDecision?.targetRole,
+      comment: transitionDecision?.action,
     })
   }
 

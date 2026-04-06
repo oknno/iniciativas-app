@@ -15,6 +15,7 @@ export interface CreateStatusHistoryPayload {
   readonly ToStatus: string
   readonly ChangedBy: string
   readonly Comment?: string
+  readonly TargetRole?: string
   readonly ChangedAtIso: string
 }
 
