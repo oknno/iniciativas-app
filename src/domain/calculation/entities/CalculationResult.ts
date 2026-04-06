@@ -12,6 +12,7 @@ export interface CalculationResult {
 export interface InitiativeCalculationSnapshot {
   readonly initiativeId: InitiativeId
   readonly year: number
+  readonly monthPolicy?: import('../rules/monthPolicy').MonthPolicy
   readonly results: readonly CalculationResult[]
   readonly details: readonly import('./CalculationDetail').CalculationDetail[]
   readonly calculatedAt: string

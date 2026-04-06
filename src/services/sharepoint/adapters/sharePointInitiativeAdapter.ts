@@ -5,6 +5,7 @@ import type { SaveKpiValueDto } from '../../../application/dto/initiatives/SaveK
 import type { InitiativeWithAnnualGain } from '../../../application/mappers/initiatives/initiativeMappers'
 import { asInitiativeId, type InitiativeId } from '../../../domain/initiatives/value-objects/InitiativeId'
 import { asConversionCode } from '../../../domain/catalogs/value-objects/ConversionCode'
+import { CALCULATION_TYPES, type CalculationType } from '../../../domain/catalogs/value-objects/CalculationType'
 import { asFormulaCode } from '../../../domain/catalogs/value-objects/FormulaCode'
 import { asKpiCode } from '../../../domain/catalogs/value-objects/KpiCode'
 import type { ComponentValueListItem, CreateComponentValuePayload } from '../lists/componentValuesListApi'
@@ -48,6 +49,10 @@ const toYearMonth = (monthRef: string): { year: number; month: number } => {
 
 const toOptionalNumber = (value: number | undefined): number | undefined =>
   typeof value === 'number' && Number.isFinite(value) ? value : undefined
+
+const toDirection = (value: number | undefined): 1 | -1 => (value === -1 ? -1 : 1)
+const toCalculationType = (value: string | undefined): CalculationType =>
+  CALCULATION_TYPES.includes(value as CalculationType) ? (value as CalculationType) : 'FIXED'
 
 const toInitiativeMonthTitle = (initiativeId: InitiativeId, year: number, month: number, suffix: string): string =>
   `INIT-${initiativeId}-${year}-${String(month).padStart(2, '0')}-${suffix}`
@@ -181,8 +186,8 @@ export const fromSharePointInitiativeComponent = (
     initiativeId: resolveInitiativeId(item),
     name: item.Title ?? resolvedComponentType,
     componentType: resolvedComponentType as InitiativeWithAnnualGain['components'][number]['componentType'],
-    direction: 1,
-    calculationType: 'FIXED',
+    direction: toDirection(item.Direction),
+    calculationType: toCalculationType(item.CalculationType),
     kpiCode: resolvedKpiCode ? asKpiCode(resolvedKpiCode) : undefined,
     conversionCode: resolvedConversionCode ? asConversionCode(resolvedConversionCode) : undefined,
     formulaCode: resolvedFormulaCode ? asFormulaCode(resolvedFormulaCode) : undefined,
@@ -200,12 +205,14 @@ export const toCreateInitiativeComponentPayload = (
     readonly formulaCodeId?: number
   },
 ): Omit<CreateInitiativeComponentPayload, 'InitiativeIdId'> => ({
-  ComponentId: input.componentType,
-  Title: input.componentType,
+  ComponentId: input.id ?? input.componentType,
+  Title: input.name,
   ComponentTypeId: references.componentTypeId,
   KPICodeId: references.kpiCodeId,
   ConversionCodeId: references.conversionCodeId,
   FormulaCodeId: references.formulaCodeId,
+  Direction: input.direction,
+  CalculationType: input.calculationType,
 })
 
 export const fromSharePointKpiValue = (item: KpiValueListItem, catalogMaps: SharePointCatalogCodeMaps = {}): SaveKpiValueDto => {

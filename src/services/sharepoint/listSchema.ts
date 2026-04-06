@@ -41,7 +41,7 @@ const getFieldTypes = async (listTitle: string): Promise<Readonly<Record<string,
 export const assertListFieldType = async (
   listTitle: string,
   fieldName: string,
-  expectedType: 'Lookup' | 'Text',
+  expectedType: 'Lookup' | 'Text' | 'Number',
 ): Promise<void> => {
   const typesByField = await getFieldTypes(listTitle)
   const actual = typesByField[fieldName]

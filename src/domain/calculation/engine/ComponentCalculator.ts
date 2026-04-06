@@ -130,6 +130,8 @@ export const ComponentCalculator = {
           {
             initiativeId: input.initiativeId,
             componentType: component.componentType,
+            calculationType: component.calculationType,
+            direction: component.direction,
             kpiCode: component.kpiCode,
             conversionCode: component.conversionCode,
             year,
@@ -184,6 +186,8 @@ export const ComponentCalculator = {
       return {
         initiativeId: input.initiativeId,
         componentType: component.componentType,
+        calculationType: term.calculationType ?? component.calculationType,
+        direction: component.direction,
         kpiCode: term.kpiCode ?? component.kpiCode,
         conversionCode: term.conversionCode ?? component.conversionCode,
         year,

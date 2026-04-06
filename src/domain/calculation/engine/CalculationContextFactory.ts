@@ -3,9 +3,11 @@ import type { InitiativeComponent } from '../../initiatives/entities/InitiativeC
 import type { Scenario } from '../../initiatives/value-objects/Scenario'
 import type { SaveComponentValueDto } from '../../../application/dto/initiatives/SaveComponentValueDto'
 import type { SaveKpiValueDto } from '../../../application/dto/initiatives/SaveKpiValueDto'
+import { DEFAULT_MONTH_POLICY, resolveCalculationMonths, type MonthPolicy } from '../rules/monthPolicy'
 
 export interface CalculationContext {
   readonly components: readonly InitiativeComponent[]
+  readonly months: readonly number[]
   readonly kpiValuesByKey: ReadonlyMap<string, number>
   readonly fixedValuesByKey: ReadonlyMap<string, number>
   readonly conversionValuesByInitiativeKey: ReadonlyMap<string, number>
@@ -26,8 +28,16 @@ export const CalculationContextFactory = {
     conversionValues: readonly ConversionValue[]
     year: number
     scenario: Scenario
+    monthPolicy?: MonthPolicy
   }): CalculationContext {
-    const months = new Set(Array.from({ length: 12 }, (_, index) => buildMonthKey(input.year, index + 1)))
+    const resolvedMonths = resolveCalculationMonths({
+      year: input.year,
+      policy: input.monthPolicy ?? DEFAULT_MONTH_POLICY,
+      kpiValues: input.kpiValues,
+      fixedValues: input.fixedValues,
+      conversionValues: input.conversionValues,
+    })
+    const months = new Set(resolvedMonths.map((month) => buildMonthKey(input.year, month)))
 
     const kpiValuesByKey = new Map<string, number>()
     input.kpiValues
@@ -59,6 +69,7 @@ export const CalculationContextFactory = {
 
     return {
       components: input.components,
+      months: resolvedMonths,
       kpiValuesByKey,
       fixedValuesByKey,
       conversionValuesByInitiativeKey,
