@@ -1,7 +1,7 @@
 import type { InitiativeDetailDto } from '../../dto/initiatives/InitiativeDetailDto'
 import type { SaveInitiativeDto } from '../../dto/initiatives/SaveInitiativeDto'
 import { toInitiativeDetailDto } from '../../mappers/initiatives/initiativeMappers'
-import { InitiativePolicy, type RuleActor } from '../../../domain/initiatives/services/initiativePolicy'
+import { InitiativePolicy, toWorkflowEventType, type RuleActor } from '../../../domain/initiatives/services/initiativePolicy'
 import { BusinessRuleError } from '../../../domain/shared/errors/BusinessRuleError'
 import { initiativesRepository } from '../../../services/sharepoint/repositories/initiativesRepository'
 import { governanceRepository } from '../../../services/sharepoint/repositories/governanceRepository'
@@ -22,6 +22,7 @@ export async function updateInitiative(input: SaveInitiativeDto, actor: RuleActo
   const normalizedInput: SaveInitiativeDto = {
     ...input,
     status: input.status.trim() || current.status,
+    decisionComment: input.decisionComment?.trim(),
   }
 
   console.info('[Initiative Save] update with status:', {
@@ -37,6 +38,13 @@ export async function updateInitiative(input: SaveInitiativeDto, actor: RuleActo
   try {
     if (current.status !== normalizedInput.status) {
       transitionDecision = InitiativePolicy.ensureCanTransition(resolvedActor.role, current.status, normalizedInput.status)
+
+      if (
+        (transitionDecision.action === 'RETURN_TO_OWNER' || transitionDecision.action === 'REJECT_STRATEGIC') &&
+        !normalizedInput.decisionComment
+      ) {
+        throw new BusinessRuleError('Comentário obrigatório para devoluções e reprovações')
+      }
     }
   } catch (error) {
     if (error instanceof BusinessRuleError) {
@@ -61,15 +69,21 @@ export async function updateInitiative(input: SaveInitiativeDto, actor: RuleActo
       to: updated.status,
       changedBy: resolvedActor.user,
       targetRole: transitionDecision?.targetRole,
-      comment: transitionDecision?.action,
+      comment: normalizedInput.decisionComment,
     })
   }
 
   await governanceRepository.logAudit({
     initiativeId: updated.id,
-    eventType: 'INITIATIVE_UPDATED',
+    eventType: transitionDecision ? toWorkflowEventType(transitionDecision.action) : 'INITIATIVE_UPDATED',
     changedBy: resolvedActor.user,
-    payload: { fromStatus: current.status, toStatus: updated.status },
+    payload: {
+      fromStatus: current.status,
+      toStatus: updated.status,
+      action: transitionDecision?.action,
+      targetRole: transitionDecision?.targetRole,
+      comment: normalizedInput.decisionComment,
+    },
   })
 
   return toInitiativeDetailDto(updated)

@@ -23,6 +23,14 @@ export interface TransitionDecision {
   readonly targetRole: UserRole
 }
 
+export type WorkflowEventType =
+  | 'SUBMITTED_LOCAL'
+  | 'RETURNED_OWNER'
+  | 'APPROVED_LOCAL'
+  | 'SUBMITTED_STRATEGIC'
+  | 'APPROVED_STRATEGIC'
+  | 'REJECTED_STRATEGIC'
+
 export const SYSTEM_ACTOR: RuleActor = {
   user: 'system',
   role: 'ADMIN',
@@ -106,6 +114,23 @@ const resolveTransitionDecision = (from: InitiativeStatus, to: InitiativeStatus)
   }
 
   return decision
+}
+
+export const toWorkflowEventType = (action: TransitionAction): WorkflowEventType => {
+  switch (action) {
+    case 'SUBMIT_LOCAL_REVIEW':
+      return 'SUBMITTED_LOCAL'
+    case 'RETURN_TO_OWNER':
+      return 'RETURNED_OWNER'
+    case 'APPROVE_LOCAL':
+      return 'APPROVED_LOCAL'
+    case 'SUBMIT_STRATEGIC_REVIEW':
+      return 'SUBMITTED_STRATEGIC'
+    case 'APPROVE_STRATEGIC':
+      return 'APPROVED_STRATEGIC'
+    case 'REJECT_STRATEGIC':
+      return 'REJECTED_STRATEGIC'
+  }
 }
 
 export const InitiativePolicy = {

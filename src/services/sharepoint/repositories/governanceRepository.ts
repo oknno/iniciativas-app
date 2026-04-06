@@ -1,8 +1,9 @@
 import type { InitiativeId } from '../../../domain/initiatives/value-objects/InitiativeId'
-import { createAuditLog } from '../lists/auditLogListApi'
-import { createStatusHistory } from '../lists/initiativeStatusHistoryListApi'
+import { createAuditLog, listAuditLogsByInitiativeId } from '../lists/auditLogListApi'
+import { createStatusHistory, listStatusHistoryByInitiativeId } from '../lists/initiativeStatusHistoryListApi'
 
 const toInitiativeIdText = (initiativeId?: InitiativeId): string => (initiativeId ? String(initiativeId) : 'N/A')
+const toUtcNowIso = (): string => new Date().toISOString()
 
 export const governanceRepository = {
   async logAudit(input: {
@@ -47,6 +48,7 @@ export const governanceRepository = {
     readonly comment?: string
     readonly targetRole?: string
   }): Promise<void> {
+    const changedAt = toUtcNowIso()
     await createStatusHistory({
       Title: `${input.from} -> ${input.to}`,
       InitiativeId: toInitiativeIdText(input.initiativeId),
@@ -55,7 +57,28 @@ export const governanceRepository = {
       ChangedBy: input.changedBy,
       Comment: input.comment,
       TargetRole: input.targetRole,
-      ChangedAtIso: new Date().toISOString(),
+      ChangedAt: changedAt,
+      ChangedAtIso: changedAt,
     })
+  },
+
+  async getOperationalAuditByInitiative(initiativeId: InitiativeId): Promise<{
+    readonly auditLog: Awaited<ReturnType<typeof listAuditLogsByInitiativeId>>
+    readonly statusHistory: Awaited<ReturnType<typeof listStatusHistoryByInitiativeId>>
+  }> {
+    const numericInitiativeId = Number(initiativeId)
+    if (!Number.isFinite(numericInitiativeId)) {
+      throw new Error(`Initiative id inválido para auditoria operacional: ${initiativeId}`)
+    }
+
+    const [auditLog, statusHistory] = await Promise.all([
+      listAuditLogsByInitiativeId(numericInitiativeId),
+      listStatusHistoryByInitiativeId(numericInitiativeId),
+    ])
+
+    return {
+      auditLog,
+      statusHistory,
+    }
   },
 }

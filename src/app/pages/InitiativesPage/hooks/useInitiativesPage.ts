@@ -116,7 +116,7 @@ export function useInitiativesPage() {
   }
 
   const updateSelectedStatus = useCallback(
-    async (nextStatus: string, successTitle: string) => {
+    async (nextStatus: string, successTitle: string, decisionComment?: string) => {
       if (!selectedId || !selectedItemDetail || !isConfigured || !actor) {
         return
       }
@@ -130,6 +130,7 @@ export function useInitiativesPage() {
             responsavel: selectedItemDetail.responsavel,
             stage: selectedItemDetail.stage,
             status: nextStatus,
+            decisionComment,
           },
           actor,
         )
@@ -282,11 +283,27 @@ export function useInitiativesPage() {
       duplicateSelected,
       deleteSelected,
       sendToLocalReview: () => updateSelectedStatus('IN_REVIEW_LOCAL', 'Enviado para validação local'),
-      returnToOwner: () => updateSelectedStatus('RETURNED_TO_OWNER', 'Iniciativa devolvida para owner'),
+      returnToOwner: () => {
+        const comment = window.prompt('Informe o comentário obrigatório para devolução:')?.trim()
+        if (!comment) {
+          pushToast({ tone: 'warning', title: 'Comentário obrigatório para devolução' })
+          return
+        }
+
+        void updateSelectedStatus('RETURNED_TO_OWNER', 'Iniciativa devolvida para owner', comment)
+      },
       approveLocal: () => updateSelectedStatus('LOCAL_APPROVED', 'Validação local concluída'),
       sendToStrategicReview: () => updateSelectedStatus('IN_REVIEW_STRATEGIC', 'Enviado para validação estratégica'),
       approveStrategic: () => updateSelectedStatus('STRATEGIC_APPROVED', 'Validação estratégica aprovada'),
-      rejectStrategic: () => updateSelectedStatus('STRATEGIC_REJECTED', 'Validação estratégica rejeitada'),
+      rejectStrategic: () => {
+        const comment = window.prompt('Informe o comentário obrigatório para reprovação:')?.trim()
+        if (!comment) {
+          pushToast({ tone: 'warning', title: 'Comentário obrigatório para reprovação' })
+          return
+        }
+
+        void updateSelectedStatus('STRATEGIC_REJECTED', 'Validação estratégica rejeitada', comment)
+      },
     },
   }
 }
