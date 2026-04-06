@@ -1,9 +1,34 @@
 import type { InitiativeId } from '../../../domain/initiatives/value-objects/InitiativeId'
+import type { CreateAuditLogPayload } from '../lists/auditLogListApi'
 import { createAuditLog, listAuditLogsByInitiativeId } from '../lists/auditLogListApi'
 import { createStatusHistory, listStatusHistoryByInitiativeId } from '../lists/initiativeStatusHistoryListApi'
 
 const toInitiativeIdText = (initiativeId?: InitiativeId): string => (initiativeId ? String(initiativeId) : 'N/A')
 const toUtcNowIso = (): string => new Date().toISOString()
+const toCompactTimestamp = (isoDate: string): string => isoDate.replace(/\D/g, '')
+
+const resolveInitiativeIdForAuditPayload = (initiativeId?: InitiativeId): Pick<CreateAuditLogPayload, 'InitiativeId' | 'InitiativeIdId'> => {
+  if (!initiativeId) {
+    return { InitiativeId: 'N/A' }
+  }
+
+  const rawInitiativeId = String(initiativeId)
+  const parsedInitiativeId = Number(rawInitiativeId)
+
+  if (Number.isFinite(parsedInitiativeId)) {
+    return { InitiativeIdId: parsedInitiativeId }
+  }
+
+  return { InitiativeId: rawInitiativeId }
+}
+
+const resolveAuditTitle = (inputTitle: string, entityType: string, entityId: string, changedAt: string): string => {
+  if (inputTitle.trim()) {
+    return inputTitle
+  }
+
+  return `AUDIT-${entityType}-${entityId}-${toCompactTimestamp(changedAt)}`
+}
 
 interface AuditFieldDiff {
   readonly fieldName: string
@@ -21,12 +46,13 @@ export const governanceRepository = {
     readonly changes: readonly AuditFieldDiff[]
   }): Promise<void> {
     const changedAt = toUtcNowIso()
+    const title = resolveAuditTitle(input.title, input.entityType, input.entityId, changedAt)
+    const initiativeIdPayload = resolveInitiativeIdForAuditPayload(input.initiativeId)
 
     await Promise.all(
       input.changes.map((change) =>
         createAuditLog({
-          Title: input.title,
-          InitiativeId: toInitiativeIdText(input.initiativeId),
+          Title: title,
           EntityType: input.entityType,
           EntityId: input.entityId,
           FieldName: change.fieldName,
@@ -34,6 +60,7 @@ export const governanceRepository = {
           NewValue: change.newValue,
           ChangedBy: input.changedBy,
           ChangedAt: changedAt,
+          ...initiativeIdPayload,
         }),
       ),
     )
