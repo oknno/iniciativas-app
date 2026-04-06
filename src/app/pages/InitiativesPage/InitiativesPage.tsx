@@ -18,7 +18,7 @@ const initialFilters: CommandBarFilters = {
 
 export function InitiativesPage() {
   const { context } = useAccess()
-  const { items, selectedId, selectedStatus, selectedItemDetail, selectedItemDetailState, isWizardOpen, wizardMode, isSaving, commandState, actions } =
+  const { items, selectedId, selectedStatus, selectedItemDetail, selectedItemDetailState, isWizardOpen, wizardMode, commandState, actions } =
     useInitiativesPage()
   const [filters, setFilters] = useState<CommandBarFilters>(initialFilters)
   const workspace = resolveWorkspaceByRole(context?.role)
@@ -144,10 +144,9 @@ export function InitiativesPage() {
       <InitiativeWizardModal
         isOpen={isWizardOpen}
         mode={wizardMode}
-        isSaving={isSaving}
         selectedInitiative={selectedItemDetail}
         onClose={actions.closeWizard}
-        onSave={actions.saveFromWizard}
+        onSaveSuccess={actions.completeWizardSave}
         allowedStepIds={workspace.wizardStepIds}
         allowSave={workspace.id !== 'strategicController'}
       />

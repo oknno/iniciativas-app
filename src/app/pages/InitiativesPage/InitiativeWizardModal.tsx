@@ -5,10 +5,7 @@ import type { KpiCode } from '../../../domain/catalogs/value-objects/KpiCode'
 import type { SaveInitiativeDto } from '../../../application/dto/initiatives/SaveInitiativeDto'
 import type { InitiativeDetailDto } from '../../../application/dto/initiatives/InitiativeDetailDto'
 import { getInitiativeComponents } from '../../../application/use-cases/initiative-components/getInitiativeComponents'
-import { saveInitiativeComponents } from '../../../application/use-cases/initiative-components/saveInitiativeComponents'
 import { getInitiativeValues } from '../../../application/use-cases/initiative-values/getInitiativeValues'
-import { saveComponentValues } from '../../../application/use-cases/initiative-values/saveComponentValues'
-import { saveKpiValues } from '../../../application/use-cases/initiative-values/saveKpiValues'
 import type { InitiativeComponentDraftDto } from '../../../application/mappers/initiatives/initiativeComponentMappers'
 import { getInitiativeComponentDraftErrors } from '../../../application/mappers/initiatives/initiativeComponentMappers'
 import {
@@ -29,14 +26,16 @@ import { ComponentsStep } from './wizard/steps/ComponentsStep'
 import { ValuesStep } from './wizard/steps/ValuesStep'
 import { ReviewStep } from './wizard/steps/ReviewStep'
 import { previewInitiativeCalculation } from '../../../application/use-cases/calculation/previewInitiativeCalculation'
-import { calculateInitiative } from '../../../application/use-cases/calculation/calculateInitiative'
 import { getCalculationDetails } from '../../../application/use-cases/calculation/getCalculationDetails'
 import { getCalculationResult } from '../../../application/use-cases/calculation/getCalculationResult'
 import { asInitiativeId } from '../../../domain/initiatives/value-objects/InitiativeId'
 import type { InitiativeComponent } from '../../../domain/initiatives/entities/InitiativeComponent'
 import type { CalculateInitiativeResultDto } from '../../../application/dto/calculation/CalculateInitiativeResultDto'
-import type { MonthRef } from '../../../domain/initiatives/value-objects/MonthRef'
 import { getCatalogs } from '../../../application/use-cases/catalogs/getCatalogs'
+import {
+  saveInitiativeAggregate,
+  SaveInitiativeAggregateError,
+} from '../../../application/use-cases/initiatives/saveInitiativeAggregate'
 import type { CatalogsDtoBundle } from '../../../application/mappers/catalogs/catalogMappers'
 import { useAccess } from '../../access/AccessContext'
 
@@ -45,10 +44,9 @@ import type { InitiativeWizardMode } from './hooks/useInitiativesPage'
 type InitiativeWizardModalProps = {
   isOpen: boolean
   mode: InitiativeWizardMode
-  isSaving: boolean
   selectedInitiative?: InitiativeDetailDto
   onClose: () => void
-  onSave: (input: SaveInitiativeDto) => Promise<InitiativeDetailDto>
+  onSaveSuccess: (initiative: InitiativeDetailDto) => void
   allowedStepIds?: readonly WizardStepId[]
   allowSave?: boolean
 }
@@ -95,10 +93,9 @@ const getNewComponentDraft = (formulaCode?: FormulaCode): InitiativeComponentDra
 export function InitiativeWizardModal({
   isOpen,
   mode,
-  isSaving,
   selectedInitiative,
   onClose,
-  onSave,
+  onSaveSuccess,
   allowedStepIds,
   allowSave = true,
 }: InitiativeWizardModalProps) {
@@ -118,6 +115,8 @@ export function InitiativeWizardModal({
   const [componentsLoadError, setComponentsLoadError] = useState<string | null>(null)
   const [valuesLoadError, setValuesLoadError] = useState<string | null>(null)
   const [previewError, setPreviewError] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [isSaving, setIsSaving] = useState<boolean>(false)
   const [calculationPreview, setCalculationPreview] = useState<CalculateInitiativeResultDto>({
     initiativeId: asInitiativeId('INIT-NEW'),
     year: valuesYear,
@@ -136,6 +135,7 @@ export function InitiativeWizardModal({
     setActiveStepIndex(0)
     setKpiValuesByRow({})
     setFixedValuesByRow({})
+    setSaveError(null)
   }, [isOpen, mode, selectedInitiative])
 
   useEffect(() => {
@@ -511,12 +511,6 @@ export function InitiativeWizardModal({
     }
 
     const resolvedStatus = form.status.trim() || 'DRAFT_OWNER'
-    console.info('[Initiative Save] status usado no save:', {
-      mode,
-      initiativeId: selectedInitiative?.id ?? 'NEW',
-      status: resolvedStatus,
-    })
-
     const dto: SaveInitiativeDto = {
       id: mode === 'edit' ? selectedInitiative?.id : undefined,
       title: form.title.trim(),
@@ -527,34 +521,35 @@ export function InitiativeWizardModal({
       decisionComment: form.decisionComment.trim() || undefined,
     }
 
-    const savedInitiative = await onSave(dto)
-    console.log('[Initiative Save] initiative id after save:', savedInitiative.id)
-    await saveInitiativeComponents(savedInitiative.id, components, catalogs.componentCatalog, actor)
+    setIsSaving(true)
+    setSaveError(null)
 
-    const persistedComponents = await getInitiativeComponents(savedInitiative.id, catalogs.componentCatalog)
-    console.log('[Initiative Save] components payload sent:', persistedComponents)
-    const kpiRows = buildKpiValueGridRows(persistedComponents, catalogs.componentCatalog, catalogs.kpiCatalog)
-    const fixedRows = buildFixedValueGridRows(persistedComponents, catalogs.componentCatalog)
-    const kpiPayload = toSaveKpiValueDtos(savedInitiative.id, valuesYear, valuesScenario, kpiRows, kpiValuesByRow)
-    const fixedPayload = toSaveComponentValueDtos(savedInitiative.id, valuesYear, valuesScenario, fixedRows, fixedValuesByRow)
+    try {
+      const { initiative } = await saveInitiativeAggregate({
+        mode,
+        initiative: dto,
+        actor,
+        components,
+        componentCatalog: catalogs.componentCatalog,
+        kpiCatalog: catalogs.kpiCatalog,
+        valuesYear,
+        valuesScenario,
+        kpiValuesByRow,
+        fixedValuesByRow,
+      })
 
-    console.log('[Initiative Save] KPI values payload sent:', kpiPayload)
-    console.log('[Initiative Save] fixed values payload sent:', fixedPayload)
-    await saveKpiValues(kpiPayload, actor, savedInitiative.id)
-    await saveComponentValues(fixedPayload, actor, savedInitiative.id)
-    const calculationInput = {
-      initiativeId: savedInitiative.id,
-      monthRef: `${valuesYear}-01` as MonthRef,
-      scenario: valuesScenario,
+      onSaveSuccess(initiative)
+      handleClose()
+    } catch (error) {
+      if (error instanceof SaveInitiativeAggregateError) {
+        setSaveError(`Falha na etapa "${error.stepLabel}": ${error.message}`)
+      } else {
+        setSaveError('Falha ao salvar iniciativa. Tente novamente.')
+      }
+      console.error('[Initiative Save] aggregate save failed:', error)
+    } finally {
+      setIsSaving(false)
     }
-    console.log('[Initiative Save] calculation input:', calculationInput)
-    const calculated = await calculateInitiative(calculationInput)
-    console.log('[Initiative Save] calculation output:', calculated)
-    console.log('[Initiative Save] calculation result saved confirmation:', {
-      initiativeId: calculated.initiativeId,
-      results: calculated.results.length,
-      details: calculated.details.length,
-    })
   }
 
   const hasInvalidComponent = components.some(
@@ -574,7 +569,7 @@ export function InitiativeWizardModal({
         ? 'Buscando valores mensais...'
         : isPreviewCalculating
           ? 'Atualizando resultado...'
-          : componentsLoadError ?? valuesLoadError ?? previewError ?? (
+          : saveError ?? componentsLoadError ?? valuesLoadError ?? previewError ?? (
             hasBlockingIssues
               ? 'Existem pendências antes de continuar.'
               : calculationPreview.results.length > 0
@@ -583,7 +578,7 @@ export function InitiativeWizardModal({
           )
 
   const footerStatusTone: 'info' | 'success' | 'warning' | 'error' =
-    componentsLoadError || valuesLoadError || previewError
+    saveError || componentsLoadError || valuesLoadError || previewError
       ? 'error'
       : isSaving || isLoadingComponents || isLoadingValues || isPreviewCalculating
         ? 'info'
