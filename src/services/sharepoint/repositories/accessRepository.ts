@@ -35,7 +35,11 @@ export interface CurrentAccessContext {
   readonly isDevOrAdmin: boolean
 }
 
-const normalizeIdentity = (value?: string): string => value?.trim().toLowerCase() ?? ''
+const normalizeIdentity = (value?: string): string =>
+  value
+    ?.trim()
+    .toLowerCase()
+    .replace(/^i:0#\.f\|membership\|/, '') ?? ''
 
 const toAccessRole = (role?: string): AccessRole | undefined => {
   if (!role) {
@@ -46,9 +50,14 @@ const toAccessRole = (role?: string): AccessRole | undefined => {
   return ALLOWED_ACCESS_ROLES.find((allowedRole) => allowedRole === normalizedRole)
 }
 
-const isActiveValue = (value: UserAccessListItem['IsActive']): boolean => value === true || value === 1
+const isActiveValue = (value: UserAccessListItem['IsActive'] | string | undefined): boolean => {
+  if (value === true || value === 1) {
+    return true
+  }
 
-const quoteOData = (value: string): string => `'${value.replace(/'/g, "''")}'`
+  const normalized = `${value ?? ''}`.trim().toLowerCase()
+  return ['sim', 'yes', 'true', '1'].includes(normalized)
+}
 
 const getCurrentUserSafe = async (): Promise<SharePointCurrentUserResponse> => {
   const endpoint = `${sharePointContext.apiBasePath}/web/currentuser?$select=Email,LoginName,Title`
@@ -58,11 +67,11 @@ const getCurrentUserSafe = async (): Promise<SharePointCurrentUserResponse> => {
 const loadActiveAccessEntries = async (userLogin: string): Promise<readonly UserAccessListItem[]> => {
   const select = 'Id,Title,UserLogin,Role,Unit,IsActive'
   const normalizedLogin = normalizeIdentity(userLogin)
-  const filter = `IsActive eq 1 and UserLogin eq ${quoteOData(normalizedLogin)}`
-  const response = await get<SharePointListResponse<UserAccessListItem>>(
-    filteredListItemsEndpoint(ACCESS_LIST_TITLE, filter, { select, orderBy: 'Id desc' }),
-  )
-  return response.value.filter((item) => isActiveValue(item.IsActive))
+  const response = await get<SharePointListResponse<UserAccessListItem>>(filteredListItemsEndpoint(ACCESS_LIST_TITLE, 'Id gt 0', { select, orderBy: 'Id desc' }))
+  return response.value.filter((item) => {
+    const itemLogin = normalizeIdentity(item.UserLogin)
+    return itemLogin === normalizedLogin && isActiveValue(item.IsActive as UserAccessListItem['IsActive'] | string)
+  })
 }
 
 const resolvePriorityRole = (items: readonly UserAccessListItem[]): AccessRole | undefined => {
