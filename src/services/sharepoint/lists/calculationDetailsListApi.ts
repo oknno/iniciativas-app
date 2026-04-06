@@ -13,6 +13,8 @@ export interface CalculationDetailListItem {
   readonly InitiativeId: number | { readonly Id?: number }
   readonly InitiativeIdId?: number
   readonly ComponentType: string
+  readonly CalculationType?: string
+  readonly Direction?: number
   readonly KPICode?: string
   readonly ConversionCode?: string
   readonly Year: number
@@ -25,6 +27,8 @@ export interface CalculationDetailListItem {
 export interface CreateCalculationDetailPayload {
   readonly InitiativeId: number
   readonly ComponentType: string
+  readonly CalculationType?: string
+  readonly Direction?: number
   readonly KPICode?: string
   readonly ConversionCode?: string
   readonly Year: number
@@ -52,7 +56,7 @@ export const listByInitiativeId = async (initiativeId: number): Promise<readonly
     const response = await get<SharePointListResponse<CalculationDetailListItem>>(
       filteredListItemsEndpoint(LIST_TITLE, `InitiativeIdId eq ${initiativeId}`, {
         select:
-          'Id,InitiativeId,InitiativeIdId,ComponentType,KPICode,ConversionCode,Year,Month,BaseValue,ConversionValue,ResultValue',
+          'Id,InitiativeId,InitiativeIdId,ComponentType,CalculationType,Direction,KPICode,ConversionCode,Year,Month,BaseValue,ConversionValue,ResultValue',
         orderBy: 'Year asc,Month asc',
       }),
     )

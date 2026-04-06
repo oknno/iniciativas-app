@@ -71,10 +71,10 @@ export const toSaveInitiativeComponentDto = (
     initiativeId,
     name: catalogComponent.name,
     componentType: catalogComponent.componentType,
-    direction: catalogComponent.defaultDirection,
-    calculationType: catalogComponent.defaultCalculationType,
-    kpiCode: catalogComponent.defaultCalculationType === 'KPI_BASED' ? draft.kpiCode : undefined,
-    conversionCode: catalogComponent.defaultCalculationType === 'KPI_BASED' ? draft.conversionCode : undefined,
+    direction: draft.direction,
+    calculationType: draft.calculationType,
+    kpiCode: draft.calculationType === 'KPI_BASED' ? draft.kpiCode : undefined,
+    conversionCode: draft.calculationType === 'KPI_BASED' ? draft.conversionCode : undefined,
     formulaCode: draft.formulaCode,
     sortOrder,
   }
@@ -96,7 +96,7 @@ export const getInitiativeComponentDraftErrors = (
     errors.push('Formula is required.')
   }
 
-  if (catalogComponent.defaultCalculationType === 'KPI_BASED') {
+  if (draft.calculationType === 'KPI_BASED') {
     if (!draft.kpiCode) {
       errors.push('KPI is required for KPI based components.')
     }

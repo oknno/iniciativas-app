@@ -9,8 +9,7 @@ import type { SaveKpiValueDto } from '../../../application/dto/initiatives/SaveK
 import { validateComponentConfiguration } from '../services/calculationValidator'
 import { CalculationContextFactory } from './CalculationContextFactory'
 import { ComponentCalculator } from './ComponentCalculator'
-
-const MONTHS = Array.from({ length: 12 }, (_, index) => index + 1)
+import { DEFAULT_MONTH_POLICY, type MonthPolicy } from '../rules/monthPolicy'
 
 export const CalculationEngine = {
   run(input: {
@@ -22,6 +21,7 @@ export const CalculationEngine = {
     kpiValues: readonly SaveKpiValueDto[]
     fixedValues: readonly SaveComponentValueDto[]
     conversionValues: readonly ConversionValue[]
+    monthPolicy?: MonthPolicy
   }): InitiativeCalculationSnapshot {
     if (input.components.length === 0) {
       return {
@@ -47,6 +47,7 @@ export const CalculationEngine = {
       conversionValues: input.conversionValues,
       year: input.year,
       scenario: input.scenario,
+      monthPolicy: input.monthPolicy ?? DEFAULT_MONTH_POLICY,
     })
 
     const formulaTermsByCode = new Map<string, FormulaTerm[]>()
@@ -59,7 +60,7 @@ export const CalculationEngine = {
     const details: CalculationDetail[] = []
     const gainByMonth = new Map<number, number>()
 
-    MONTHS.forEach((month) => {
+    context.months.forEach((month) => {
       const monthlyResults = input.components.map((component) =>
         ComponentCalculator.calculate({
           initiativeId: input.initiativeId,
@@ -102,7 +103,7 @@ export const CalculationEngine = {
     const annualValue = Array.from(gainByMonth.values()).reduce((sum, value) => sum + value, 0)
     let accumulatedValue = 0
 
-    const results: CalculationResult[] = MONTHS.map((month) => {
+    const results: CalculationResult[] = context.months.map((month) => {
       const gainValue = gainByMonth.get(month) ?? 0
       accumulatedValue += gainValue
 
@@ -119,6 +120,7 @@ export const CalculationEngine = {
     return {
       initiativeId: input.initiativeId,
       year: input.year,
+      monthPolicy: input.monthPolicy ?? DEFAULT_MONTH_POLICY,
       results,
       details,
       calculatedAt: new Date().toISOString(),

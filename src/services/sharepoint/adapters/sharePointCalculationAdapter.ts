@@ -6,6 +6,7 @@ import type { CalculationResultListItem, CreateCalculationResultPayload } from '
 import { asConversionCode } from '../../../domain/catalogs/value-objects/ConversionCode'
 import { asKpiCode } from '../../../domain/catalogs/value-objects/KpiCode'
 import { asInitiativeId, type InitiativeId } from '../../../domain/initiatives/value-objects/InitiativeId'
+import { DEFAULT_MONTH_POLICY } from '../../../domain/calculation/rules/monthPolicy'
 
 export const initiativeIdFromSharePointCalculation = (id: number | string): InitiativeId => asInitiativeId(String(id))
 
@@ -49,6 +50,8 @@ export const fromSharePointCalculationResult = (item: CalculationResultListItem)
 export const fromSharePointCalculationDetail = (item: CalculationDetailListItem): CalculationDetail => ({
   initiativeId: resolveInitiativeId(item),
   componentType: item.ComponentType as CalculationDetail['componentType'],
+  calculationType: item.CalculationType as CalculationDetail['calculationType'],
+  direction: item.Direction as CalculationDetail['direction'],
   kpiCode: item.KPICode ? asKpiCode(item.KPICode) : undefined,
   conversionCode: item.ConversionCode ? asConversionCode(item.ConversionCode) : undefined,
   year: Number(item.Year),
@@ -72,6 +75,8 @@ export const toSharePointCalculationDetailPayload = (
   detail: CalculationDetail,
 ): Omit<CreateCalculationDetailPayload, 'InitiativeId'> => ({
   ComponentType: detail.componentType,
+  CalculationType: detail.calculationType,
+  Direction: detail.direction,
   KPICode: detail.kpiCode,
   ConversionCode: detail.conversionCode,
   Year: detail.year,
@@ -88,6 +93,7 @@ export const toCalculationSnapshot = (
 ): InitiativeCalculationSnapshot => ({
   initiativeId,
   year: results[0]?.year ?? details[0]?.year ?? new Date().getUTCFullYear(),
+  monthPolicy: DEFAULT_MONTH_POLICY,
   results,
   details,
   calculatedAt: new Date().toISOString(),
