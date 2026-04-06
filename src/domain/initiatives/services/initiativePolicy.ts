@@ -2,7 +2,7 @@ import type { InitiativeStatus } from '../entities/InitiativeStatus'
 import { isInitiativeStatus, isStatusTransitionAllowed } from '../entities/InitiativeStatus'
 import { BusinessRuleError } from '../../shared/errors/BusinessRuleError'
 
-export const USER_ROLES = ['OWNER', 'CONTROLADORIA', 'ESTRATEGIA'] as const
+export const USER_ROLES = ['OWNER', 'CONTROLADORIA', 'ESTRATEGIA', 'DEV', 'ADMIN'] as const
 export type UserRole = (typeof USER_ROLES)[number]
 
 export interface RuleActor {
@@ -12,7 +12,7 @@ export interface RuleActor {
 
 export const SYSTEM_ACTOR: RuleActor = {
   user: 'system',
-  role: 'OWNER',
+  role: 'ADMIN',
 }
 
 const ensureRole = (role: UserRole, allowed: readonly UserRole[], message: string): void => {
@@ -53,27 +53,27 @@ export const InitiativePolicy = {
   },
 
   ensureCanCreateInitiative(role: UserRole): void {
-    ensureRole(role, ['OWNER'], 'Permissão insuficiente para criar iniciativa')
+    ensureRole(role, ['OWNER', 'CONTROLADORIA', 'DEV', 'ADMIN'], 'Permissão insuficiente para criar iniciativa')
   },
 
   ensureCanEditStructure(role: UserRole, status: string): void {
-    ensureRole(role, ['OWNER'], 'Estrutura não pode ser alterada após aprovação')
+    ensureRole(role, ['OWNER', 'CONTROLADORIA', 'DEV', 'ADMIN'], 'Estrutura não pode ser alterada após aprovação')
     this.ensureStructureEditable(status)
   },
 
   ensureCanEditKpiValues(role: UserRole): void {
-    ensureRole(role, ['OWNER'], 'Permissão insuficiente para editar valores de KPI')
+    ensureRole(role, ['OWNER', 'CONTROLADORIA', 'DEV', 'ADMIN'], 'Permissão insuficiente para editar valores de KPI')
   },
 
   ensureCanEditComponentValues(role: UserRole): void {
-    ensureRole(role, ['OWNER'], 'Permissão insuficiente para editar valores de componentes')
+    ensureRole(role, ['OWNER', 'CONTROLADORIA', 'DEV', 'ADMIN'], 'Permissão insuficiente para editar valores de componentes')
   },
 
   ensureCanApprove(role: UserRole): void {
-    ensureRole(role, ['ESTRATEGIA'], 'Permissão insuficiente para aprovar iniciativa')
+    ensureRole(role, ['ESTRATEGIA', 'DEV', 'ADMIN'], 'Permissão insuficiente para aprovar iniciativa')
   },
 
   ensureCanReject(role: UserRole): void {
-    ensureRole(role, ['ESTRATEGIA'], 'Permissão insuficiente para reprovar iniciativa')
+    ensureRole(role, ['ESTRATEGIA', 'DEV', 'ADMIN'], 'Permissão insuficiente para reprovar iniciativa')
   },
 }

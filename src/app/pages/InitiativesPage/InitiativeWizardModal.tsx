@@ -38,6 +38,7 @@ import type { CalculateInitiativeResultDto } from '../../../application/dto/calc
 import type { MonthRef } from '../../../domain/initiatives/value-objects/MonthRef'
 import { getCatalogs } from '../../../application/use-cases/catalogs/getCatalogs'
 import type { CatalogsDtoBundle } from '../../../application/mappers/catalogs/catalogMappers'
+import { useAccess } from '../../access/AccessContext'
 
 import type { InitiativeWizardMode } from './hooks/useInitiativesPage'
 
@@ -88,6 +89,7 @@ const getNewComponentDraft = (formulaCode?: FormulaCode): InitiativeComponentDra
 })
 
 export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiative, onClose, onSave }: InitiativeWizardModalProps) {
+  const { actor } = useAccess()
   const [activeStepIndex, setActiveStepIndex] = useState<number>(0)
   const [form, setForm] = useState<InitiativeFormState>(getInitialFormState(selectedInitiative))
   const [components, setComponents] = useState<readonly InitiativeComponentDraftDto[]>([])
@@ -492,7 +494,7 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
 
     const savedInitiative = await onSave(dto)
     console.log('[Initiative Save] initiative id after save:', savedInitiative.id)
-    await saveInitiativeComponents(savedInitiative.id, components, catalogs.componentCatalog)
+    await saveInitiativeComponents(savedInitiative.id, components, catalogs.componentCatalog, actor)
 
     const persistedComponents = await getInitiativeComponents(savedInitiative.id, catalogs.componentCatalog)
     console.log('[Initiative Save] components payload sent:', persistedComponents)
@@ -503,8 +505,8 @@ export function InitiativeWizardModal({ isOpen, mode, isSaving, selectedInitiati
 
     console.log('[Initiative Save] KPI values payload sent:', kpiPayload)
     console.log('[Initiative Save] fixed values payload sent:', fixedPayload)
-    await saveKpiValues(kpiPayload, undefined, savedInitiative.id)
-    await saveComponentValues(fixedPayload, undefined, savedInitiative.id)
+    await saveKpiValues(kpiPayload, actor, savedInitiative.id)
+    await saveComponentValues(fixedPayload, actor, savedInitiative.id)
     const calculationInput = {
       initiativeId: savedInitiative.id,
       monthRef: `${valuesYear}-01` as MonthRef,

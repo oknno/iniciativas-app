@@ -10,6 +10,7 @@ import { getInitiativeById } from '../../../../application/use-cases/initiatives
 import { getInitiatives } from '../../../../application/use-cases/initiatives/getInitiatives'
 import { updateInitiative } from '../../../../application/use-cases/initiatives/updateInitiative'
 import { useInitiativeSelection } from './useInitiativeSelection'
+import { useAccess } from '../../../access/AccessContext'
 
 export type InitiativeWizardMode = 'create' | 'edit'
 
@@ -29,6 +30,7 @@ const toListItem = (detail: InitiativeDetailDto): InitiativeListItemDto => ({
 
 export function useInitiativesPage() {
   const { pushToast } = useToast()
+  const { actor, isConfigured } = useAccess()
   const [items, setItems] = useState<readonly InitiativeListItemDto[]>([])
   const [selectedItemDetail, setSelectedItemDetail] = useState<InitiativeDetailDto | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -107,10 +109,14 @@ export function useInitiativesPage() {
   }
 
   const saveFromWizard = async (input: SaveInitiativeDto): Promise<InitiativeDetailDto> => {
+    if (!isConfigured) {
+      throw new Error('Acesso não configurado para o usuário atual.')
+    }
+
     setIsSaving(true)
 
     try {
-      const detail = wizardMode === 'create' ? await createInitiative(input) : await updateInitiative(input)
+      const detail = wizardMode === 'create' ? await createInitiative(input, actor) : await updateInitiative(input, actor)
 
       setItems((current) => {
         const item = toListItem(detail)
