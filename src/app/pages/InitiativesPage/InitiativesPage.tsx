@@ -5,6 +5,8 @@ import { InitiativeWizardModal } from './InitiativeWizardModal'
 import { InitiativesTableSection } from './components/InitiativesTableSection'
 import { InitiativeSummarySection } from './components/InitiativeSummarySection'
 import { useInitiativesPage } from './hooks/useInitiativesPage'
+import { useAccess } from '../../access/AccessContext'
+import { resolveWorkspaceByRole } from './workspaces'
 
 const initialFilters: CommandBarFilters = {
   searchTitle: '',
@@ -15,9 +17,77 @@ const initialFilters: CommandBarFilters = {
 }
 
 export function InitiativesPage() {
-  const { items, selectedId, selectedStatus, selectedItemDetail, selectedItemDetailState, isWizardOpen, wizardMode, isSaving, actions } =
+  const { context } = useAccess()
+  const { items, selectedId, selectedStatus, selectedItemDetail, selectedItemDetailState, isWizardOpen, wizardMode, isSaving, commandState, actions } =
     useInitiativesPage()
   const [filters, setFilters] = useState<CommandBarFilters>(initialFilters)
+  const workspace = resolveWorkspaceByRole(context?.role)
+
+  const filteredItems = workspace.pendingStatuses?.length
+    ? items.filter((item) => workspace.pendingStatuses?.includes(item.status))
+    : items
+
+  const handleSendToApproval = () => {
+    if (workspace.id === 'owner') {
+      void actions.sendToLocalReview()
+      return
+    }
+
+    if (workspace.id === 'localController') {
+      if (selectedStatus === 'IN_REVIEW_LOCAL') {
+        void actions.approveLocal()
+        return
+      }
+
+      if (selectedStatus === 'LOCAL_APPROVED') {
+        void actions.sendToStrategicReview()
+      }
+      return
+    }
+
+    if (workspace.id === 'strategicController') {
+      void actions.approveStrategic()
+      return
+    }
+
+    if (selectedStatus === 'LOCAL_APPROVED') {
+      void actions.sendToStrategicReview()
+      return
+    }
+
+    if (selectedStatus === 'IN_REVIEW_LOCAL') {
+      void actions.approveLocal()
+      return
+    }
+
+    if (selectedStatus === 'IN_REVIEW_STRATEGIC') {
+      void actions.approveStrategic()
+      return
+    }
+
+    void actions.sendToLocalReview()
+  }
+
+  const handleBackStatus = () => {
+    if (workspace.id === 'localController') {
+      void actions.returnToOwner()
+      return
+    }
+
+    if (workspace.id === 'strategicController') {
+      void actions.rejectStrategic()
+      return
+    }
+
+    if (selectedStatus === 'IN_REVIEW_LOCAL') {
+      void actions.returnToOwner()
+      return
+    }
+
+    if (selectedStatus === 'IN_REVIEW_STRATEGIC') {
+      void actions.rejectStrategic()
+    }
+  }
 
   return (
     <div className="initiatives-app">
@@ -26,9 +96,14 @@ export function InitiativesPage() {
             <CommandBar
               selectedId={selectedId ?? null}
               selectedStatus={selectedStatus}
-            totalLoaded={items.length}
+            totalLoaded={filteredItems.length}
             filters={filters}
             onChangeFilters={setFilters}
+            visibility={workspace.commandVisibility}
+            workspaceTitle={workspace.title}
+            sendToApprovalLabel={workspace.sendActionLabel}
+            backStatusLabel={workspace.backActionLabel}
+            commandState={commandState}
             onApply={() => {
               // Reserved for filter integration on table/query.
             }}
@@ -41,12 +116,8 @@ export function InitiativesPage() {
             onEdit={actions.openEdit}
             onDuplicate={actions.duplicateSelected}
             onDelete={actions.deleteSelected}
-            onSendToApproval={() => {
-              // Reserved for approval flow integration.
-            }}
-            onBackStatus={() => {
-              // Reserved for status rollback integration.
-            }}
+            onSendToApproval={handleSendToApproval}
+            onBackStatus={handleBackStatus}
             onExport={() => {
               // Reserved for export integration.
             }}
@@ -54,7 +125,7 @@ export function InitiativesPage() {
 
           <section style={styles.mainGrid}>
             <div style={styles.leftColumn}>
-              <InitiativesTableSection items={items} selectedId={selectedId} onSelect={actions.select} />
+              <InitiativesTableSection items={filteredItems} selectedId={selectedId} onSelect={actions.select} />
             </div>
 
             <aside style={styles.rightColumn}>
@@ -77,6 +148,8 @@ export function InitiativesPage() {
         selectedInitiative={selectedItemDetail}
         onClose={actions.closeWizard}
         onSave={actions.saveFromWizard}
+        allowedStepIds={workspace.wizardStepIds}
+        allowSave={workspace.id !== 'strategicController'}
       />
     </div>
   )

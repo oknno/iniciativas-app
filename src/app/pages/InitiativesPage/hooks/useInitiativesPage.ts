@@ -17,6 +17,8 @@ export type InitiativeWizardMode = 'create' | 'edit'
 const normalizeStatusForComparison = (status: string | undefined): string => status?.trim().toLowerCase() ?? ''
 
 const isEditableStatus = (status: string | undefined): boolean => ['draft_owner', 'returned_to_owner'].includes(normalizeStatusForComparison(status))
+const isLocalControllerEditableStatus = (status: string | undefined): boolean =>
+  ['in_review_local', 'local_approved'].includes(normalizeStatusForComparison(status))
 
 const toListItem = (detail: InitiativeDetailDto): InitiativeListItemDto => ({
   id: detail.id,
@@ -30,7 +32,7 @@ const toListItem = (detail: InitiativeDetailDto): InitiativeListItemDto => ({
 
 export function useInitiativesPage() {
   const { pushToast } = useToast()
-  const { actor, isConfigured } = useAccess()
+  const { actor, isConfigured, context } = useAccess()
   const [items, setItems] = useState<readonly InitiativeListItemDto[]>([])
   const [selectedItemDetail, setSelectedItemDetail] = useState<InitiativeDetailDto | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -87,7 +89,12 @@ export function useInitiativesPage() {
   }
 
   const openEdit = () => {
-    if (!selectedId || !isEditableStatus(selectedListItem?.status)) {
+    const canEditByRole =
+      context?.role === 'CTRL_LOCAL'
+        ? isLocalControllerEditableStatus(selectedListItem?.status)
+        : isEditableStatus(selectedListItem?.status) || context?.isDevOrAdmin
+
+    if (!selectedId || !canEditByRole) {
       return
     }
 
@@ -107,6 +114,37 @@ export function useInitiativesPage() {
   const closeWizard = () => {
     setIsWizardOpen(false)
   }
+
+  const updateSelectedStatus = useCallback(
+    async (nextStatus: string, successTitle: string) => {
+      if (!selectedId || !selectedItemDetail || !isConfigured || !actor) {
+        return
+      }
+
+      try {
+        const updated = await updateInitiative(
+          {
+            id: selectedItemDetail.id,
+            title: selectedItemDetail.title,
+            unidade: selectedItemDetail.unidade,
+            responsavel: selectedItemDetail.responsavel,
+            stage: selectedItemDetail.stage,
+            status: nextStatus,
+          },
+          actor,
+        )
+
+        setItems((current) => current.map((item) => (item.id === updated.id ? toListItem(updated) : item)))
+        setSelectedItemDetail(updated)
+        setSelectedItemDetailState('loaded')
+        pushToast({ tone: 'success', title: successTitle, message: updated.title })
+      } catch (error) {
+        console.error(`Failed to transition initiative ${selectedId} to ${nextStatus}.`, error)
+        pushToast({ tone: 'error', title: 'Falha ao atualizar status' })
+      }
+    },
+    [actor, isConfigured, pushToast, selectedId, selectedItemDetail],
+  )
 
   const saveFromWizard = async (input: SaveInitiativeDto): Promise<InitiativeDetailDto> => {
     if (!isConfigured || !actor) {
@@ -185,11 +223,15 @@ export function useInitiativesPage() {
 
   const commandState = useMemo(
     () => ({
-      canEdit: Boolean(selectedId) && isEditableStatus(selectedListItem?.status),
+      canEdit:
+        Boolean(selectedId) &&
+        (context?.role === 'CTRL_LOCAL'
+          ? isLocalControllerEditableStatus(selectedListItem?.status)
+          : isEditableStatus(selectedListItem?.status) || Boolean(context?.isDevOrAdmin)),
       canDuplicate: Boolean(selectedId),
-      canDelete: Boolean(selectedId) && isEditableStatus(selectedListItem?.status),
+      canDelete: Boolean(selectedId) && (isEditableStatus(selectedListItem?.status) || Boolean(context?.isDevOrAdmin)),
     }),
-    [selectedId, selectedListItem?.status],
+    [context?.isDevOrAdmin, context?.role, selectedId, selectedListItem?.status],
   )
 
   const selectedStatus = selectedItemDetail?.status ?? selectedListItem?.status ?? ''
@@ -239,6 +281,12 @@ export function useInitiativesPage() {
       saveFromWizard,
       duplicateSelected,
       deleteSelected,
+      sendToLocalReview: () => updateSelectedStatus('IN_REVIEW_LOCAL', 'Enviado para validação local'),
+      returnToOwner: () => updateSelectedStatus('RETURNED_TO_OWNER', 'Iniciativa devolvida para owner'),
+      approveLocal: () => updateSelectedStatus('LOCAL_APPROVED', 'Validação local concluída'),
+      sendToStrategicReview: () => updateSelectedStatus('IN_REVIEW_STRATEGIC', 'Enviado para validação estratégica'),
+      approveStrategic: () => updateSelectedStatus('STRATEGIC_APPROVED', 'Validação estratégica aprovada'),
+      rejectStrategic: () => updateSelectedStatus('STRATEGIC_REJECTED', 'Validação estratégica rejeitada'),
     },
   }
 }
