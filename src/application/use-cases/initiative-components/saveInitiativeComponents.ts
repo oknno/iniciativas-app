@@ -20,7 +20,7 @@ export async function saveInitiativeComponents(
   const initiative = await initiativesRepository.getById(initiativeId)
 
   if (!initiative) {
-    throw new BusinessRuleError('Iniciativa não encontrada')
+    throw new BusinessRuleError('Iniciativa inexistente')
   }
 
   try {
@@ -48,7 +48,10 @@ export async function saveInitiativeComponents(
   const [kpiCatalog, formulaCatalog] = await Promise.all([
     catalogsRepository.listKpiCatalog(),
     catalogsRepository.listFormulaCatalog(),
-  ])
+  ]).catch((error) => {
+    console.error('[saveInitiativeComponents] Failed to load auxiliary catalog data.', error)
+    throw new BusinessRuleError('Falha ao carregar dados auxiliares')
+  })
 
   ensureComponentStructure(components, kpiCatalog, formulaCatalog)
 

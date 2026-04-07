@@ -42,14 +42,27 @@ export const initiativesRepository = {
     const sharePointInitiativeId = initiativeIdToSharePoint(id)
 
     try {
-      const [initiative, components, calculationResult] = await Promise.all([
-        getInitiativeById(sharePointInitiativeId),
-        initiativeComponentsRepository.listByInitiativeId(id),
-        calculationRepository.getCalculationResultByInitiativeId(id),
-      ])
+      const initiative = await getInitiativeById(sharePointInitiativeId)
+
+      const components = await initiativeComponentsRepository.listByInitiativeId(id).catch((error) => {
+        console.error(`[initiativesRepository.getById] Fallback to empty components for initiative ${sharePointInitiativeId}.`, error)
+        return []
+      })
+
+      const calculationResult = await calculationRepository.getCalculationResultByInitiativeId(id).catch((error) => {
+        console.error(
+          `[initiativesRepository.getById] Fallback to empty calculation result for initiative ${sharePointInitiativeId}.`,
+          error,
+        )
+        return []
+      })
 
       return fromSharePointInitiative(initiative, components, sumAnnualGain(calculationResult))
-    } catch {
+    } catch (error) {
+      console.error(
+        `[initiativesRepository.getById] Failed to load initiative ${sharePointInitiativeId} from primary list.`,
+        error,
+      )
       return undefined
     }
   },
