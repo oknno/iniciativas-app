@@ -82,7 +82,13 @@ export async function saveInitiativeAggregate(input: SaveInitiativeAggregateInpu
   }
 
   try {
-    await saveInitiativeComponents(savedInitiative.id, input.components, input.componentCatalog, input.actor)
+    await saveInitiativeComponents(
+      savedInitiative.id,
+      input.components,
+      input.componentCatalog,
+      input.actor,
+      savedInitiative.status,
+    )
   } catch (error) {
     throw new SaveInitiativeAggregateError('components', error)
   }
