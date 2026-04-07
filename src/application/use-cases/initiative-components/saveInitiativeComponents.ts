@@ -15,16 +15,18 @@ export async function saveInitiativeComponents(
   drafts: readonly InitiativeComponentDraftDto[],
   componentCatalog: readonly ComponentMasterDto[],
   actor: RuleActor,
+  initiativeStatus?: string,
 ): Promise<void> {
   const resolvedActor = resolveActor(actor)
-  const initiative = await initiativesRepository.getById(initiativeId)
+  const resolvedInitiativeStatus =
+    initiativeStatus ?? (await initiativesRepository.getById(initiativeId))?.status
 
-  if (!initiative) {
+  if (!resolvedInitiativeStatus) {
     throw new BusinessRuleError('Iniciativa inexistente')
   }
 
   try {
-    InitiativePolicy.ensureCanEditStructure(resolvedActor.role, initiative.status)
+    InitiativePolicy.ensureCanEditStructure(resolvedActor.role, resolvedInitiativeStatus)
   } catch (error) {
     if (error instanceof BusinessRuleError) {
       await governanceRepository.logAccessDenied({
