@@ -10,7 +10,7 @@ import { updateInitiative } from '../../../../application/use-cases/initiatives/
 import { useInitiativeSelection } from './useInitiativeSelection'
 import { useAccess } from '../../../access/AccessContext'
 
-export type InitiativeWizardMode = 'create' | 'edit'
+export type InitiativeWizardMode = 'create' | 'edit' | 'view'
 export type CommandBarFilters = {
   searchTitle: string
   status: string
@@ -157,7 +157,7 @@ export function useInitiativesPage() {
       return
     }
 
-    setWizardMode('edit')
+    setWizardMode('view')
     setIsWizardOpen(true)
   }
 

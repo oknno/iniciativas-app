@@ -547,7 +547,7 @@ export function InitiativeWizardModal({
 
     try {
       const { initiative } = await saveInitiativeAggregate({
-        mode,
+        mode: mode === 'view' ? 'edit' : mode,
         initiative: dto,
         actor,
         components,
@@ -587,6 +587,7 @@ export function InitiativeWizardModal({
   const canMoveToNextStep = !isLoadingCatalogs && !isLoadingComponents && !isLoadingValues && !isPreviewCalculating
   const hasBlockingIssues = isInitiativeInfoInvalid || hasInvalidComponent || hasInvalidConversionValue
   const isSaveDisabled = isInitiativeInfoInvalid || isSaving || hasInvalidComponent || hasInvalidConversionValue
+  const isReadOnlyMode = mode === 'view' || !allowSave
 
   const footerStatus = isSaving
     ? 'Salvando iniciativa...'
@@ -637,8 +638,12 @@ export function InitiativeWizardModal({
         style={{ width: '100%', display: 'grid', placeItems: 'center' }}
       >
         <WizardUi
-          title={mode === 'create' ? 'Nova Iniciativa' : 'Editar Iniciativa'}
-          subtitle="Preencha as etapas para configurar, validar e salvar a iniciativa."
+          title={mode === 'create' ? 'Nova Iniciativa' : mode === 'view' ? 'Visualizar Iniciativa' : 'Editar Iniciativa'}
+          subtitle={
+            isReadOnlyMode
+              ? 'Modo somente leitura: navegue pelas etapas para revisar a iniciativa.'
+              : 'Preencha as etapas para configurar, validar e salvar a iniciativa.'
+          }
           steps={steps}
           activeStepIndex={activeStepIndex}
           onSelectStep={setActiveStepIndex}
@@ -647,12 +652,13 @@ export function InitiativeWizardModal({
           disableNext={!canMoveToNextStep}
           nextLabel={!canMoveToNextStep ? 'Aguarde...' : activeStepIndex === steps.length - 2 ? 'Revisar' : 'Próximo'}
           backLabel="Voltar"
-          onSave={handleSave}
-          saveLabel={allowSave ? (isSaving ? 'Salvando iniciativa...' : 'Salvar rascunho') : 'Somente leitura'}
-          disableSave={!allowSave || isSaveDisabled}
+          onSave={isReadOnlyMode ? handleClose : handleSave}
+          saveLabel={isReadOnlyMode ? 'Fechar' : isSaving ? 'Salvando iniciativa...' : 'Salvar rascunho'}
+          disableSave={isReadOnlyMode ? false : isSaveDisabled}
           footerStatus={footerStatus}
           footerStatusTone={footerStatusTone}
           onClose={handleClose}
+          readOnlyMode={isReadOnlyMode}
         />
       </div>
     </div>
