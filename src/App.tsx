@@ -1,8 +1,11 @@
 import { ToastProvider } from './app/components/notifications/ToastProvider'
 import { BootstrapLoader } from './app/components/feedback/BootstrapLoader'
-import { InitiativesPage } from './app/pages/InitiativesPage/InitiativesPage'
 import { StateMessage } from './app/components/ui/StateMessage'
 import { AccessProvider, useAccess } from './app/access/AccessContext'
+import { OwnerInitiativesPage } from './app/pages/InitiativesPage/OwnerInitiativesPage'
+import { LocalControllerPage } from './app/pages/InitiativesPage/LocalControllerPage'
+import { StrategicControllerPage } from './app/pages/InitiativesPage/StrategicControllerPage'
+import { InitiativesPage } from './app/pages/InitiativesPage/InitiativesPage'
 
 function App() {
   return (
@@ -39,6 +42,18 @@ function AppShell() {
         />
       </div>
     )
+  }
+
+  if (context?.role === 'OWNER') {
+    return <OwnerInitiativesPage />
+  }
+
+  if (context?.role === 'CTRL_LOCAL') {
+    return <LocalControllerPage />
+  }
+
+  if (context?.role === 'CTRL_ESTRATEGICA') {
+    return <StrategicControllerPage />
   }
 
   return <InitiativesPage />

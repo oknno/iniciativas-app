@@ -21,6 +21,7 @@ type WizardUiProps = {
   footerStatus: string
   footerStatusTone?: 'info' | 'success' | 'warning' | 'error'
   onClose: () => void
+  readOnlyMode?: boolean
 }
 
 type StepVisualState = 'completed' | 'active' | 'available' | 'blocked'
@@ -90,6 +91,7 @@ export function WizardUi({
   footerStatus,
   footerStatusTone = 'info',
   onClose,
+  readOnlyMode = false,
 }: WizardUiProps) {
   const activeStep = steps[activeStepIndex]
 
@@ -217,6 +219,8 @@ export function WizardUi({
           padding: `${uiTokens.spacing.md}px ${uiTokens.spacing.xl}px ${uiTokens.spacing.lg}px`,
           overflowY: 'auto',
           background: uiTokens.colors.surface,
+          pointerEvents: readOnlyMode ? 'none' : 'auto',
+          opacity: readOnlyMode ? 0.9 : 1,
         }}
       >
         {activeStep?.render()}
