@@ -87,6 +87,27 @@ export const governanceRepository = {
     })
   },
 
+  async logConversionValuesChanged(input: {
+    readonly initiativeId: InitiativeId
+    readonly changedBy: string
+    readonly rowsAffected: number
+    readonly year: number
+    readonly scenario: string
+  }): Promise<void> {
+    await this.logAudit({
+      title: 'CONVERSION_VALUES_UPDATED',
+      initiativeId: input.initiativeId,
+      entityType: 'ConversionValues',
+      entityId: String(input.initiativeId),
+      changedBy: input.changedBy,
+      changes: [
+        { fieldName: 'RowsAffected', newValue: String(input.rowsAffected) },
+        { fieldName: 'Year', newValue: String(input.year) },
+        { fieldName: 'Scenario', newValue: input.scenario },
+      ],
+    })
+  },
+
   async addStatusHistory(input: {
     readonly initiativeId: InitiativeId
     readonly from: string

@@ -1,6 +1,7 @@
 import type { CalculateInitiativeResultDto } from '../../dto/calculation/CalculateInitiativeResultDto'
 import type { ComponentMasterDto } from '../../dto/catalogs/ComponentMasterDto'
 import type { KpiMasterDto } from '../../dto/catalogs/KpiMasterDto'
+import type { ConversionMasterDto } from '../../dto/catalogs/ConversionMasterDto'
 import type { SaveInitiativeDto } from '../../dto/initiatives/SaveInitiativeDto'
 import type { InitiativeDetailDto } from '../../dto/initiatives/InitiativeDetailDto'
 import type { RuleActor } from '../../../domain/initiatives/services/initiativePolicy'
@@ -11,11 +12,14 @@ import { saveInitiativeComponents } from '../initiative-components/saveInitiativ
 import { getInitiativeComponents } from '../initiative-components/getInitiativeComponents'
 import { saveKpiValues } from '../initiative-values/saveKpiValues'
 import { saveComponentValues } from '../initiative-values/saveComponentValues'
+import { saveConversionValues } from '../initiative-values/saveConversionValues'
 import { calculateInitiative } from '../calculation/calculateInitiative'
 import {
+  buildConversionValueGridRows,
   buildFixedValueGridRows,
   buildKpiValueGridRows,
   toSaveComponentValueDtos,
+  toSaveConversionValueDtos,
   toSaveKpiValueDtos,
   type MonthlyInputMap,
 } from '../../mappers/initiatives/initiativeValueMappers'
@@ -27,6 +31,7 @@ export type SaveInitiativeAggregateStep =
   | 'components'
   | 'values_kpi'
   | 'values_fixed'
+  | 'values_conversion'
   | 'calculation'
 
 const saveStepLabels: Record<SaveInitiativeAggregateStep, string> = {
@@ -34,6 +39,7 @@ const saveStepLabels: Record<SaveInitiativeAggregateStep, string> = {
   components: 'Componentes',
   values_kpi: 'Valores KPI',
   values_fixed: 'Valores fixos',
+  values_conversion: 'Valores de conversão',
   calculation: 'Cálculo final',
 }
 
@@ -59,10 +65,12 @@ type SaveInitiativeAggregateInput = {
   components: readonly InitiativeComponentDraftDto[]
   componentCatalog: readonly ComponentMasterDto[]
   kpiCatalog: readonly KpiMasterDto[]
+  conversionCatalog: readonly ConversionMasterDto[]
   valuesYear: number
   valuesScenario: Scenario
   kpiValuesByRow: Readonly<Record<string, MonthlyInputMap>>
   fixedValuesByRow: Readonly<Record<string, MonthlyInputMap>>
+  conversionValuesByRow: Readonly<Record<string, MonthlyInputMap>>
 }
 
 type SaveInitiativeAggregateResult = {
@@ -111,6 +119,14 @@ export async function saveInitiativeAggregate(input: SaveInitiativeAggregateInpu
     fixedRows,
     input.fixedValuesByRow,
   )
+  const conversionRows = buildConversionValueGridRows(persistedComponents, input.conversionCatalog)
+  const conversionPayload = toSaveConversionValueDtos(
+    savedInitiative.id,
+    input.valuesYear,
+    input.valuesScenario,
+    conversionRows,
+    input.conversionValuesByRow,
+  )
 
   try {
     await saveKpiValues(kpiPayload, input.actor, savedInitiative.id)
@@ -122,6 +138,15 @@ export async function saveInitiativeAggregate(input: SaveInitiativeAggregateInpu
     await saveComponentValues(fixedPayload, input.actor, savedInitiative.id)
   } catch (error) {
     throw new SaveInitiativeAggregateError('values_fixed', error)
+  }
+
+  try {
+    await saveConversionValues(conversionPayload, input.actor, savedInitiative.id, {
+      year: input.valuesYear,
+      scenario: input.valuesScenario,
+    })
+  } catch (error) {
+    throw new SaveInitiativeAggregateError('values_conversion', error)
   }
 
   try {

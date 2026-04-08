@@ -3,6 +3,7 @@ import type { ConversionMasterDto } from '../../dto/catalogs/ConversionMasterDto
 import type { ConversionValueDto } from '../../dto/catalogs/ConversionValueDto'
 import type { KpiMasterDto } from '../../dto/catalogs/KpiMasterDto'
 import type { SaveComponentValueDto } from '../../dto/initiatives/SaveComponentValueDto'
+import type { SaveConversionValueDto } from '../../dto/initiatives/SaveConversionValueDto'
 import type { SaveKpiValueDto } from '../../dto/initiatives/SaveKpiValueDto'
 import type { InitiativeComponentDraftDto } from './initiativeComponentMappers'
 import type { Direction } from '../../../domain/catalogs/value-objects/Direction'
@@ -54,11 +55,21 @@ export interface ConversionPreviewGroup {
   readonly monthlyValues: Partial<Record<MonthNumber, number>>
 }
 
+export interface ConversionValueGridRow {
+  readonly signature: string
+  readonly conversionCode: string
+  readonly conversionName: string
+  readonly sourceUnit: string
+  readonly targetUnit: string
+}
+
 const buildComponentSignature = (component: InitiativeComponentDraftDto): string =>
   `${component.componentCode}|${component.sortOrder}`
 
 const buildKpiRowSignature = (component: InitiativeComponentDraftDto): string =>
   `${buildComponentSignature(component)}|${component.kpiCode ?? ''}`
+
+const buildConversionSignature = (conversionCode: string): string => `CONV|${conversionCode}`
 
 const resolveStableComponentId = (
   component: InitiativeComponentDraftDto,
@@ -181,6 +192,27 @@ export const buildConversionPreviewGroups = (
     })
   console.log('[InitiativeValueMapper] Conversion preview groups generated:', groups.length)
   return groups
+}
+
+export const buildConversionValueGridRows = (
+  components: readonly InitiativeComponentDraftDto[],
+  conversionCatalog: readonly ConversionMasterDto[],
+): readonly ConversionValueGridRow[] => {
+  const usedConversionCodes = new Set(
+    components
+      .filter((component) => component.calculationType === 'KPI_BASED' && Boolean(component.conversionCode))
+      .map((component) => String(component.conversionCode)),
+  )
+
+  return conversionCatalog
+    .filter((conversion) => usedConversionCodes.has(conversion.code))
+    .map((conversion) => ({
+      signature: buildConversionSignature(conversion.code),
+      conversionCode: conversion.code,
+      conversionName: conversion.name,
+      sourceUnit: conversion.sourceUnit,
+      targetUnit: conversion.targetUnit,
+    }))
 }
 
 export const toKpiValueDraftMap = (
@@ -316,6 +348,67 @@ export const toSaveComponentValueDtos = (
         scenario,
         baseValue: parsed,
         direction: row.direction,
+      })
+    })
+  })
+
+  return result
+}
+
+export const toConversionValueDraftMap = (
+  values: readonly ConversionValueDto[],
+  rows: readonly ConversionValueGridRow[],
+  year: number,
+): Readonly<Record<string, MonthlyInputMap>> => {
+  const byConversionCode = new Map(rows.map((row) => [row.conversionCode, row.signature]))
+  const next: Record<string, MonthlyInputMap> = {}
+
+  values.forEach((value) => {
+    const signature = byConversionCode.get(value.conversionCode)
+    const month = toMonthNumber(value.monthRef, year)
+
+    if (!signature || !month) {
+      return
+    }
+
+    next[signature] = {
+      ...(next[signature] ?? {}),
+      [month]: String(value.value),
+    }
+  })
+
+  return next
+}
+
+export const toSaveConversionValueDtos = (
+  initiativeId: InitiativeId,
+  year: number,
+  scenario: Scenario,
+  rows: readonly ConversionValueGridRow[],
+  valuesByRow: Readonly<Record<string, MonthlyInputMap>>,
+): readonly SaveConversionValueDto[] => {
+  const result: SaveConversionValueDto[] = []
+
+  rows.forEach((row) => {
+    const monthlyValues = valuesByRow[row.signature] ?? {}
+
+    MONTHS.forEach(({ month }) => {
+      const rawValue = monthlyValues[month]
+      if (rawValue === undefined || rawValue.trim() === '') {
+        return
+      }
+
+      const parsed = Number(rawValue)
+      if (!Number.isFinite(parsed)) {
+        return
+      }
+
+      result.push({
+        initiativeId,
+        conversionCode: row.conversionCode as SaveConversionValueDto['conversionCode'],
+        monthRef: toMonthRef(year, month),
+        scenario,
+        value: parsed,
       })
     })
   })

@@ -6,14 +6,18 @@ import type { SaveInitiativeDto } from '../../../application/dto/initiatives/Sav
 import type { InitiativeDetailDto } from '../../../application/dto/initiatives/InitiativeDetailDto'
 import { getInitiativeComponents } from '../../../application/use-cases/initiative-components/getInitiativeComponents'
 import { getInitiativeValues } from '../../../application/use-cases/initiative-values/getInitiativeValues'
+import { getConversionValuesByInitiative } from '../../../application/use-cases/initiative-values/getConversionValuesByInitiative'
 import type { InitiativeComponentDraftDto } from '../../../application/mappers/initiatives/initiativeComponentMappers'
 import { getInitiativeComponentDraftErrors } from '../../../application/mappers/initiatives/initiativeComponentMappers'
 import {
+  buildConversionValueGridRows,
   buildFixedValueGridRows,
   buildKpiValueGridRows,
+  toConversionValueDraftMap,
   toFixedValueDraftMap,
   toKpiValueDraftMap,
   toSaveComponentValueDtos,
+  toSaveConversionValueDtos,
   toSaveKpiValueDtos,
   type MonthNumber,
   type MonthlyInputMap,
@@ -30,6 +34,7 @@ import { getCalculationDetails } from '../../../application/use-cases/calculatio
 import { getCalculationResult } from '../../../application/use-cases/calculation/getCalculationResult'
 import { asInitiativeId } from '../../../domain/initiatives/value-objects/InitiativeId'
 import type { InitiativeComponent } from '../../../domain/initiatives/entities/InitiativeComponent'
+import { InitiativePolicy } from '../../../domain/initiatives/services/initiativePolicy'
 import type { CalculateInitiativeResultDto } from '../../../application/dto/calculation/CalculateInitiativeResultDto'
 import { getCatalogs } from '../../../application/use-cases/catalogs/getCatalogs'
 import {
@@ -68,7 +73,6 @@ const getInitialFormState = (initiative: InitiativeDetailDto | undefined): Initi
   decisionComment: '',
 })
 
-
 const emptyCatalogs: CatalogsDtoBundle = {
   componentCatalog: [],
   kpiCatalog: [],
@@ -105,6 +109,7 @@ export function InitiativeWizardModal({
   const [valuesScenario, setValuesScenario] = useState<Scenario | ''>('')
   const [kpiValuesByRow, setKpiValuesByRow] = useState<Readonly<Record<string, MonthlyInputMap>>>({})
   const [fixedValuesByRow, setFixedValuesByRow] = useState<Readonly<Record<string, MonthlyInputMap>>>({})
+  const [conversionValuesByRow, setConversionValuesByRow] = useState<Readonly<Record<string, MonthlyInputMap>>>({})
   const [catalogs, setCatalogs] = useState<CatalogsDtoBundle>(emptyCatalogs)
   const [isLoadingCatalogs, setIsLoadingCatalogs] = useState<boolean>(false)
   const [isPreviewCalculating, setIsPreviewCalculating] = useState<boolean>(false)
@@ -131,6 +136,7 @@ export function InitiativeWizardModal({
     setActiveStepIndex(0)
     setKpiValuesByRow({})
     setFixedValuesByRow({})
+    setConversionValuesByRow({})
     setValuesYear(null)
     setValuesScenario('')
     setSaveError(null)
@@ -163,13 +169,8 @@ export function InitiativeWizardModal({
 
     setIsLoadingComponents(true)
     setComponentsLoadError(null)
-    console.log('[InitiativeWizard] Loading data for selected initiative id:', selectedInitiative.id)
     void getInitiativeComponents(selectedInitiative.id, catalogs.componentCatalog)
       .then((loadedComponents) => {
-        console.log('[InitiativeWizard] Loaded Initiative_Component records:', loadedComponents)
-        console.log('[InitiativeWizard] Resolved component codes:', loadedComponents.map((item) => item.componentCode))
-        console.log('[InitiativeWizard] Resolved KPI codes:', loadedComponents.map((item) => item.kpiCode).filter(Boolean))
-        console.log('[InitiativeWizard] Resolved conversion codes:', loadedComponents.map((item) => item.conversionCode).filter(Boolean))
         setComponents(loadedComponents)
       })
       .catch((error) => {
@@ -179,7 +180,6 @@ export function InitiativeWizardModal({
       })
       .finally(() => setIsLoadingComponents(false))
   }, [catalogs.componentCatalog, isOpen, mode, selectedInitiative])
-
 
   useEffect(() => {
     if (
@@ -197,29 +197,30 @@ export function InitiativeWizardModal({
 
     const kpiRows = buildKpiValueGridRows(components, catalogs.componentCatalog, catalogs.kpiCatalog)
     const fixedRows = buildFixedValueGridRows(components, catalogs.componentCatalog)
+    const conversionRows = buildConversionValueGridRows(components, catalogs.conversionCatalog)
 
     setIsLoadingValues(true)
     setValuesLoadError(null)
-    void getInitiativeValues(selectedInitiative.id, valuesYear, valuesScenario)
-      .then(({ kpiValues, componentValues }) => {
-        const mappedKpiRows = toKpiValueDraftMap(kpiValues, kpiRows, valuesYear)
-        const mappedFixedRows = toFixedValueDraftMap(componentValues, fixedRows, valuesYear)
-        console.log('[InitiativeWizard] Loaded KPI values (raw):', kpiValues)
-        console.log('[InitiativeWizard] Loaded fixed values (raw):', componentValues)
-        console.log('[InitiativeWizard] Mapped KPI value rows:', mappedKpiRows)
-        console.log('[InitiativeWizard] Mapped fixed value rows:', mappedFixedRows)
-        setKpiValuesByRow(mappedKpiRows)
-        setFixedValuesByRow(mappedFixedRows)
+    void Promise.all([
+      getInitiativeValues(selectedInitiative.id, valuesYear, valuesScenario),
+      getConversionValuesByInitiative(selectedInitiative.id, valuesYear, valuesScenario),
+    ])
+      .then(([{ kpiValues, componentValues }, conversionValues]) => {
+        setKpiValuesByRow(toKpiValueDraftMap(kpiValues, kpiRows, valuesYear))
+        setFixedValuesByRow(toFixedValueDraftMap(componentValues, fixedRows, valuesYear))
+        setConversionValuesByRow(toConversionValueDraftMap(conversionValues, conversionRows, valuesYear))
       })
       .catch((error) => {
         console.error('Failed to load initiative values from SharePoint.', error)
         setKpiValuesByRow({})
         setFixedValuesByRow({})
+        setConversionValuesByRow({})
         setValuesLoadError('Não foi possível carregar os valores mensais da iniciativa.')
       })
       .finally(() => setIsLoadingValues(false))
   }, [
     catalogs.componentCatalog,
+    catalogs.conversionCatalog,
     catalogs.kpiCatalog,
     components,
     isLoadingCatalogs,
@@ -238,8 +239,6 @@ export function InitiativeWizardModal({
 
     void Promise.all([getCalculationResult(selectedInitiative.id), getCalculationDetails(selectedInitiative.id)])
       .then(([results, details]) => {
-        console.log('[InitiativeWizard] Loaded calculation result rows:', results)
-        console.log('[InitiativeWizard] Loaded calculation detail rows:', details)
         if (results.length === 0 && details.length === 0) {
           return
         }
@@ -289,9 +288,7 @@ export function InitiativeWizardModal({
             conversionCatalog={catalogs.conversionCatalog}
             formulaCatalog={catalogs.formulaCatalog}
             isLoading={isLoadingComponents || isLoadingCatalogs}
-            loadingMessage={
-              isLoadingCatalogs ? 'Carregando catálogos da iniciativa...' : 'Carregando componentes da iniciativa...'
-            }
+            loadingMessage={isLoadingCatalogs ? 'Carregando catálogos da iniciativa...' : 'Carregando componentes da iniciativa...'}
             loadErrorMessage={componentsLoadError}
             onAddComponent={() =>
               setComponents((current) => [
@@ -324,14 +321,9 @@ export function InitiativeWizardModal({
                     componentType: selectedCatalog?.componentType ?? component.componentType,
                     direction: selectedCatalog?.defaultDirection ?? component.direction,
                     calculationType,
-                    kpiCode:
-                      calculationType === 'FIXED'
-                        ? undefined
-                        : ((patch.kpiCode ?? component.kpiCode) as KpiCode | undefined),
+                    kpiCode: calculationType === 'FIXED' ? undefined : ((patch.kpiCode ?? component.kpiCode) as KpiCode | undefined),
                     conversionCode:
-                      calculationType === 'FIXED'
-                        ? undefined
-                        : ((patch.conversionCode ?? component.conversionCode) as ConversionCode | undefined),
+                      calculationType === 'FIXED' ? undefined : ((patch.conversionCode ?? component.conversionCode) as ConversionCode | undefined),
                     formulaCode: (patch.formulaCode ?? component.formulaCode) as FormulaCode | undefined,
                   }
                 }),
@@ -353,12 +345,15 @@ export function InitiativeWizardModal({
             year={valuesYear}
             scenario={valuesScenario}
             initiativeId={selectedInitiative?.id}
+            initiativeStatus={selectedInitiative?.status ? InitiativePolicy.ensureValidStatus(selectedInitiative.status) : undefined}
+            actorRole={actor?.role}
             isLoadingValues={isLoadingValues}
             valuesLoadErrorMessage={valuesLoadError}
             isPreviewCalculating={isPreviewCalculating}
             previewErrorMessage={previewError}
             kpiValuesByRow={kpiValuesByRow}
             fixedValuesByRow={fixedValuesByRow}
+            conversionValuesByRow={conversionValuesByRow}
             onKpiValueChange={(rowSignature: string, month: MonthNumber, value: string) =>
               setKpiValuesByRow((current) => ({
                 ...current,
@@ -370,6 +365,15 @@ export function InitiativeWizardModal({
             }
             onFixedValueChange={(rowSignature: string, month: MonthNumber, value: string) =>
               setFixedValuesByRow((current) => ({
+                ...current,
+                [rowSignature]: {
+                  ...(current[rowSignature] ?? {}),
+                  [month]: value,
+                },
+              }))
+            }
+            onConversionValueChange={(rowSignature: string, month: MonthNumber, value: string) =>
+              setConversionValuesByRow((current) => ({
                 ...current,
                 [rowSignature]: {
                   ...(current[rowSignature] ?? {}),
@@ -397,6 +401,7 @@ export function InitiativeWizardModal({
       },
     ],
     [
+      actor?.role,
       calculationPreview,
       catalogs.componentCatalog,
       catalogs.conversionCatalog,
@@ -404,19 +409,20 @@ export function InitiativeWizardModal({
       catalogs.formulaCatalog,
       catalogs.kpiCatalog,
       components,
+      componentsLoadError,
+      conversionValuesByRow,
       fixedValuesByRow,
       form,
-      isLoadingComponents,
       isLoadingCatalogs,
+      isLoadingComponents,
       isLoadingValues,
       isPreviewCalculating,
       kpiValuesByRow,
-      componentsLoadError,
       previewError,
       selectedInitiative,
+      valuesLoadError,
       valuesScenario,
       valuesYear,
-      valuesLoadError,
     ],
   )
 
@@ -428,7 +434,6 @@ export function InitiativeWizardModal({
     return allSteps.filter((step) => allowedStepIds.includes(step.id))
   }, [allSteps, allowedStepIds])
 
-
   useEffect(() => {
     if (activeStepIndex < steps.length) {
       return
@@ -436,6 +441,7 @@ export function InitiativeWizardModal({
 
     setActiveStepIndex(0)
   }, [activeStepIndex, steps.length])
+
   useEffect(() => {
     if (valuesYear === null || valuesScenario === '') {
       return
@@ -463,8 +469,16 @@ export function InitiativeWizardModal({
 
     const kpiRows = buildKpiValueGridRows(components, catalogs.componentCatalog, catalogs.kpiCatalog)
     const fixedRows = buildFixedValueGridRows(components, catalogs.componentCatalog)
+    const conversionRows = buildConversionValueGridRows(components, catalogs.conversionCatalog)
     const kpiPayload = toSaveKpiValueDtos(effectiveInitiativeId, valuesYear, valuesScenario, kpiRows, kpiValuesByRow)
     const fixedPayload = toSaveComponentValueDtos(effectiveInitiativeId, valuesYear, valuesScenario, fixedRows, fixedValuesByRow)
+    const conversionPayload = toSaveConversionValueDtos(
+      effectiveInitiativeId,
+      valuesYear,
+      valuesScenario,
+      conversionRows,
+      conversionValuesByRow,
+    )
 
     setIsPreviewCalculating(true)
     setPreviewError(null)
@@ -475,16 +489,9 @@ export function InitiativeWizardModal({
       components: persistedLikeComponents,
       kpiValues: kpiPayload,
       componentValues: fixedPayload,
-      conversionValues: catalogs.conversionValues,
+      conversionValues: [...catalogs.conversionValues.filter((value) => value.initiativeId !== effectiveInitiativeId), ...conversionPayload],
     })
       .then((preview) => {
-        console.log('[InitiativeWizard] Preview calculation input:', {
-          initiativeId: effectiveInitiativeId,
-          components: persistedLikeComponents,
-          kpiValues: kpiPayload,
-          fixedValues: fixedPayload,
-        })
-        console.log('[InitiativeWizard] Preview calculation output:', preview)
         setCalculationPreview(preview)
       })
       .catch((error) => {
@@ -494,9 +501,11 @@ export function InitiativeWizardModal({
       .finally(() => setIsPreviewCalculating(false))
   }, [
     catalogs.componentCatalog,
+    catalogs.conversionCatalog,
     catalogs.conversionValues,
     catalogs.kpiCatalog,
     components,
+    conversionValuesByRow,
     fixedValuesByRow,
     kpiValuesByRow,
     selectedInitiative?.id,
@@ -544,10 +553,12 @@ export function InitiativeWizardModal({
         components,
         componentCatalog: catalogs.componentCatalog,
         kpiCatalog: catalogs.kpiCatalog,
+        conversionCatalog: catalogs.conversionCatalog,
         valuesYear,
         valuesScenario,
         kpiValuesByRow,
         fixedValuesByRow,
+        conversionValuesByRow,
       })
 
       onSaveSuccess(initiative)
@@ -568,12 +579,14 @@ export function InitiativeWizardModal({
     (component) => getInitiativeComponentDraftErrors(component, catalogs.componentCatalog).length > 0,
   )
   const hasMissingValuesContext = valuesYear === null || valuesScenario === ''
+  const hasInvalidConversionValue = Object.values(conversionValuesByRow).some((row) =>
+    Object.values(row).some((value) => value !== undefined && value.trim() !== '' && !Number.isFinite(Number(value))),
+  )
   const isInitiativeInfoInvalid =
     form.title.trim().length === 0 || form.unidade.trim().length === 0 || form.responsavel.trim().length === 0 || hasMissingValuesContext
   const canMoveToNextStep = !isLoadingCatalogs && !isLoadingComponents && !isLoadingValues && !isPreviewCalculating
-  const hasBlockingIssues = isInitiativeInfoInvalid || hasInvalidComponent
-  const isSaveDisabled =
-    isInitiativeInfoInvalid || isSaving || hasInvalidComponent
+  const hasBlockingIssues = isInitiativeInfoInvalid || hasInvalidComponent || hasInvalidConversionValue
+  const isSaveDisabled = isInitiativeInfoInvalid || isSaving || hasInvalidComponent || hasInvalidConversionValue
 
   const footerStatus = isSaving
     ? 'Salvando iniciativa...'
@@ -584,12 +597,12 @@ export function InitiativeWizardModal({
         : isPreviewCalculating
           ? 'Atualizando resultado...'
           : saveError ?? componentsLoadError ?? valuesLoadError ?? previewError ?? (
-            hasBlockingIssues
-              ? 'Existem pendências antes de continuar.'
-              : calculationPreview.results.length > 0
-                ? 'Resultado calculado com sucesso.'
-                : 'Rascunho ainda não salvo.'
-          )
+              hasBlockingIssues
+                ? 'Existem pendências antes de continuar.'
+                : calculationPreview.results.length > 0
+                  ? 'Resultado calculado com sucesso.'
+                  : 'Rascunho ainda não salvo.'
+            )
 
   const footerStatusTone: 'info' | 'success' | 'warning' | 'error' =
     saveError || componentsLoadError || valuesLoadError || previewError
