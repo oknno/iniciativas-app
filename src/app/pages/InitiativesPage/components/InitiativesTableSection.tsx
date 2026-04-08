@@ -11,6 +11,12 @@ type InitiativesTableSectionProps = {
   onSelect: (id: InitiativeId) => void
   isLoading?: boolean
   errorMessage?: string
+  totalCount: number
+  totalLoaded: number
+  hasMore: boolean
+  paginationState: 'idle' | 'loadingMore' | 'error'
+  paginationErrorMessage?: string
+  onLoadMore: () => void
 }
 
 const columnTemplate = '90px 1fr 220px 160px'
@@ -93,8 +99,21 @@ const styles: Record<string, CSSProperties> = {
   },
 }
 
-export function InitiativesTableSection({ items, selectedId, onSelect, isLoading = false, errorMessage }: InitiativesTableSectionProps) {
+export function InitiativesTableSection({
+  items,
+  selectedId,
+  onSelect,
+  isLoading = false,
+  errorMessage,
+  totalCount,
+  totalLoaded,
+  hasMore,
+  paginationState,
+  paginationErrorMessage,
+  onLoadMore,
+}: InitiativesTableSectionProps) {
   const isEmpty = !isLoading && !errorMessage && items.length === 0
+  const isLoadingMore = paginationState === 'loadingMore'
 
   const handleSelect = (id: InitiativeId, status: string): void => {
     console.info('[InitiativesTableSection] row click', { id, status })
@@ -153,9 +172,13 @@ export function InitiativesTableSection({ items, selectedId, onSelect, isLoading
       </div>
 
       <footer style={styles.footer}>
-        <p style={styles.loadedText}>Itens carregados: {items.length}</p>
-        <button type="button" className="btn">
-          Carregar mais
+        <p style={styles.loadedText}>
+          Itens carregados: {totalLoaded} de {totalCount}
+        </p>
+        {paginationState === 'error' ? <p style={styles.loadedText}>{paginationErrorMessage ?? 'Erro ao carregar próxima página.'}</p> : null}
+        {!hasMore ? <p style={styles.loadedText}>Fim da lista.</p> : null}
+        <button type="button" className="btn" onClick={onLoadMore} disabled={!hasMore || isLoadingMore}>
+          {isLoadingMore ? 'Carregando...' : 'Carregar mais'}
         </button>
       </footer>
     </div>

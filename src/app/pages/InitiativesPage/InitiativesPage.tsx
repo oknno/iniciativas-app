@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { CommandBar, type CommandBarFilters } from './CommandBar'
+import { CommandBar } from './CommandBar'
 import { styles } from './InitiativesPage.styles'
 import { InitiativeWizardModal } from './InitiativeWizardModal'
 import { InitiativesTableSection } from './components/InitiativesTableSection'
@@ -8,41 +7,28 @@ import { useInitiativesPage } from './hooks/useInitiativesPage'
 import { useAccess } from '../../access/AccessContext'
 import { resolveWorkspaceByRole } from './workspaces'
 
-const initialFilters: CommandBarFilters = {
-  searchTitle: '',
-  status: '',
-  unit: '',
-  year: '',
-  scenario: '',
-  sortBy: 'Title',
-  sortDir: 'asc',
-}
-
 export function InitiativesPage() {
   const { context } = useAccess()
-  const { items, selectedId, selectedStatus, selectedItemDetail, selectedItemDetailState, isWizardOpen, wizardMode, commandState, actions } =
-    useInitiativesPage()
-  const [filters, setFilters] = useState<CommandBarFilters>(initialFilters)
+  const {
+    items,
+    rawItems,
+    filters,
+    totalCount,
+    nextPageToken,
+    paginationState,
+    paginationErrorMessage,
+    selectedId,
+    selectedStatus,
+    selectedItemDetail,
+    selectedItemDetailState,
+    isWizardOpen,
+    wizardMode,
+    commandState,
+    actions,
+  } = useInitiativesPage()
   const workspace = resolveWorkspaceByRole(context?.role)
 
-  const filteredItems = (workspace.pendingStatuses?.length
-    ? items.filter((item) => workspace.pendingStatuses?.includes(item.status))
-    : items
-  ).filter((item) => {
-    if (filters.searchTitle && !item.title.toLowerCase().includes(filters.searchTitle.toLowerCase())) {
-      return false
-    }
-
-    if (filters.status && item.status !== filters.status) {
-      return false
-    }
-
-    if (filters.unit && !item.unidade.toLowerCase().includes(filters.unit.toLowerCase())) {
-      return false
-    }
-
-    return true
-  })
+  const workspaceItems = workspace.pendingStatuses?.length ? items.filter((item) => workspace.pendingStatuses?.includes(item.status)) : items
 
   const handleSendToApproval = () => {
     if (workspace.id === 'owner') {
@@ -103,19 +89,19 @@ export function InitiativesPage() {
             <CommandBar
               selectedId={selectedId ?? null}
               selectedStatus={selectedStatus}
-            totalLoaded={filteredItems.length}
+              totalLoaded={workspaceItems.length}
             filters={filters}
-            onChangeFilters={setFilters}
+            onChangeFilters={actions.setFiltersDraft}
             visibility={workspace.commandVisibility}
             workspaceTitle={workspace.title}
             sendToApprovalLabel={workspace.sendActionLabel}
             backStatusLabel={workspace.backActionLabel}
             commandState={commandState}
             onApply={() => {
-              // Reserved for filter integration on table/query.
+              actions.applyFilters()
             }}
             onClear={() => {
-              setFilters(initialFilters)
+              actions.clearFilters()
             }}
             onRefresh={actions.refresh}
             onNew={actions.openCreate}
@@ -132,7 +118,17 @@ export function InitiativesPage() {
 
           <section style={styles.mainGrid}>
             <div style={styles.leftColumn}>
-              <InitiativesTableSection items={filteredItems} selectedId={selectedId} onSelect={actions.select} />
+              <InitiativesTableSection
+                items={workspaceItems}
+                selectedId={selectedId}
+                onSelect={actions.select}
+                totalCount={totalCount}
+                totalLoaded={rawItems.length}
+                hasMore={Boolean(nextPageToken)}
+                paginationState={paginationState}
+                paginationErrorMessage={paginationErrorMessage}
+                onLoadMore={actions.loadMore}
+              />
             </div>
 
             <aside style={styles.rightColumn}>

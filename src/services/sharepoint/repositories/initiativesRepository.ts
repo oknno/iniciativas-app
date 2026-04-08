@@ -13,6 +13,7 @@ import {
   deleteInitiative,
   getInitiativeById,
   listInitiatives,
+  type ListInitiativesPageOptions,
   updateInitiative,
 } from '../lists/initiativesListApi'
 import { initiativeComponentsRepository } from './initiativeComponentsRepository'
@@ -25,17 +26,25 @@ const sumAnnualGain = (items: readonly { readonly gainValue: number }[]): number
   items.reduce((total, item) => total + item.gainValue, 0)
 
 export const initiativesRepository = {
-  async list(): Promise<readonly InitiativeWithAnnualGain[]> {
-    const initiatives = await listInitiatives()
+  async list(
+    options?: ListInitiativesPageOptions,
+  ): Promise<{ readonly items: readonly InitiativeWithAnnualGain[]; readonly nextPageToken?: string; readonly totalCount: number }> {
+    const page = await listInitiatives(options)
 
-    return await Promise.all(
-      initiatives.map(async (item) => {
+    const items = await Promise.all(
+      page.items.map(async (item) => {
         const initiativeId = initiativeIdFromSharePoint(item.Id)
         const annualGain = sumAnnualGain(await calculationRepository.getCalculationResultByInitiativeId(initiativeId))
 
         return fromSharePointInitiative(item, [], annualGain)
       }),
     )
+
+    return {
+      items,
+      nextPageToken: page.nextPageToken,
+      totalCount: page.totalCount,
+    }
   },
 
   async getById(id: InitiativeId): Promise<InitiativeWithAnnualGain | undefined> {
