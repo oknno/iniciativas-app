@@ -58,10 +58,6 @@ export const ensureComponentStructure = (
 
 export const ensureFormulaTermsOrFallback = (formulaTerms: readonly FormulaTerm[]): void => {
   if (formulaTerms.length === 0) {
-    return
-  }
-
-  if (formulaTerms.length < 1) {
     throw new BusinessRuleError('Fórmula inválida')
   }
 }

@@ -34,9 +34,9 @@ import { getCalculationDetails } from '../../../application/use-cases/calculatio
 import { getCalculationResult } from '../../../application/use-cases/calculation/getCalculationResult'
 import { asInitiativeId } from '../../../domain/initiatives/value-objects/InitiativeId'
 import type { InitiativeComponent } from '../../../domain/initiatives/entities/InitiativeComponent'
-import { InitiativePolicy } from '../../../domain/initiatives/services/initiativePolicy'
 import type { CalculateInitiativeResultDto } from '../../../application/dto/calculation/CalculateInitiativeResultDto'
 import { getCatalogs } from '../../../application/use-cases/catalogs/getCatalogs'
+import { isInitiativeStatus, type InitiativeStatus } from '../../../domain/initiatives/entities/InitiativeStatus'
 import {
   saveInitiativeAggregate,
   SaveInitiativeAggregateError,
@@ -89,6 +89,15 @@ const getNewComponentDraft = (formulaCode?: FormulaCode): InitiativeComponentDra
   formulaCode,
   sortOrder: 1,
 })
+
+const resolveInitiativeStatus = (status?: string): InitiativeStatus | undefined => {
+  if (!status) {
+    return undefined
+  }
+
+  const normalizedStatus = status.trim().toUpperCase()
+  return isInitiativeStatus(normalizedStatus) ? normalizedStatus : undefined
+}
 
 export function InitiativeWizardModal({
   isOpen,
@@ -345,7 +354,7 @@ export function InitiativeWizardModal({
             year={valuesYear}
             scenario={valuesScenario}
             initiativeId={selectedInitiative?.id}
-            initiativeStatus={selectedInitiative?.status ? InitiativePolicy.ensureValidStatus(selectedInitiative.status) : undefined}
+            initiativeStatus={resolveInitiativeStatus(selectedInitiative?.status)}
             actorRole={actor?.role}
             isLoadingValues={isLoadingValues}
             valuesLoadErrorMessage={valuesLoadError}

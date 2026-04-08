@@ -26,12 +26,6 @@ export async function updateInitiative(input: SaveInitiativeDto, actor: RuleActo
     decisionComment: input.decisionComment?.trim(),
   }
 
-  console.info('[Initiative Save] update with status:', {
-    from: current.status,
-    requested: input.status,
-    used: normalizedInput.status,
-  })
-
   ensureRequiredInitiativeFields(normalizedInput)
 
   let transitionDecision: ReturnType<typeof InitiativePolicy.ensureCanTransition> | undefined

@@ -95,8 +95,6 @@ export function ValuesStep({
     return acc
   }, {})
 
-  console.log('[InitiativeWizard] Loaded conversion preview values:', conversionGroups)
-
   return (
     <div style={{ display: 'grid', gap: uiTokens.spacing.md }}>
       <Card style={{ borderColor: uiTokens.colors.borderStrong, padding: uiTokens.spacing.md }}>

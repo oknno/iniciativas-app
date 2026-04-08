@@ -117,7 +117,6 @@ export const buildKpiValueGridRows = (
         unit: kpi?.unit ?? '-',
       }
     })
-  console.log('[InitiativeValueMapper] KPI rows generated:', rows.length)
   return rows
 }
 
@@ -139,7 +138,6 @@ export const buildFixedValueGridRows = (
         direction: component.direction,
       }
     })
-  console.log('[InitiativeValueMapper] Fixed rows generated:', rows.length)
   return rows
 }
 
@@ -190,7 +188,6 @@ export const buildConversionPreviewGroups = (
         monthlyValues,
       }
     })
-  console.log('[InitiativeValueMapper] Conversion preview groups generated:', groups.length)
   return groups
 }
 
