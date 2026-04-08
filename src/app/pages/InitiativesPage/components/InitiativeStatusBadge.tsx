@@ -11,11 +11,11 @@ export function InitiativeStatusBadge({ status }: InitiativeStatusBadgeProps) {
       ? 'neutral'
       : status === 'IN_REVIEW_LOCAL' || status === 'IN_REVIEW_STRATEGIC'
         ? 'info'
-        : status === 'LOCAL_APPROVED' || status === 'STRATEGIC_APPROVED'
+        : status === 'STRATEGIC_APPROVED'
           ? 'success'
-          : status === 'STRATEGIC_REJECTED'
-            ? 'danger'
-            : 'warning'
+          : status === 'RETURNED_TO_OWNER'
+            ? 'warning'
+            : 'neutral'
 
   return <Badge tone={tone}>{toInitiativeStatusLabelPtBr(status)}</Badge>
 }

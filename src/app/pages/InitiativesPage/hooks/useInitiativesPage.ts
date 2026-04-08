@@ -16,7 +16,7 @@ const normalizeStatusForComparison = (status: string | undefined): string => sta
 
 const isEditableStatus = (status: string | undefined): boolean => ['draft_owner', 'returned_to_owner'].includes(normalizeStatusForComparison(status))
 const isLocalControllerEditableStatus = (status: string | undefined): boolean =>
-  ['in_review_local', 'local_approved'].includes(normalizeStatusForComparison(status))
+  ['in_review_local'].includes(normalizeStatusForComparison(status))
 
 const toListItem = (detail: InitiativeDetailDto): InitiativeListItemDto => ({
   id: detail.id,
@@ -270,17 +270,16 @@ export function useInitiativesPage() {
 
         void updateSelectedStatus('RETURNED_TO_OWNER', 'Iniciativa devolvida para owner', comment)
       },
-      approveLocal: () => updateSelectedStatus('LOCAL_APPROVED', 'Validação local concluída'),
       sendToStrategicReview: () => updateSelectedStatus('IN_REVIEW_STRATEGIC', 'Enviado para validação estratégica'),
       approveStrategic: () => updateSelectedStatus('STRATEGIC_APPROVED', 'Validação estratégica aprovada'),
-      rejectStrategic: () => {
-        const comment = window.prompt('Informe o comentário obrigatório para reprovação:')?.trim()
+      returnToOwnerFromStrategic: () => {
+        const comment = window.prompt('Informe o comentário obrigatório para devolução:')?.trim()
         if (!comment) {
-          pushToast({ tone: 'warning', title: 'Comentário obrigatório para reprovação' })
+          pushToast({ tone: 'warning', title: 'Comentário obrigatório para devolução' })
           return
         }
 
-        void updateSelectedStatus('STRATEGIC_REJECTED', 'Validação estratégica rejeitada', comment)
+        void updateSelectedStatus('RETURNED_TO_OWNER', 'Iniciativa devolvida para owner', comment)
       },
     },
   }

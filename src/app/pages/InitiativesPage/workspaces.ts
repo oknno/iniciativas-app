@@ -42,7 +42,7 @@ const LOCAL_CONTROLLER_WORKSPACE: WorkspaceConfig = {
   id: 'localController',
   title: 'LocalControllerWorkspace',
   subtitle: 'Fila de validação local e preparação para conversão estratégica.',
-  pendingStatuses: ['IN_REVIEW_LOCAL', 'LOCAL_APPROVED'],
+  pendingStatuses: ['IN_REVIEW_LOCAL'],
   wizardStepIds: ['components', 'values', 'review'],
   commandVisibility: {
     new: false,
@@ -52,7 +52,7 @@ const LOCAL_CONTROLLER_WORKSPACE: WorkspaceConfig = {
     sendToApproval: true,
     backStatus: true,
   },
-  sendActionLabel: 'Aprovar local / Enviar p/ Estratégica',
+  sendActionLabel: 'Enviar p/ Estratégica',
   backActionLabel: 'Devolver p/ Owner',
 }
 

@@ -8,10 +8,8 @@ export type UserRole = (typeof USER_ROLES)[number]
 export type TransitionAction =
   | 'SUBMIT_LOCAL_REVIEW'
   | 'RETURN_TO_OWNER'
-  | 'APPROVE_LOCAL'
   | 'SUBMIT_STRATEGIC_REVIEW'
   | 'APPROVE_STRATEGIC'
-  | 'REJECT_STRATEGIC'
 
 export interface RuleActor {
   readonly user: string
@@ -26,10 +24,8 @@ export interface TransitionDecision {
 export type WorkflowEventType =
   | 'SUBMITTED_LOCAL'
   | 'RETURNED_OWNER'
-  | 'APPROVED_LOCAL'
   | 'SUBMITTED_STRATEGIC'
   | 'APPROVED_STRATEGIC'
-  | 'REJECTED_STRATEGIC'
 
 export const SYSTEM_ACTOR: RuleActor = {
   user: 'system',
@@ -58,41 +54,33 @@ const transitionActionMatrix: Readonly<Record<InitiativeStatus, Partial<Record<I
   },
   IN_REVIEW_LOCAL: {
     RETURNED_TO_OWNER: { action: 'RETURN_TO_OWNER', targetRole: 'OWNER' },
-    LOCAL_APPROVED: { action: 'APPROVE_LOCAL', targetRole: 'CTRL_LOCAL' },
+    IN_REVIEW_STRATEGIC: { action: 'SUBMIT_STRATEGIC_REVIEW', targetRole: 'CTRL_ESTRATEGICA' },
   },
   RETURNED_TO_OWNER: {
     IN_REVIEW_LOCAL: { action: 'SUBMIT_LOCAL_REVIEW', targetRole: 'CTRL_LOCAL' },
   },
-  LOCAL_APPROVED: {
-    IN_REVIEW_STRATEGIC: { action: 'SUBMIT_STRATEGIC_REVIEW', targetRole: 'CTRL_ESTRATEGICA' },
-  },
   IN_REVIEW_STRATEGIC: {
+    RETURNED_TO_OWNER: { action: 'RETURN_TO_OWNER', targetRole: 'OWNER' },
     STRATEGIC_APPROVED: { action: 'APPROVE_STRATEGIC', targetRole: 'CTRL_ESTRATEGICA' },
-    STRATEGIC_REJECTED: { action: 'REJECT_STRATEGIC', targetRole: 'CTRL_ESTRATEGICA' },
   },
   STRATEGIC_APPROVED: {},
-  STRATEGIC_REJECTED: {},
 }
 
 const roleActionPermissions: Readonly<Record<UserRole, readonly TransitionAction[]>> = {
   OWNER: ['SUBMIT_LOCAL_REVIEW'],
-  CTRL_LOCAL: ['RETURN_TO_OWNER', 'APPROVE_LOCAL', 'SUBMIT_STRATEGIC_REVIEW'],
-  CTRL_ESTRATEGICA: ['APPROVE_STRATEGIC', 'REJECT_STRATEGIC'],
+  CTRL_LOCAL: ['RETURN_TO_OWNER', 'SUBMIT_STRATEGIC_REVIEW'],
+  CTRL_ESTRATEGICA: ['RETURN_TO_OWNER', 'APPROVE_STRATEGIC'],
   DEV: [
     'SUBMIT_LOCAL_REVIEW',
     'RETURN_TO_OWNER',
-    'APPROVE_LOCAL',
     'SUBMIT_STRATEGIC_REVIEW',
     'APPROVE_STRATEGIC',
-    'REJECT_STRATEGIC',
   ],
   ADMIN: [
     'SUBMIT_LOCAL_REVIEW',
     'RETURN_TO_OWNER',
-    'APPROVE_LOCAL',
     'SUBMIT_STRATEGIC_REVIEW',
     'APPROVE_STRATEGIC',
-    'REJECT_STRATEGIC',
   ],
 }
 
@@ -122,18 +110,20 @@ export const toWorkflowEventType = (action: TransitionAction): WorkflowEventType
       return 'SUBMITTED_LOCAL'
     case 'RETURN_TO_OWNER':
       return 'RETURNED_OWNER'
-    case 'APPROVE_LOCAL':
-      return 'APPROVED_LOCAL'
     case 'SUBMIT_STRATEGIC_REVIEW':
       return 'SUBMITTED_STRATEGIC'
     case 'APPROVE_STRATEGIC':
       return 'APPROVED_STRATEGIC'
-    case 'REJECT_STRATEGIC':
-      return 'REJECTED_STRATEGIC'
   }
 }
 
+const INITIAL_STATUS: InitiativeStatus = 'DRAFT_OWNER'
+
 export const InitiativePolicy = {
+  getInitialStatus(): InitiativeStatus {
+    return INITIAL_STATUS
+  },
+
   ensureValidStatus,
 
   ensureStatusTransition(from: string, to: string): void {

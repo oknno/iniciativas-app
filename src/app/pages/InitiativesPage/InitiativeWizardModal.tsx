@@ -56,7 +56,6 @@ type InitiativeFormState = {
   unidade: string
   responsavel: string
   stage: string
-  status: string
   decisionComment: string
 }
 
@@ -65,7 +64,6 @@ const getInitialFormState = (initiative: InitiativeDetailDto | undefined): Initi
   unidade: initiative?.unidade ?? '',
   responsavel: initiative?.responsavel ?? '',
   stage: initiative?.stage ?? '',
-  status: initiative?.status ?? 'DRAFT_OWNER',
   decisionComment: '',
 })
 
@@ -270,7 +268,6 @@ export function InitiativeWizardModal({
             onUnidadeChange={(value) => setForm((current) => ({ ...current, unidade: value }))}
             onResponsavelChange={(value) => setForm((current) => ({ ...current, responsavel: value }))}
             onStageChange={(value) => setForm((current) => ({ ...current, stage: value }))}
-            onStatusChange={(value) => setForm((current) => ({ ...current, status: value }))}
             onDecisionCommentChange={(value) => setForm((current) => ({ ...current, decisionComment: value }))}
           />
         ),
@@ -511,14 +508,13 @@ export function InitiativeWizardModal({
       throw new Error('Acesso não configurado para o usuário atual.')
     }
 
-    const resolvedStatus = form.status.trim() || 'DRAFT_OWNER'
     const dto: SaveInitiativeDto = {
       id: mode === 'edit' ? selectedInitiative?.id : undefined,
       title: form.title.trim(),
       unidade: form.unidade.trim(),
       responsavel: form.responsavel.trim(),
       stage: form.stage.trim(),
-      status: resolvedStatus,
+      status: selectedInitiative?.status ?? '',
       decisionComment: form.decisionComment.trim() || undefined,
     }
 
