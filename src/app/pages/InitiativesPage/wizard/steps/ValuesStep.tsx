@@ -24,8 +24,8 @@ type ValuesStepProps = {
   kpiCatalog: readonly KpiMasterDto[]
   conversionCatalog: readonly ConversionMasterDto[]
   conversionValues: readonly ConversionValueDto[]
-  year: number
-  scenario: Scenario
+  year: number | null
+  scenario: Scenario | ''
   initiativeId?: InitiativeId
   isLoadingValues: boolean
   valuesLoadErrorMessage?: string | null
@@ -57,14 +57,22 @@ export function ValuesStep({
 }: ValuesStepProps) {
   const kpiRows = buildKpiValueGridRows(components, componentCatalog, kpiCatalog)
   const fixedRows = buildFixedValueGridRows(components, componentCatalog)
-  const conversionGroups = buildConversionPreviewGroups(components, conversionCatalog, conversionValues, year, scenario, initiativeId)
+  const conversionGroups =
+    year === null || scenario === ''
+      ? []
+      : buildConversionPreviewGroups(components, conversionCatalog, conversionValues, year, scenario, initiativeId)
 
   console.log('[InitiativeWizard] Loaded conversion preview values:', conversionGroups)
 
   return (
     <div style={{ display: 'grid', gap: uiTokens.spacing.md }}>
       <Card style={{ borderColor: uiTokens.colors.borderStrong, padding: uiTokens.spacing.md }}>
-        <Section title="3.1 Valores de KPI" subtitle={`Cenário: ${scenario} · Ano: ${year}`}>
+        <Section title="3.1 Valores de KPI" subtitle={`Cenário: ${scenario || '-'} · Ano: ${year ?? '-'}`}>
+          {year === null || scenario === '' ? (
+            <p style={{ margin: `0 0 ${uiTokens.spacing.sm}px`, ...uiTokens.typography.caption, color: uiTokens.colors.warningText }}>
+              Selecione ano e cenário na etapa inicial para carregar os valores.
+            </p>
+          ) : null}
           {isLoadingValues ? (
             <p style={{ margin: `0 0 ${uiTokens.spacing.sm}px`, ...uiTokens.typography.caption, color: uiTokens.colors.textMuted }}>
               Buscando valores mensais...

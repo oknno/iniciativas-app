@@ -8,6 +8,7 @@ import { asConversionCode } from '../../../domain/catalogs/value-objects/Convers
 import { CALCULATION_TYPES, type CalculationType } from '../../../domain/catalogs/value-objects/CalculationType'
 import { asFormulaCode } from '../../../domain/catalogs/value-objects/FormulaCode'
 import { asKpiCode } from '../../../domain/catalogs/value-objects/KpiCode'
+import { SCENARIOS } from '../../../domain/shared/constants/scenarios'
 import type { ComponentValueListItem, CreateComponentValuePayload } from '../lists/componentValuesListApi'
 import type { InitiativeComponentListItem, CreateInitiativeComponentPayload } from '../lists/initiativeComponentsListApi'
 import type { CreateInitiativePayload, InitiativeListItem, UpdateInitiativePayload } from '../lists/initiativesListApi'
@@ -235,7 +236,7 @@ export const fromSharePointKpiValue = (item: KpiValueListItem, catalogMaps: Shar
     componentId: resolvedComponentType ?? resolvedKpiCode,
     kpiCode: asKpiCode(resolvedKpiCode),
     monthRef: toMonthRef(item.Year, item.Month),
-    scenario: (item.Scenario ?? 'BASE') as SaveKpiValueDto['scenario'],
+    scenario: (item.Scenario ?? SCENARIOS[1]) as SaveKpiValueDto['scenario'],
     value: Number(item.Value),
   }
 }
@@ -277,7 +278,7 @@ export const fromSharePointComponentValue = (
     initiativeId: resolveInitiativeId(item),
     componentId: resolvedComponentType,
     monthRef: toMonthRef(item.Year, item.Month),
-    scenario: 'BASE',
+    scenario: (item.Scenario ?? SCENARIOS[1]) as SaveComponentValueDto['scenario'],
     baseValue: Number(item.Value),
     direction: 1,
   }
@@ -295,5 +296,6 @@ export const toCreateComponentValuePayload = (
     Year: year,
     Month: month,
     Value: toOptionalNumber(value.baseValue) ?? 0,
+    Scenario: value.scenario,
   }
 }

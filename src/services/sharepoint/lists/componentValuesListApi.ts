@@ -26,6 +26,7 @@ export interface ComponentValueListItem {
   readonly Year: number
   readonly Month: number
   readonly Value: number
+  readonly Scenario?: string
 }
 
 export interface CreateComponentValuePayload {
@@ -35,6 +36,7 @@ export interface CreateComponentValuePayload {
   readonly Year: number
   readonly Month: number
   readonly Value: number
+  readonly Scenario?: string
 }
 
 const withEntityType = <TPayload extends object>(payload: TPayload): TPayload | (TPayload & { __metadata: { type: string } }) => {
@@ -57,14 +59,22 @@ const validateSchema = async (): Promise<void> => {
   ])
 }
 
-export const listByInitiativeId = async (initiativeId: number): Promise<readonly ComponentValueListItem[]> => {
+export const listByInitiativeId = async (
+  initiativeId: number,
+  filters?: {
+    readonly year?: number
+    readonly scenario?: string
+  },
+): Promise<readonly ComponentValueListItem[]> => {
   try {
     await validateSchema()
+    const yearFilter = Number.isInteger(filters?.year) ? ` and Year eq ${filters?.year}` : ''
+    const scenarioFilter = filters?.scenario ? ` and Scenario eq '${filters.scenario}'` : ''
 
     const response = await get<SharePointListResponse<ComponentValueListItem>>(
-      filteredListItemsEndpoint(LIST_TITLE, `InitiativeIdId eq ${initiativeId}`, {
+      filteredListItemsEndpoint(LIST_TITLE, `InitiativeIdId eq ${initiativeId}${yearFilter}${scenarioFilter}`, {
         select:
-          'Id,Title,InitiativeIdId,InitiativeId/Id,ComponentTypeId,ComponentType/Id,ComponentType/Title,ComponentType/ComponentId,ComponentType/ComponentType,Year,Month,Value',
+          'Id,Title,InitiativeIdId,InitiativeId/Id,ComponentTypeId,ComponentType/Id,ComponentType/Title,ComponentType/ComponentId,ComponentType/ComponentType,Year,Month,Value,Scenario',
         expand: 'InitiativeId,ComponentType',
         orderBy: 'Year asc,Month asc',
       }),

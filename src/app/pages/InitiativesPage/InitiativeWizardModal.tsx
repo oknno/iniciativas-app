@@ -40,6 +40,7 @@ import type { CatalogsDtoBundle } from '../../../application/mappers/catalogs/ca
 import { useAccess } from '../../access/AccessContext'
 
 import type { InitiativeWizardMode } from './hooks/useInitiativesPage'
+import type { Scenario } from '../../../domain/initiatives/value-objects/Scenario'
 
 type InitiativeWizardModalProps = {
   isOpen: boolean
@@ -67,9 +68,6 @@ const getInitialFormState = (initiative: InitiativeDetailDto | undefined): Initi
   decisionComment: '',
 })
 
-
-const DEFAULT_VALUES_YEAR = 2026
-const DEFAULT_VALUES_SCENARIO = 'BASE' as const
 
 const emptyCatalogs: CatalogsDtoBundle = {
   componentCatalog: [],
@@ -103,8 +101,8 @@ export function InitiativeWizardModal({
   const [components, setComponents] = useState<readonly InitiativeComponentDraftDto[]>([])
   const [isLoadingComponents, setIsLoadingComponents] = useState<boolean>(false)
   const [isLoadingValues, setIsLoadingValues] = useState<boolean>(false)
-  const [valuesYear] = useState<number>(DEFAULT_VALUES_YEAR)
-  const [valuesScenario] = useState<typeof DEFAULT_VALUES_SCENARIO>(DEFAULT_VALUES_SCENARIO)
+  const [valuesYear, setValuesYear] = useState<number | null>(null)
+  const [valuesScenario, setValuesScenario] = useState<Scenario | ''>('')
   const [kpiValuesByRow, setKpiValuesByRow] = useState<Readonly<Record<string, MonthlyInputMap>>>({})
   const [fixedValuesByRow, setFixedValuesByRow] = useState<Readonly<Record<string, MonthlyInputMap>>>({})
   const [catalogs, setCatalogs] = useState<CatalogsDtoBundle>(emptyCatalogs)
@@ -117,7 +115,7 @@ export function InitiativeWizardModal({
   const [isSaving, setIsSaving] = useState<boolean>(false)
   const [calculationPreview, setCalculationPreview] = useState<CalculateInitiativeResultDto>({
     initiativeId: asInitiativeId('INIT-NEW'),
-    year: valuesYear,
+    year: valuesYear ?? new Date().getUTCFullYear(),
     results: [],
     details: [],
     calculatedAt: new Date().toISOString(),
@@ -133,6 +131,8 @@ export function InitiativeWizardModal({
     setActiveStepIndex(0)
     setKpiValuesByRow({})
     setFixedValuesByRow({})
+    setValuesYear(null)
+    setValuesScenario('')
     setSaveError(null)
   }, [isOpen, mode, selectedInitiative])
 
@@ -188,7 +188,9 @@ export function InitiativeWizardModal({
       !selectedInitiative ||
       isLoadingComponents ||
       components.length === 0 ||
-      isLoadingCatalogs
+      isLoadingCatalogs ||
+      valuesYear === null ||
+      valuesScenario === ''
     ) {
       return
     }
@@ -244,7 +246,7 @@ export function InitiativeWizardModal({
 
         setCalculationPreview({
           initiativeId: selectedInitiative.id,
-          year: results[0]?.year ?? details[0]?.year ?? valuesYear,
+          year: results[0]?.year ?? details[0]?.year ?? valuesYear ?? new Date().getUTCFullYear(),
           results,
           details,
           calculatedAt: new Date().toISOString(),
@@ -264,11 +266,15 @@ export function InitiativeWizardModal({
         render: () => (
           <InitiativeStep
             form={form}
+            valuesYear={valuesYear}
+            valuesScenario={valuesScenario}
             onTitleChange={(value) => setForm((current) => ({ ...current, title: value }))}
             onUnidadeChange={(value) => setForm((current) => ({ ...current, unidade: value }))}
             onResponsavelChange={(value) => setForm((current) => ({ ...current, responsavel: value }))}
             onStageChange={(value) => setForm((current) => ({ ...current, stage: value }))}
             onDecisionCommentChange={(value) => setForm((current) => ({ ...current, decisionComment: value }))}
+            onValuesYearChange={setValuesYear}
+            onValuesScenarioChange={setValuesScenario}
           />
         ),
       },
@@ -431,6 +437,10 @@ export function InitiativeWizardModal({
     setActiveStepIndex(0)
   }, [activeStepIndex, steps.length])
   useEffect(() => {
+    if (valuesYear === null || valuesScenario === '') {
+      return
+    }
+
     const effectiveInitiativeId = selectedInitiative?.id ?? asInitiativeId('INIT-NEW')
     const persistedLikeComponents: InitiativeComponent[] = components.map((component) => {
       const match =
@@ -460,7 +470,7 @@ export function InitiativeWizardModal({
     setPreviewError(null)
     void previewInitiativeCalculation({
       initiativeId: effectiveInitiativeId,
-      year: valuesYear,
+      year: valuesYear ?? new Date().getUTCFullYear(),
       scenario: valuesScenario,
       components: persistedLikeComponents,
       kpiValues: kpiPayload,
@@ -508,6 +518,11 @@ export function InitiativeWizardModal({
       throw new Error('Acesso não configurado para o usuário atual.')
     }
 
+    if (valuesYear === null || valuesScenario === '') {
+      setSaveError('Selecione ano e cenário antes de salvar.')
+      return
+    }
+
     const dto: SaveInitiativeDto = {
       id: mode === 'edit' ? selectedInitiative?.id : undefined,
       title: form.title.trim(),
@@ -552,7 +567,9 @@ export function InitiativeWizardModal({
   const hasInvalidComponent = components.some(
     (component) => getInitiativeComponentDraftErrors(component, catalogs.componentCatalog).length > 0,
   )
-  const isInitiativeInfoInvalid = form.title.trim().length === 0 || form.unidade.trim().length === 0 || form.responsavel.trim().length === 0
+  const hasMissingValuesContext = valuesYear === null || valuesScenario === ''
+  const isInitiativeInfoInvalid =
+    form.title.trim().length === 0 || form.unidade.trim().length === 0 || form.responsavel.trim().length === 0 || hasMissingValuesContext
   const canMoveToNextStep = !isLoadingCatalogs && !isLoadingComponents && !isLoadingValues && !isPreviewCalculating
   const hasBlockingIssues = isInitiativeInfoInvalid || hasInvalidComponent
   const isSaveDisabled =

@@ -22,8 +22,6 @@ import {
 } from '../lists/kpiValuesListApi'
 import { listAll as listKpiCatalog } from '../lists/kpiMasterListApi'
 
-const getYear = (monthRef: string): number => Number(monthRef.split('-')[0])
-
 const loadCatalogMaps = async (): Promise<{
   readonly componentTypeIdByCode: Readonly<Record<string, number>>
   readonly componentTypeById: Readonly<Record<number, string>>
@@ -123,14 +121,18 @@ export const initiativeValuesRepository = {
     year: number,
     scenario: Scenario,
   ): Promise<{ readonly kpiValues: readonly SaveKpiValueDto[]; readonly componentValues: readonly SaveComponentValueDto[] }> {
-    const [kpiValues, componentValues] = await Promise.all([
-      this.getKpiValuesByInitiativeId(initiativeId),
-      this.getComponentFixedValuesByInitiativeId(initiativeId),
+    const sharePointInitiativeId = initiativeIdToSharePoint(initiativeId)
+    const [maps, kpiItems, componentItems] = await Promise.all([
+      loadCatalogMaps(),
+      listKpiValues(sharePointInitiativeId, { year, scenario }),
+      listComponentValues(sharePointInitiativeId, { year, scenario }),
     ])
 
     return {
-      kpiValues: kpiValues.filter((item) => item.scenario === scenario && getYear(item.monthRef) === year),
-      componentValues: componentValues.filter((item) => item.scenario === scenario && getYear(item.monthRef) === year),
+      kpiValues: kpiItems.map((item) =>
+        fromSharePointKpiValue(item, { componentTypeById: maps.componentTypeById, kpiCodeById: maps.kpiCodeById }),
+      ),
+      componentValues: componentItems.map((item) => fromSharePointComponentValue(item, { componentTypeById: maps.componentTypeById })),
     }
   },
 

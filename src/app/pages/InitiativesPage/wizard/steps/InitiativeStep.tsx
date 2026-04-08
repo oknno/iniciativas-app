@@ -1,4 +1,6 @@
 import type { CSSProperties } from 'react'
+import { SCENARIOS } from '../../../../../domain/shared/constants/scenarios'
+import type { Scenario } from '../../../../../domain/initiatives/value-objects/Scenario'
 import { Card } from '../../../../components/ui/Card'
 import { Section } from '../../../../components/ui/Section'
 import { uiTokens } from '../../../../components/ui/tokens'
@@ -13,11 +15,15 @@ type InitiativeStepForm = {
 
 type InitiativeStepProps = {
   form: InitiativeStepForm
+  valuesYear: number | null
+  valuesScenario: Scenario | ''
   onTitleChange: (value: string) => void
   onUnidadeChange: (value: string) => void
   onResponsavelChange: (value: string) => void
   onStageChange: (value: string) => void
   onDecisionCommentChange: (value: string) => void
+  onValuesYearChange: (value: number | null) => void
+  onValuesScenarioChange: (value: Scenario | '') => void
 }
 
 const inputStyle: CSSProperties = {
@@ -55,11 +61,15 @@ const fieldsGridStyle: CSSProperties = {
 
 export function InitiativeStep({
   form,
+  valuesYear,
+  valuesScenario,
   onTitleChange,
   onUnidadeChange,
   onResponsavelChange,
   onStageChange,
   onDecisionCommentChange,
+  onValuesYearChange,
+  onValuesScenarioChange,
 }: InitiativeStepProps) {
   const isTitleMissing = form.title.trim().length === 0
   const isUnidadeMissing = form.unidade.trim().length === 0
@@ -109,6 +119,35 @@ export function InitiativeStep({
             <label style={labelStyle}>
               Stage
               <input style={inputStyle} value={form.stage} onChange={(event) => onStageChange(event.target.value)} placeholder="Stage" />
+            </label>
+
+            <label style={labelStyle}>
+              Ano de referência
+              <input
+                style={inputStyle}
+                type="number"
+                min={2000}
+                max={2100}
+                value={valuesYear ?? ''}
+                onChange={(event) => onValuesYearChange(event.target.value ? Number(event.target.value) : null)}
+                placeholder="Ex: 2026"
+              />
+            </label>
+
+            <label style={labelStyle}>
+              Cenário
+              <select
+                style={inputStyle}
+                value={valuesScenario}
+                onChange={(event) => onValuesScenarioChange(event.target.value as Scenario | '')}
+              >
+                <option value="">Selecione...</option>
+                {SCENARIOS.map((scenario) => (
+                  <option key={scenario} value={scenario}>
+                    {scenario}
+                  </option>
+                ))}
+              </select>
             </label>
 
             <label style={{ ...labelStyle, gridColumn: '1 / -1' }}>

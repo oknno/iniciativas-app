@@ -64,12 +64,20 @@ const validateSchema = async (): Promise<void> => {
   ])
 }
 
-export const listByInitiativeId = async (initiativeId: number): Promise<readonly KpiValueListItem[]> => {
+export const listByInitiativeId = async (
+  initiativeId: number,
+  filters?: {
+    readonly year?: number
+    readonly scenario?: string
+  },
+): Promise<readonly KpiValueListItem[]> => {
   try {
     await validateSchema()
+    const yearFilter = Number.isInteger(filters?.year) ? ` and Year eq ${filters?.year}` : ''
+    const scenarioFilter = filters?.scenario ? ` and Scenario eq '${filters.scenario}'` : ''
 
     const response = await get<SharePointListResponse<KpiValueListItem>>(
-      filteredListItemsEndpoint(LIST_TITLE, `InitiativeIdId eq ${initiativeId}`, {
+      filteredListItemsEndpoint(LIST_TITLE, `InitiativeIdId eq ${initiativeId}${yearFilter}${scenarioFilter}`, {
         select:
           'Id,Title,InitiativeIdId,InitiativeId/Id,KPICodeId,KPICode/Id,KPICode/Title,KPICode/KPICode,ComponentTypeId,ComponentType/Id,ComponentType/ComponentId,ComponentType/ComponentType,Year,Month,Value,Scenario',
         expand: 'InitiativeId,KPICode,ComponentType',
