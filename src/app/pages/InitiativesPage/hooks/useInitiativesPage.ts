@@ -271,27 +271,10 @@ export function useInitiativesPage() {
 
   const select = useCallback(
     (id: InitiativeDetailDto['id']) => {
-      const listItem = items.find((item) => item.id === id)
-      console.info('[InitiativesPage] row selected', {
-        id,
-        status: listItem?.status ?? '',
-      })
       setSelectedId(id)
     },
-    [items, setSelectedId],
+    [setSelectedId],
   )
-
-  useEffect(() => {
-    if (!selectedId) {
-      return
-    }
-
-    console.info('[InitiativesPage] selected detail state', {
-      id: selectedId,
-      status: selectedStatus,
-      detailState: selectedItemDetailState,
-    })
-  }, [selectedId, selectedStatus, selectedItemDetailState])
 
   const filteredAndSortedItems = useMemo(() => {
     const filtered = items.filter((item) => {

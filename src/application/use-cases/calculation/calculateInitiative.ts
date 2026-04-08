@@ -35,23 +35,8 @@ export async function calculateInitiative(input: CalculateInitiativeInputDto): P
   }
 
   formulaCodes.forEach((formulaCode) => ensureFormulaExists(formulaCode, formulaCatalog))
-  formulaCodes.forEach((formulaCode) => {
-    const exists = formulaCatalog.some((formula) => formula.code === formulaCode)
-    console.info('[Calculation] fórmula encontrada?', { formulaCode, found: exists })
-  })
 
   const formulaTerms = (await Promise.all(formulaCodes.map((formulaCode) => catalogsRepository.listFormulaTerms(formulaCode)))).flat()
-  components.forEach((component) => {
-    const termsByFormulaAndType = formulaTerms.filter((term) =>
-      term.formulaCode === component.formulaCode &&
-      (!term.componentType || term.componentType === component.componentType))
-    console.info('[Calculation] termos encontrados?', {
-      componentType: component.componentType,
-      formulaCode: component.formulaCode,
-      foundCount: termsByFormulaAndType.length,
-      found: termsByFormulaAndType.length > 0,
-    })
-  })
   ensureFormulaTermsOrFallback(formulaTerms)
 
   const snapshot = CalculationEngine.run({

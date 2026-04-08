@@ -35,12 +35,6 @@ export const toInitiativeComponentDraftDto = (
   const byCode = componentCatalog.find((catalogComponent) => catalogComponent.code === component.componentType)
   const catalogMatch = byType ?? byCode
 
-  console.log('[InitiativeComponentMapper] Catalog match for component type:', {
-    componentType: component.componentType,
-    matched: Boolean(catalogMatch),
-    catalogComponentType: catalogMatch?.componentType,
-  })
-
   return {
     id: component.id,
     componentCode: catalogMatch?.code ?? component.componentType,
