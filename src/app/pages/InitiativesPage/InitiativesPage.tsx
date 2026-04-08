@@ -12,6 +12,8 @@ const initialFilters: CommandBarFilters = {
   searchTitle: '',
   status: '',
   unit: '',
+  year: '',
+  scenario: '',
   sortBy: 'Title',
   sortDir: 'asc',
 }
@@ -23,9 +25,24 @@ export function InitiativesPage() {
   const [filters, setFilters] = useState<CommandBarFilters>(initialFilters)
   const workspace = resolveWorkspaceByRole(context?.role)
 
-  const filteredItems = workspace.pendingStatuses?.length
+  const filteredItems = (workspace.pendingStatuses?.length
     ? items.filter((item) => workspace.pendingStatuses?.includes(item.status))
     : items
+  ).filter((item) => {
+    if (filters.searchTitle && !item.title.toLowerCase().includes(filters.searchTitle.toLowerCase())) {
+      return false
+    }
+
+    if (filters.status && item.status !== filters.status) {
+      return false
+    }
+
+    if (filters.unit && !item.unidade.toLowerCase().includes(filters.unit.toLowerCase())) {
+      return false
+    }
+
+    return true
+  })
 
   const handleSendToApproval = () => {
     if (workspace.id === 'owner') {

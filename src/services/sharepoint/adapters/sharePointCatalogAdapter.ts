@@ -14,6 +14,7 @@ import type { FormulaMasterListItem } from '../lists/formulaMasterListApi'
 import type { FormulaTermListItem } from '../lists/formulaTermsListApi'
 import type { KpiMasterListItem } from '../lists/kpiMasterListApi'
 import type { FormulaTerm } from '../../../domain/catalogs/entities/FormulaTerm'
+import { SCENARIOS } from '../../../domain/shared/constants/scenarios'
 
 interface LookupObject {
   readonly Id?: number
@@ -117,7 +118,7 @@ export const fromSharePointConversionValue = (
     conversionCode: asConversionCode(resolvedConversionCode),
     initiativeId: resolvedInitiativeId ? asInitiativeId(resolvedInitiativeId) : undefined,
     monthRef: toMonthRef(item.Year, item.Month),
-    scenario: (item.Scenario ?? 'BASE') as ConversionValueDto['scenario'],
+    scenario: (item.Scenario ?? SCENARIOS[1]) as ConversionValueDto['scenario'],
     value: Number(item.Value),
   }
 }

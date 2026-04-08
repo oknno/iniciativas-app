@@ -20,6 +20,7 @@ import {
   type MonthlyInputMap,
 } from '../../mappers/initiatives/initiativeValueMappers'
 import type { InitiativeComponentDraftDto } from '../../mappers/initiatives/initiativeComponentMappers'
+import type { Scenario } from '../../../domain/initiatives/value-objects/Scenario'
 
 export type SaveInitiativeAggregateStep =
   | 'initiative'
@@ -59,7 +60,7 @@ type SaveInitiativeAggregateInput = {
   componentCatalog: readonly ComponentMasterDto[]
   kpiCatalog: readonly KpiMasterDto[]
   valuesYear: number
-  valuesScenario: 'BASE'
+  valuesScenario: Scenario
   kpiValuesByRow: Readonly<Record<string, MonthlyInputMap>>
   fixedValuesByRow: Readonly<Record<string, MonthlyInputMap>>
 }

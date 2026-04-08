@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import type { InitiativeId } from '../../../domain/initiatives/value-objects/InitiativeId'
 import { toInitiativeStatusLabelPtBr } from '../../../domain/initiatives/entities/InitiativeStatus'
+import { SCENARIOS } from '../../../domain/shared/constants/scenarios'
 
 type CommandBarFilters = {
   searchTitle: string
   status: string
   unit: string
+  year: string
+  scenario: string
   sortBy: 'Title' | 'Id' | 'approvalYear'
   sortDir: 'asc' | 'desc'
 }
@@ -356,6 +359,40 @@ export function CommandBar({
                         onChange={(event) => handleFilterField('unit', event.target.value)}
                         style={styles.input}
                       />
+                    </div>
+
+                    <div style={styles.fieldRow}>
+                      <div style={styles.fieldGroup}>
+                        <label htmlFor="filter-year" style={styles.label}>
+                          Ano
+                        </label>
+                        <input
+                          id="filter-year"
+                          type="number"
+                          value={filters.year}
+                          onChange={(event) => handleFilterField('year', event.target.value)}
+                          style={styles.input}
+                        />
+                      </div>
+
+                      <div style={styles.fieldGroup}>
+                        <label htmlFor="filter-scenario" style={styles.label}>
+                          Cenário
+                        </label>
+                        <select
+                          id="filter-scenario"
+                          value={filters.scenario}
+                          onChange={(event) => handleFilterField('scenario', event.target.value)}
+                          style={styles.input}
+                        >
+                          <option value="">Todos</option>
+                          {SCENARIOS.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
 
                     <div style={styles.fieldRow}>
