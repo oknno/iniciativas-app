@@ -194,6 +194,19 @@ export const InitiativePolicy = {
     throw new BusinessRuleError('Papel atual não pode editar custos nesta fase')
   },
 
+  ensureCanEditConversionValues(role: UserRole, status: string): void {
+    if (isFullAccessRole(role)) {
+      return
+    }
+
+    const initiativeStatus = ensureValidStatus(status)
+    if (role === 'CTRL_LOCAL' && initiativeStatus === 'IN_REVIEW_LOCAL') {
+      return
+    }
+
+    throw new BusinessRuleError('Papel atual não pode editar conversões nesta fase')
+  },
+
   ensureCanTransition(role: UserRole, from: string, to: string): TransitionDecision {
     const source = ensureValidStatus(from)
     const target = ensureValidStatus(to)
