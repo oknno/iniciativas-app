@@ -11,6 +11,26 @@ import { useInitiativeSelection } from './useInitiativeSelection'
 import { useAccess } from '../../../access/AccessContext'
 
 export type InitiativeWizardMode = 'create' | 'edit'
+export type CommandBarFilters = {
+  searchTitle: string
+  status: string
+  unit: string
+  year: string
+  scenario: string
+  sortBy: 'Title' | 'Id' | 'approvalYear'
+  sortDir: 'asc' | 'desc'
+}
+
+const INITIAL_FILTERS: CommandBarFilters = {
+  searchTitle: '',
+  status: '',
+  unit: '',
+  year: '',
+  scenario: '',
+  sortBy: 'Title',
+  sortDir: 'asc',
+}
+const INITIATIVES_PAGE_SIZE = 20
 
 const normalizeStatusForComparison = (status: string | undefined): string => status?.trim().toLowerCase() ?? ''
 
@@ -37,15 +57,25 @@ export function useInitiativesPage() {
   const [isWizardOpen, setIsWizardOpen] = useState<boolean>(false)
   const [wizardMode, setWizardMode] = useState<InitiativeWizardMode>('create')
   const [selectedItemDetailState, setSelectedItemDetailState] = useState<'idle' | 'loading' | 'error' | 'loaded'>('idle')
+  const [filtersDraft, setFiltersDraft] = useState<CommandBarFilters>(INITIAL_FILTERS)
+  const [filtersApplied, setFiltersApplied] = useState<CommandBarFilters>(INITIAL_FILTERS)
+  const [nextPageToken, setNextPageToken] = useState<string | undefined>()
+  const [totalCount, setTotalCount] = useState<number>(0)
+  const [paginationState, setPaginationState] = useState<'idle' | 'loadingMore' | 'error'>('idle')
+  const [paginationErrorMessage, setPaginationErrorMessage] = useState<string | undefined>()
 
   const { selectedId, selectedListItem, setSelectedId, selectAfterDelete } = useInitiativeSelection(items)
 
   const refresh = useCallback(async () => {
     setIsLoading(true)
     try {
-      const loadedItems = await getInitiatives()
-      setItems(loadedItems)
-      pushToast({ title: 'Data refreshed', message: `Loaded ${loadedItems.length} initiatives.`, tone: 'info' })
+      const loadedPage = await getInitiatives({ pageSize: INITIATIVES_PAGE_SIZE })
+      setItems(loadedPage.items)
+      setNextPageToken(loadedPage.nextPageToken)
+      setTotalCount(loadedPage.totalCount)
+      setPaginationState('idle')
+      setPaginationErrorMessage(undefined)
+      pushToast({ title: 'Data refreshed', message: `Loaded ${loadedPage.items.length} initiatives.`, tone: 'info' })
     } catch (error) {
       console.error('Failed to load initiatives from SharePoint.', error)
       pushToast({ title: 'Unable to load initiatives', message: 'Try refreshing again in a few seconds.', tone: 'error' })
@@ -53,6 +83,29 @@ export function useInitiativesPage() {
       setIsLoading(false)
     }
   }, [pushToast])
+
+  const loadMore = useCallback(async () => {
+    if (!nextPageToken || paginationState === 'loadingMore') {
+      return
+    }
+
+    setPaginationState('loadingMore')
+    setPaginationErrorMessage(undefined)
+
+    try {
+      const nextPage = await getInitiatives({ pageSize: INITIATIVES_PAGE_SIZE, pageToken: nextPageToken })
+
+      setItems((current) => [...current, ...nextPage.items])
+      setNextPageToken(nextPage.nextPageToken)
+      setTotalCount(nextPage.totalCount)
+      setPaginationState('idle')
+    } catch (error) {
+      console.error('Failed to load more initiatives from SharePoint.', error)
+      setPaginationState('error')
+      setPaginationErrorMessage('Não foi possível carregar mais iniciativas.')
+      pushToast({ title: 'Unable to load more initiatives', message: 'Try again in a few seconds.', tone: 'error' })
+    }
+  }, [nextPageToken, paginationState, pushToast])
 
   useEffect(() => {
     void refresh()
@@ -240,8 +293,48 @@ export function useInitiativesPage() {
     })
   }, [selectedId, selectedStatus, selectedItemDetailState])
 
+  const filteredAndSortedItems = useMemo(() => {
+    const filtered = items.filter((item) => {
+      if (filtersApplied.searchTitle && !item.title.toLowerCase().includes(filtersApplied.searchTitle.toLowerCase())) {
+        return false
+      }
+
+      if (filtersApplied.status && item.status !== filtersApplied.status) {
+        return false
+      }
+
+      if (filtersApplied.unit && !item.unidade.toLowerCase().includes(filtersApplied.unit.toLowerCase())) {
+        return false
+      }
+
+      return true
+    })
+
+    const sorted = [...filtered].sort((left, right) => {
+      const direction = filtersApplied.sortDir === 'asc' ? 1 : -1
+
+      if (filtersApplied.sortBy === 'Id') {
+        return left.id.localeCompare(right.id) * direction
+      }
+
+      if (filtersApplied.sortBy === 'approvalYear') {
+        return left.stage.localeCompare(right.stage) * direction
+      }
+
+      return left.title.localeCompare(right.title) * direction
+    })
+
+    return sorted
+  }, [filtersApplied, items])
+
   return {
-    items,
+    items: filteredAndSortedItems,
+    rawItems: items,
+    filters: filtersDraft,
+    totalCount,
+    nextPageToken,
+    paginationState,
+    paginationErrorMessage,
     selectedId,
     selectedStatus,
     selectedItemDetail,
@@ -253,6 +346,13 @@ export function useInitiativesPage() {
     actions: {
       select,
       refresh,
+      loadMore,
+      setFiltersDraft,
+      applyFilters: () => setFiltersApplied(filtersDraft),
+      clearFilters: () => {
+        setFiltersDraft(INITIAL_FILTERS)
+        setFiltersApplied(INITIAL_FILTERS)
+      },
       openCreate,
       openView,
       openEdit,

@@ -16,6 +16,7 @@ export interface SharePointItemsQueryOptions {
   readonly expand?: string
   readonly orderBy?: string
   readonly top?: number
+  readonly skipToken?: string
 }
 
 export const listEndpoint = (listTitle: string): string =>
@@ -31,6 +32,7 @@ export const listItemsEndpoint = (listTitle: string, options?: SharePointItemsQu
     options.expand ? `$expand=${encodeURIComponent(options.expand)}` : '',
     options.orderBy ? `$orderby=${encodeURIComponent(options.orderBy)}` : '',
     typeof options.top === 'number' ? `$top=${options.top}` : '',
+    options.skipToken ? `$skiptoken=${encodeURIComponent(options.skipToken)}` : '',
   ])
 
   return `${listEndpoint(listTitle)}/items${query}`

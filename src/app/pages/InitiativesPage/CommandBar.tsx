@@ -2,16 +2,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import type { InitiativeId } from '../../../domain/initiatives/value-objects/InitiativeId'
 import { toInitiativeStatusLabelPtBr } from '../../../domain/initiatives/entities/InitiativeStatus'
 import { SCENARIOS } from '../../../domain/shared/constants/scenarios'
-
-type CommandBarFilters = {
-  searchTitle: string
-  status: string
-  unit: string
-  year: string
-  scenario: string
-  sortBy: 'Title' | 'Id' | 'approvalYear'
-  sortDir: 'asc' | 'desc'
-}
+import type { CommandBarFilters } from './hooks/useInitiativesPage'
 
 type CommandBarVisibility = {
   new: boolean

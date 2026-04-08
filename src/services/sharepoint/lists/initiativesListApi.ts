@@ -1,11 +1,12 @@
 import { deleteItem, get, merge, post } from '../spHttp'
 import { sharePointContext } from '../spContext'
-import { listItemByIdEndpoint, listItemsEndpoint } from '../spUrls'
+import { listEndpoint, listItemByIdEndpoint, listItemsEndpoint } from '../spUrls'
 
 const LIST_TITLE = 'Initiatives'
 
 interface SharePointListResponse<TItem> {
   readonly value: readonly TItem[]
+  readonly '@odata.nextLink'?: string
 }
 
 export interface InitiativeListItem {
@@ -28,6 +29,16 @@ export interface CreateInitiativePayload {
 }
 
 export type UpdateInitiativePayload = Partial<CreateInitiativePayload>
+export interface ListInitiativesPageOptions {
+  readonly top?: number
+  readonly pageToken?: string
+}
+
+export interface ListInitiativesPageResult {
+  readonly items: readonly InitiativeListItem[]
+  readonly nextPageToken?: string
+  readonly totalCount: number
+}
 
 const select = 'Id,Title,Unidade,Responsavel,Stage,Status,Created,Modified'
 
@@ -44,10 +55,43 @@ const withEntityType = <TPayload extends object>(payload: TPayload): TPayload | 
   }
 }
 
-export const listInitiatives = async (): Promise<readonly InitiativeListItem[]> => {
+const extractSkipTokenFromNextLink = (nextLink?: string): string | undefined => {
+  if (!nextLink) {
+    return undefined
+  }
+
   try {
-    const response = await get<SharePointListResponse<InitiativeListItem>>(listItemsEndpoint(LIST_TITLE, { select }))
-    return response.value
+    const url = new URL(nextLink, 'https://dummy.local')
+    return url.searchParams.get('$skiptoken') ?? undefined
+  } catch {
+    return undefined
+  }
+}
+
+const getInitiativesTotalCount = async (): Promise<number> => {
+  const endpoint = `${listEndpoint(LIST_TITLE)}?$select=ItemCount`
+  const payload = await get<{ readonly ItemCount?: number }>(endpoint)
+  return payload.ItemCount ?? 0
+}
+
+export const listInitiatives = async (options?: ListInitiativesPageOptions): Promise<ListInitiativesPageResult> => {
+  try {
+    const [response, totalCount] = await Promise.all([
+      get<SharePointListResponse<InitiativeListItem>>(
+        listItemsEndpoint(LIST_TITLE, {
+          select,
+          top: options?.top,
+          skipToken: options?.pageToken,
+        }),
+      ),
+      getInitiativesTotalCount(),
+    ])
+
+    return {
+      items: response.value,
+      nextPageToken: extractSkipTokenFromNextLink(response['@odata.nextLink']),
+      totalCount,
+    }
   } catch (error) {
     throw new Error(`Failed to list initiatives from '${LIST_TITLE}'. ${(error as Error).message}`)
   }
