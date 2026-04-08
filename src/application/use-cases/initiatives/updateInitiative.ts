@@ -19,9 +19,10 @@ export async function updateInitiative(input: SaveInitiativeDto, actor: RuleActo
     throw new BusinessRuleError('Iniciativa não encontrada')
   }
 
+  const requestedStatus = input.status.trim()
   const normalizedInput: SaveInitiativeDto = {
     ...input,
-    status: input.status.trim() || current.status,
+    status: requestedStatus || current.status,
     decisionComment: input.decisionComment?.trim(),
   }
 
@@ -39,10 +40,7 @@ export async function updateInitiative(input: SaveInitiativeDto, actor: RuleActo
     if (current.status !== normalizedInput.status) {
       transitionDecision = InitiativePolicy.ensureCanTransition(resolvedActor.role, current.status, normalizedInput.status)
 
-      if (
-        (transitionDecision.action === 'RETURN_TO_OWNER' || transitionDecision.action === 'REJECT_STRATEGIC') &&
-        !normalizedInput.decisionComment
-      ) {
+      if (transitionDecision.action === 'RETURN_TO_OWNER' && !normalizedInput.decisionComment) {
         throw new BusinessRuleError('Comentário obrigatório para devoluções e reprovações')
       }
     }

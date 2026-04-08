@@ -35,11 +35,6 @@ export function InitiativesPage() {
 
     if (workspace.id === 'localController') {
       if (selectedStatus === 'IN_REVIEW_LOCAL') {
-        void actions.approveLocal()
-        return
-      }
-
-      if (selectedStatus === 'LOCAL_APPROVED') {
         void actions.sendToStrategicReview()
       }
       return
@@ -50,13 +45,8 @@ export function InitiativesPage() {
       return
     }
 
-    if (selectedStatus === 'LOCAL_APPROVED') {
-      void actions.sendToStrategicReview()
-      return
-    }
-
     if (selectedStatus === 'IN_REVIEW_LOCAL') {
-      void actions.approveLocal()
+      void actions.sendToStrategicReview()
       return
     }
 
@@ -75,7 +65,7 @@ export function InitiativesPage() {
     }
 
     if (workspace.id === 'strategicController') {
-      void actions.rejectStrategic()
+      void actions.returnToOwnerFromStrategic()
       return
     }
 
@@ -85,7 +75,7 @@ export function InitiativesPage() {
     }
 
     if (selectedStatus === 'IN_REVIEW_STRATEGIC') {
-      void actions.rejectStrategic()
+      void actions.returnToOwnerFromStrategic()
     }
   }
 

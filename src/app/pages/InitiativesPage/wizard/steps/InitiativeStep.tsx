@@ -2,14 +2,12 @@ import type { CSSProperties } from 'react'
 import { Card } from '../../../../components/ui/Card'
 import { Section } from '../../../../components/ui/Section'
 import { uiTokens } from '../../../../components/ui/tokens'
-import { INITIATIVE_STATUSES, toInitiativeStatusLabelPtBr } from '../../../../../domain/initiatives/entities/InitiativeStatus'
 
 type InitiativeStepForm = {
   title: string
   unidade: string
   responsavel: string
   stage: string
-  status: string
   decisionComment?: string
 }
 
@@ -19,7 +17,6 @@ type InitiativeStepProps = {
   onUnidadeChange: (value: string) => void
   onResponsavelChange: (value: string) => void
   onStageChange: (value: string) => void
-  onStatusChange: (value: string) => void
   onDecisionCommentChange: (value: string) => void
 }
 
@@ -62,7 +59,6 @@ export function InitiativeStep({
   onUnidadeChange,
   onResponsavelChange,
   onStageChange,
-  onStatusChange,
   onDecisionCommentChange,
 }: InitiativeStepProps) {
   const isTitleMissing = form.title.trim().length === 0
@@ -113,17 +109,6 @@ export function InitiativeStep({
             <label style={labelStyle}>
               Stage
               <input style={inputStyle} value={form.stage} onChange={(event) => onStageChange(event.target.value)} placeholder="Stage" />
-            </label>
-
-            <label style={labelStyle}>
-              Status
-              <select style={inputStyle} value={form.status} onChange={(event) => onStatusChange(event.target.value)}>
-                {INITIATIVE_STATUSES.map((status) => (
-                  <option key={status} value={status}>
-                    {toInitiativeStatusLabelPtBr(status)}
-                  </option>
-                ))}
-              </select>
             </label>
 
             <label style={{ ...labelStyle, gridColumn: '1 / -1' }}>

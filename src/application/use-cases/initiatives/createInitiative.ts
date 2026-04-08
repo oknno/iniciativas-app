@@ -27,7 +27,7 @@ export async function createInitiative(input: SaveInitiativeDto, actor: RuleActo
 
   const normalizedInput: SaveInitiativeDto = {
     ...input,
-    status: input.status.trim() || 'DRAFT_OWNER',
+    status: InitiativePolicy.getInitialStatus(),
   }
   console.info('[Initiative Save] create with status:', normalizedInput.status)
   ensureRequiredInitiativeFields(normalizedInput)

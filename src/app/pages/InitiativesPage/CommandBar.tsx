@@ -47,7 +47,7 @@ type CommandBarProps = {
   }
 }
 
-const statusOptions = ['DRAFT_OWNER', 'IN_REVIEW_LOCAL', 'RETURNED_TO_OWNER', 'LOCAL_APPROVED', 'IN_REVIEW_STRATEGIC', 'STRATEGIC_APPROVED', 'STRATEGIC_REJECTED'] as const
+const statusOptions = ['DRAFT_OWNER', 'IN_REVIEW_LOCAL', 'RETURNED_TO_OWNER', 'IN_REVIEW_STRATEGIC', 'STRATEGIC_APPROVED'] as const
 const sortByOptions = ['Title', 'Id', 'approvalYear'] as const
 const sortDirOptions = ['asc', 'desc'] as const
 
